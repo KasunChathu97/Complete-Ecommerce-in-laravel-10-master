@@ -17,5 +17,11 @@ class DatabaseSeeder extends Seeder
         $this->call(UsersTableSeeder::class);
         $this->call(SettingTableSeeder::class);
         $this->call(CouponSeeder::class);
+
+        // Optional: import demo data from sql/eshop_db.sql (INSERT statements only)
+        // Enable by setting IMPORT_ESHOP_SQL_SEED=true in .env
+        if ((bool) env('IMPORT_ESHOP_SQL_SEED', false)) {
+            $this->call(EshopSqlSeeder::class);
+        }
     }
 } 
