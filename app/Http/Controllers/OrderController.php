@@ -155,7 +155,9 @@ class OrderController extends Controller
             'actionURL'=>route('order.show',$order->id),
             'fas'=>'fa-file-alt'
         ];
-        Notification::send($users, new StatusNotification($details));
+
+        // Email notification on order placed (disabled)
+        // Notification::send($users, new StatusNotification($details));
 
         // Log SMS (billing/notification) entry (provider integration can be added later)
         $this->logOrderSms(
