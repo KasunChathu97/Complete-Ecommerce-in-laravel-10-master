@@ -61,7 +61,7 @@
                                 </li>
                                     @foreach($categories as $key=>$cat)
                                     <li class="nav-item">
-                                        <button type="button" class="filter-btn" data-filter=".{{$cat->id}}">{{$cat->title}}</button>
+                                        <button type="button" class="filter-btn" data-filter=".cat-{{$cat->id}}">{{$cat->title}}</button>
                                     </li>
                                     @endforeach
                                 @endif
@@ -72,7 +72,7 @@
                              <!-- Start Single Tab -->
                             @if($product_lists)
                                 @foreach($product_lists as $key=>$product)
-                                <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item {{$product->cat_id}}">
+                                <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item cat-{{$product->cat_id}}">
                                     <div class="single-product" data-product-url="{{route('product-detail',$product->slug)}}">
                                         <div class="product-img">
                                             <a href="{{route('product-detail',$product->slug)}}">
