@@ -51,7 +51,7 @@
                         @php
                             $settings=DB::table('settings')->get();
                         @endphp                    
-                        <a href="{{route('home')}}"><img src="@foreach($settings as $data) {{$data->logo}} @endforeach" alt="#" style="max-width:100px;height:auto;"></a>
+                        <a href="{{route('home')}}"><img src="@foreach($settings as $data) {{$data->logo}} @endforeach" alt="#" style="max-width:80px;height:auto;"></a>
                     </div>
                     <!--/ End Logo -->
                     <!-- Search Form -->
@@ -129,7 +129,7 @@
                                             <span>Total</span>
                                             <span class="total-amount">{{Helper::formatCurrency(Helper::totalWishlistPrice())}}</span>
                                         </div>
-                                        <a href="{{route('cart')}}" class="btn animate">Cart</a>
+                                        <a href="{{route('cart')}}" class="btn animate cta-cart">Cart</a>
                                     </div>
                                 </div>
                             @endauth
@@ -166,7 +166,7 @@
                                             <span>Total</span>
                                             <span class="total-amount">{{Helper::formatCurrency(Helper::totalCartPrice())}}</span>
                                         </div>
-                                        <a href="{{route('checkout')}}" class="btn animate">Checkout</a>
+                                            <a href="{{route('checkout')}}" class="btn animate cta-checkout">Checkout</a>
                                     </div>
                                 </div>
                             @endauth

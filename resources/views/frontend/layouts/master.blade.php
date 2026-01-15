@@ -3,7 +3,7 @@
 <head>
 	@include('frontend.layouts.head')	
 </head>
-<body class="js">
+<body class="js theme-electronics-alt">
 	
 	<!-- Preloader -->
 	<div class="preloader">

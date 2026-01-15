@@ -1,6 +1,6 @@
 @extends('frontend.layouts.master')
 
-@section('title','DL || PRODUCT PAGE')
+@section('title','E-SHOP || PRODUCT PAGE')
 
 @section('main-content')
 	<!-- Breadcrumbs -->
@@ -10,8 +10,8 @@
                 <div class="col-12">
                     <div class="bread-inner">
                         <ul class="bread-list">
-                            <li><a href="{{route('home')}}">Home<i class="ti-arrow-right"></i></a></li>
-                            <li class="active"><a href="{{route('product-grids')}}">Products</a></li>
+                            <li><a href="index1.html">Home<i class="ti-arrow-right"></i></a></li>
+                            <li class="active"><a href="blog-single.html">Shop Grid</a></li>
                         </ul>
                     </div>
                 </div>
@@ -95,14 +95,14 @@
                                         @endphp
                                         <div class="single-post first">
                                             <div class="image">
-                                                <img src="{{$photo[0]}}" alt="{{$product->title}}">
+                                                <img src="{{$photo[0]}}" alt="{{$photo[0]}}">
                                             </div>
                                             <div class="content">
                                                 <h5><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h5>
                                                 @php
                                                     $org=($product->price-($product->price*$product->discount)/100);
                                                 @endphp
-                                                <p class="price"><del class="text-muted">{{Helper::formatCurrency($product->price)}}</del>   {{Helper::formatCurrency($org)}}  </p>
+                                                <p class="price"><del class="text-muted">${{number_format($product->price,2)}}</del>   ${{number_format($org,2)}}  </p>
 
                                             </div>
                                         </div>
@@ -165,14 +165,14 @@
                             @if(count($products)>0)
                                 @foreach($products as $product)
                                     <div class="col-lg-4 col-md-6 col-12">
-                                        <div class="single-product" data-product-url="{{route('product-detail',$product->slug)}}">
+                                        <div class="single-product">
                                             <div class="product-img">
                                                 <a href="{{route('product-detail',$product->slug)}}">
                                                     @php
                                                         $photo=explode(',',$product->photo);
                                                     @endphp
-                                                    <img class="default-img" src="{{$photo[0]}}" alt="{{$product->title}}">
-                                                    <img class="hover-img" src="{{$photo[0]}}" alt="{{$product->title}}">
+                                                    <img class="default-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
+                                                    <img class="hover-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
                                                     @if($product->discount)
                                                                 <span class="price-dec">{{$product->discount}} % Off</span>
                                                     @endif
@@ -192,10 +192,8 @@
                                                 @php
                                                     $after_discount=($product->price-($product->price*$product->discount)/100);
                                                 @endphp
-                                                <span>{{Helper::formatCurrency($after_discount)}}</span>
-                                                @if($product->discount>0)
-                                                    <del style="padding-left:4%;">{{Helper::formatCurrency($product->price)}}</del>
-                                                @endif
+                                                <span>${{number_format($after_discount,2)}}</span>
+                                                <del style="padding-left:4%;">${{number_format($product->price,2)}}</del>
                                             </div>
                                         </div>
                                     </div>
@@ -208,15 +206,8 @@
 
                         </div>
                         <div class="row">
-                            <div class="col-md-12">
-                                <div class="pagination-wrapper">
-                                    <div class="pagination-info">
-                                        <p>Showing {{($products->currentPage()-1)*$products->perPage()+1}} to {{min($products->currentPage()*$products->perPage(), $products->total())}} of {{$products->total()}} entries</p>
-                                    </div>
-                                    <div class="pagination-controls">
-                                        {{$products->appends($_GET)->links()}}
-                                    </div>
-                                </div>
+                            <div class="col-md-12 justify-content-center d-flex">
+                                {{$products->appends($_GET)->links()}}
                             </div>
                           </div>
 
@@ -294,7 +285,7 @@
                                             @php
                                                 $after_discount=($product->price-($product->price*$product->discount)/100);
                                             @endphp
-                                            <h3><small><del class="text-muted">{{Helper::formatCurrency($product->price)}}</del></small>    {{Helper::formatCurrency($after_discount)}}  </h3>
+                                            <h3><small><del class="text-muted">${{number_format($product->price,2)}}</del></small>    ${{number_format($after_discount,2)}}  </h3>
                                             <div class="quickview-peragraph">
                                                 <p>{!! html_entity_decode($product->summary) !!}</p>
                                             </div>
@@ -362,7 +353,9 @@
                                                     <a href="{{route('add-to-wishlist',$product->slug)}}" class="btn min"><i class="ti-heart"></i></a>
                                                 </div>
                                             </form>
-                                            <div class="default-social"></div>
+                                            <div class="default-social">
+                                            <!-- ShareThis BEGIN --><div class="sharethis-inline-share-buttons"></div><!-- ShareThis END -->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -377,127 +370,16 @@
 @endsection
 @push('styles')
 <style>
-    .filter_button {
+    .pagination{
+        display:inline-flex;
+    }
+    .filter_button{
+        /* height:20px; */
         text-align: center;
-        background: #F7941D;
-        padding: 10px 20px;
-        margin-top: 10px;
+        background:#F7941D;
+        padding:8px 16px;
+        margin-top:10px;
         color: white;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-        font-weight: 600;
-        text-transform: uppercase;
-        transition: all 0.3s;
-    }
-    
-    .filter_button:hover {
-        background: #333;
-    }
-    
-    /* Pagination Wrapper */
-    .pagination-wrapper {
-        background: #fff;
-        padding: 25px 20px;
-        margin-top: 40px;
-        border: 1px solid #eee;
-        text-align: center;
-    }
-    
-    .pagination-info {
-        margin-bottom: 20px;
-    }
-    
-    .pagination-info p {
-        margin: 0;
-        color: #666;
-        font-size: 14px;
-        font-weight: 400;
-    }
-    
-    .pagination-controls {
-        display: block;
-    }
-    
-    /* Pagination Links */
-    .pagination {
-        display: inline-flex;
-        gap: 5px;
-        margin: 0;
-        list-style: none;
-        padding: 0;
-    }
-    
-    .pagination .page-item {
-        margin: 0;
-    }
-    
-    .pagination .page-link {
-        background: #f5f5f5;
-        color: #333;
-        padding: 8px 12px;
-        font-weight: 500;
-        border: 1px solid #ddd;
-        font-size: 13px;
-        border-radius: 3px;
-        transition: all 0.3s;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        min-width: 36px;
-        text-align: center;
-    }
-    
-    .pagination .page-item.active .page-link {
-        background: #F7941D;
-        color: #fff;
-        border-color: #F7941D;
-    }
-    
-    .pagination .page-link:hover {
-        background: #333;
-        color: #fff;
-        border-color: #333;
-    }
-    
-    .pagination .page-item.disabled .page-link {
-        background: #f0f0f0;
-        color: #ccc;
-        cursor: not-allowed;
-        border-color: #ddd;
-    }
-    
-    .pagination .page-item.disabled .page-link:hover {
-        background: #f0f0f0;
-        color: #ccc;
-    }
-    
-    /* Previous/Next - No arrows */
-    .pagination .page-link[rel="prev"]::before,
-    .pagination .page-link[rel="next"]::after {
-        content: '';
-    }
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        .pagination-wrapper {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .pagination-info {
-            width: 100%;
-            text-align: center;
-        }
-        
-        .pagination-controls {
-            width: 100%;
-            text-align: center;
-        }
-        
-        .pagination {
-            justify-content: center;
-        }
     }
 </style>
 @endpush

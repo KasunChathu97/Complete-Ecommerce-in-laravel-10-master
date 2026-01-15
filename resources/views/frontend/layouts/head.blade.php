@@ -5,7 +5,7 @@
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="images/favicon.png">
 <!-- Web Font -->
-<link href="https://fonts.googleapis.com/css?family=Poppins:200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700;900&family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <!-- StyleSheet -->
 <link rel="manifest" href="/manifest.json">
@@ -36,6 +36,8 @@
 <link rel="stylesheet" href="{{asset('frontend/css/reset.css')}}">
 <link rel="stylesheet" href="{{asset('frontend/css/style.css')}}">
 <link rel="stylesheet" href="{{asset('frontend/css/responsive.css')}}">
+<link rel="stylesheet" href="{{asset('css/electronics-fonts.css')}}">
+<link rel="stylesheet" href="{{asset('css/electronics-theme.css')}}">
 {{-- Removed external ShareThis script to prevent third-party click hijacking --}}
 
 <script>
