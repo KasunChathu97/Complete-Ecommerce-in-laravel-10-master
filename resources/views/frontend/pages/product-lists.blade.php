@@ -61,7 +61,23 @@
                                     </ul>
                                 </div>
                                 <!--/ End Single Widget -->
-                                <!-- Shop By Price -->
+								<!-- Availability Filter -->
+								<div class="single-widget availability">
+									<h3 class="title">Availability</h3>
+									<ul class="categor-list">
+										<li>
+											<label><input type="checkbox" name="availability[]" value="in_stock" @if(!empty(request('availability')) && in_array('in_stock', (array)request('availability'))) checked @endif> In Stock</label>
+										</li>
+										<li>
+											<label><input type="checkbox" name="availability[]" value="out_of_stock" @if(!empty(request('availability')) && in_array('out_of_stock', (array)request('availability'))) checked @endif> Out of Stock</label>
+										</li>
+										<li style="margin-top: 10px;">
+											<button type="submit" class="filter_button">Filter</button>
+										</li>
+									</ul>
+									</div>
+									<!--/ End Availability Filter -->
+								<!-- Shop By Price -->
 								<div class="single-widget range">
 									<h3 class="title">Shop by Price</h3>
 									<div class="price-filter">

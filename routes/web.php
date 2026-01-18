@@ -17,6 +17,8 @@
     use App\Http\Controllers\NotificationController;
     use App\Http\Controllers\HomeController;
     use App\Http\Controllers\ReportController;
+    use App\Http\Controllers\WholesaleRequestController;
+    use App\Http\Controllers\WholesaleRequestAdminController;
     use \UniSharp\LaravelFilemanager\Lfm;
     use App\Http\Controllers\Auth\ResetPasswordController;
     /*
@@ -68,6 +70,8 @@
     Route::get('/about-us', [FrontendController::class, 'aboutUs'])->name('about-us');
     Route::get('/contact', [FrontendController::class, 'contact'])->name('contact');
     Route::post('/contact/message', [MessageController::class, 'store'])->name('contact.store');
+    Route::get('/wholesale-request', [WholesaleRequestController::class, 'create'])->name('wholesale.request');
+    Route::post('/wholesale-request', [WholesaleRequestController::class, 'store'])->name('wholesale.request.store');
     Route::get('product-detail/{slug}', [FrontendController::class, 'productDetail'])->name('product-detail');
     Route::match(['get','post'], '/product/search', [FrontendController::class, 'productSearch'])->name('product.search');
     Route::get('/product-cat/{slug}', [FrontendController::class, 'productCat'])->name('product-cat');
@@ -76,6 +80,7 @@
 // Cart section
     Route::get('/add-to-cart/{slug}', [CartController::class, 'addToCart'])->name('add-to-cart')->middleware('user');
     Route::post('/add-to-cart', [CartController::class, 'singleAddToCart'])->name('single-add-to-cart')->middleware('user');
+    Route::post('/buy-now', [CartController::class, 'buyNow'])->name('buy-now')->middleware('user');
     Route::get('cart-delete/{id}', [CartController::class, 'cartDelete'])->name('cart-delete');
     Route::post('cart-update', [CartController::class, 'cartUpdate'])->name('cart.update');
 
@@ -187,6 +192,11 @@
         // Settings
         Route::get('settings', [AdminController::class, 'settings'])->name('settings');
         Route::post('setting/update', [AdminController::class, 'settingsUpdate'])->name('settings.update');
+
+        // Wholesale Requests
+        Route::get('/wholesale-requests', [WholesaleRequestAdminController::class, 'index'])->name('wholesale-requests.index');
+        Route::patch('/wholesale-requests/{wholesaleRequest}', [WholesaleRequestAdminController::class, 'update'])->name('wholesale-requests.update');
+        Route::delete('/wholesale-requests/{wholesaleRequest}', [WholesaleRequestAdminController::class, 'destroy'])->name('wholesale-requests.destroy');
 
         // Notification
         Route::get('/notification/{id}', [NotificationController::class, 'show'])->name('admin.notification');

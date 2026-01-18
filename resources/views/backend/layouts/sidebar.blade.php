@@ -3,6 +3,10 @@
   @php
     $authRole = auth()->check() ? auth()->user()->role : null;
     $isAdminOnly = $authRole === 'admin';
+    $wholesaleNewCount = 0;
+    if ($isAdminOnly) {
+      $wholesaleNewCount = \App\Models\WholesaleRequest::where('status', 'new')->count();
+    }
   @endphp
 
     <!-- Sidebar - Brand -->
@@ -129,6 +133,25 @@
             <i class="fas fa-hammer fa-chart-area"></i>
             <span>Orders</span>
         </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+      Wholesale
+    </div>
+
+    <!-- Wholesale Requests -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{route('wholesale-requests.index')}}">
+        <i class="fas fa-handshake"></i>
+        <span>Wholesale Requests</span>
+        @if($wholesaleNewCount>0)
+          <span class="badge badge-danger ml-2">Wholesale added ({{$wholesaleNewCount}})</span>
+        @endif
+      </a>
     </li>
 
     <!-- Reports -->

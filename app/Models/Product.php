@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Cart;
 class Product extends Model
 {
-    protected $fillable=['title','slug','summary','description','cat_id','child_cat_id','price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition'];
+    protected $fillable=[
+        'title','slug','summary','description','cat_id','child_cat_id','price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
+        'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type'
+    ];
 
     public function cat_info(){
         return $this->hasOne('App\Models\Category','id','cat_id');

@@ -49,6 +49,8 @@ class ProductController extends Controller
             'title' => 'required|string',
             'summary' => 'required|string',
             'description' => 'nullable|string',
+            'warranty' => 'nullable|string',
+            'returns' => 'nullable|string',
             'photo' => 'required|string',
             'size' => 'nullable',
             'stock' => 'required|numeric',
@@ -61,7 +63,13 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'discount_enabled' => 'sometimes|in:1',
             'discount' => 'nullable|numeric|min:0|max:100',
+            'bulk_discount_type' => 'nullable|in:none,qty,value',
+            'bulk_discount_threshold' => 'nullable|numeric',
+            'bulk_discount_amount' => 'nullable|numeric',
+            'bulk_discount_amount_type' => 'nullable|in:fixed,percent',
         ]);
+        // Force only percent type for bulk discount
+        $validatedData['bulk_discount_amount_type'] = 'percent';
 
         $slug = generateUniqueSlug($request->title, Product::class);
         $validatedData['slug'] = $slug;
@@ -140,6 +148,8 @@ class ProductController extends Controller
             'title' => 'required|string',
             'summary' => 'required|string',
             'description' => 'nullable|string',
+            'warranty' => 'nullable|string',
+            'returns' => 'nullable|string',
             'photo' => 'required|string',
             'size' => 'nullable',
             'stock' => 'required|numeric',
@@ -152,7 +162,12 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'discount_enabled' => 'sometimes|in:1',
             'discount' => 'nullable|numeric|min:0|max:100',
+            'bulk_discount_type' => 'nullable|in:none,qty,value',
+            'bulk_discount_threshold' => 'nullable|numeric',
+            'bulk_discount_amount' => 'nullable|numeric',
         ]);
+        // Force only percent type for bulk discount
+        $validatedData['bulk_discount_amount_type'] = 'percent';
 
         $validatedData['is_featured'] = $request->input('is_featured', 0);
 

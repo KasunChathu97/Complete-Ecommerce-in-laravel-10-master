@@ -24,12 +24,23 @@
           @enderror
         </div>
 
+
         <div class="form-group">
           <label for="description" class="col-form-label">Description</label>
           <textarea class="form-control" id="description" name="description">{{$product->description}}</textarea>
           @error('description')
           <span class="text-danger">{{$message}}</span>
           @enderror
+        </div>
+
+        <div class="form-group">
+          <label for="warranty" class="col-form-label">Warranty</label>
+          <textarea class="form-control" id="warranty" name="warranty" placeholder="Enter warranty details">{{$product->warranty ?? ''}}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="returns" class="col-form-label">Returns</label>
+          <textarea class="form-control" id="returns" name="returns" placeholder="Enter returns policy">{{$product->returns ?? ''}}</textarea>
         </div>
 
 
@@ -83,10 +94,27 @@
           <span class="text-danger">{{$message}}</span>
           @enderror
         </div>
+
         <div class="form-group">
-          <label for="size" class="col-form-label">Size</label>
-          <input id="size" type="text" name="size" placeholder="e.g. S,M,L or 38,40" value="{{ old('size', $product->size) }}" class="form-control">
-          <small class="form-text text-muted">Enter sizes separated by commas.</small>
+          <label for="bulk_discount_type" class="col-form-label">Bulk Discount Type</label>
+          <select name="bulk_discount_type" id="bulk_discount_type" class="form-control">
+            <option value="none" {{ ($product->bulk_discount_type ?? 'none') == 'none' ? 'selected' : '' }}>None</option>
+            <option value="qty" {{ ($product->bulk_discount_type ?? '') == 'qty' ? 'selected' : '' }}>By Quantity</option>
+            <option value="value" {{ ($product->bulk_discount_type ?? '') == 'value' ? 'selected' : '' }}>By Value</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="bulk_discount_threshold" class="col-form-label">Bulk Discount Threshold</label>
+          <input id="bulk_discount_threshold" type="number" name="bulk_discount_threshold" placeholder="Minimum Qty or Value for Discount" value="{{ old('bulk_discount_threshold', $product->bulk_discount_threshold) }}" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="bulk_discount_amount" class="col-form-label">Bulk Discount Amount (%)</label>
+          <div class="input-group">
+            <input id="bulk_discount_amount" type="number" step="0.01" name="bulk_discount_amount" placeholder="Discount Percent" value="{{ old('bulk_discount_amount', $product->bulk_discount_amount) }}" class="form-control">
+            <input type="hidden" name="bulk_discount_amount_type" value="percent">
+            <span class="input-group-text">%</span>
+          </div>
+          <small class="form-text text-muted">Only percentage discount is supported for bulk discount.</small>
         </div>
         <div class="form-group">
           <label for="brand_id">Brand</label>
@@ -115,17 +143,20 @@
           <span class="text-danger">{{$message}}</span>
           @enderror
         </div>
+
         <div class="form-group">
-          <label for="inputPhoto" class="col-form-label">Photo <span class="text-danger">*</span></label>
-          <div class="input-group">
+          <label for="inputPhoto" class="col-form-label">Photos <span class="text-danger">*</span></label>
+          <div class="input-group mb-2">
               <span class="input-group-btn">
-                  <a id="lfm" data-input="thumbnail" data-preview="holder" class="btn btn-primary text-white">
-                  <i class="fas fa-image"></i> Choose
+                  <a id="lfm-multi" data-input="thumbnails" data-preview="holder-multi" class="btn btn-primary text-white">
+                  <i class="fas fa-image"></i> Choose Images
                   </a>
               </span>
-          <input id="thumbnail" class="form-control" type="text" name="photo" value="{{$product->photo}}">
-        </div>
-        <div id="holder" style="margin-top:15px;max-height:100px;"></div>
+              <input id="thumbnails" class="form-control" type="text" name="photo" value="{{$product->photo}}" placeholder="Comma-separated image URLs">
+          </div>
+          <button type="button" id="add-images-btn" class="btn btn-info mb-2"><i class="fas fa-plus"></i> Add Images</button>
+          <div id="holder-multi" style="margin-top:15px;max-height:120px; display:flex; gap:10px; flex-wrap:wrap;"></div>
+          <small class="form-text text-muted">You can select multiple images. Hold Ctrl (or Cmd) to select more than one in the file manager. Images will be saved as a comma-separated list.</small>
           @error('photo')
           <span class="text-danger">{{$message}}</span>
           @enderror
@@ -161,7 +192,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 
 <script>
-    $('#lfm').filemanager('image');
+
+
+    // Multi-image file manager
+    $('#lfm-multi').filemanager('image', {prefix: '/laravel-filemanager'});
+    // Add Images button triggers the file manager
+    document.getElementById('add-images-btn').addEventListener('click', function() {
+      document.getElementById('lfm-multi').click();
+    });
+
+    // Preview all images in the comma-separated list
+    function renderMultiImagePreview() {
+      var urls = ($('#thumbnails').val() || '').split(',').map(function(u){ return u.trim(); }).filter(Boolean);
+      var holder = document.getElementById('holder-multi');
+      holder.innerHTML = '';
+      urls.forEach(function(url) {
+        var img = document.createElement('img');
+        img.src = url;
+        img.style.maxHeight = '100px';
+        img.style.maxWidth = '100px';
+        img.style.objectFit = 'cover';
+        img.style.border = '1px solid #ddd';
+        img.style.borderRadius = '4px';
+        holder.appendChild(img);
+      });
+    }
+    document.getElementById('thumbnails').addEventListener('input', renderMultiImagePreview);
+    renderMultiImagePreview();
 
     $(document).ready(function() {
     $('#summary').summernote({

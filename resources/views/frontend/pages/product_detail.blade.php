@@ -43,8 +43,8 @@
 									<div class="col-lg-6 col-12">
 										<!-- Product Slider -->
 										<div class="product-gallery">
-											<!-- Images slider -->
-											<div class="flexslider-thumbnails">
+											<!-- Main Image Slider -->
+											<div id="product-main-slider" class="flexslider">
 												<ul class="slides">
 													@php
 														$photos=[];
@@ -61,13 +61,40 @@
 														}
 													@endphp
 													@foreach($photos as $img)
-														<li data-thumb="{{$img}}" rel="adjustX:10, adjustY:">
-															<img src="{{$img}}" alt="{{$product_detail->title}}">
+														<li>
+															<a href="{{$img}}" class="product-image-popup" title="{{$product_detail->title}}">
+																<img src="{{$img}}" alt="{{$product_detail->title}}" style="width:100%;max-height:400px;object-fit:contain;">
+															</a>
+															<div class="product-image-caption" style="margin-top:10px;text-align:center;font-size:15px;color:#444;">
+																{{ strip_tags($product_detail->description) }}
+															</div>
+														</li>
+													@endforeach
+												<style>
+													.product-image-caption {
+														margin-top: 10px;
+														text-align: center;
+														font-size: 15px;
+														color: #444;
+														line-height: 1.5;
+														background: #f8f9fa;
+														padding: 8px 12px;
+														border-radius: 4px;
+														min-height: 40px;
+													}
+												</style>
+												</ul>
+											</div>
+											<!-- Thumbnail Navigation Slider -->
+											<div id="product-thumb-slider" class="flexslider flexslider-thumbnails" style="margin-top:15px;">
+												<ul class="slides">
+													@foreach($photos as $img)
+														<li>
+															<img src="{{$img}}" alt="{{$product_detail->title}}" style="height:70px;width:70px;object-fit:cover;border:2px solid #eee;border-radius:4px;cursor:pointer;">
 														</li>
 													@endforeach
 												</ul>
 											</div>
-											<!-- End Images slider -->
 										</div>
 										<!-- End Product slider -->
 									</div>
@@ -101,6 +128,20 @@
 													@endif
 												</p>
 												<p class="description">{!!($product_detail->summary)!!}</p>
+
+												@if(!empty($product_detail->warranty))
+												<div class="product-warranty mt-3">
+													<h5 style="font-weight:bold;">Warranty</h5>
+													<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->warranty)) !!}</div>
+												</div>
+												@endif
+
+												@if(!empty($product_detail->returns))
+												<div class="product-returns mt-3">
+													<h5 style="font-weight:bold;">Returns</h5>
+													<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->returns)) !!}</div>
+												</div>
+												@endif
 											</div>
 											<!--/ End Description -->
 											<!-- Color -->
@@ -153,9 +194,17 @@
 														</div>
 													<!--/ End Input Order -->
 													</div>
-													<div class="add-to-cart mt-4">
-														<button type="submit" class="btn">Add to cart</button>
-														<a href="{{route('add-to-wishlist',$product_detail->slug)}}" class="btn min"><i class="ti-heart"></i></a>
+													<div class="add-to-cart mt-4 d-flex align-items-center gap-2" style="gap: 12px;">
+														<button type="submit" class="btn btn-primary" style="min-width: 120px;">Add to Cart</button>
+													</div>
+												</form>
+												<form action="{{ route('buy-now') }}" method="POST" style="display:inline;">
+													@csrf
+													<input type="hidden" name="slug" value="{{$product_detail->slug}}">
+													<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
+													<button type="submit" class="btn btn-success mt-2" style="min-width: 120px;">Buy Now</button>
+												</form>
+												<a href="{{route('add-to-wishlist',$product_detail->slug)}}" class="btn min" style="background: #f8f9fa; color: #333; border: 1px solid #ddd;"><i class="ti-heart"></i></a>
 													</div>
 												</form>
 
@@ -164,6 +213,12 @@
 												<p class="cat mt-1">Sub Category :<a href="{{route('product-sub-cat',[$product_detail->cat_info['slug'],$product_detail->sub_cat_info['slug']])}}">{{$product_detail->sub_cat_info['title']}}</a></p>
 												@endif
 												<p class="availability">Stock : @if($product_detail->stock>0)<span class="badge badge-success">{{$product_detail->stock}}</span>@else <span class="badge badge-danger">{{$product_detail->stock}}</span>  @endif</p>
+
+												<div class="mt-4">
+													<h6 class="mb-2">Wholesale Pricing</h6>
+													<p class="mb-3">Interested in wholesale pricing? Send us a request and we will contact you.</p>
+													<a href="{{ route('wholesale.request', ['product' => $product_detail->slug]) }}" class="btn">Request Wholesale Pricing</a>
+												</div>
 											</div>
 											<!--/ End Product Buy -->
 										</div>
@@ -509,8 +564,54 @@
 
 	</style>
 @endpush
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+<script src="/frontend/js/flex-slider.js"></script>
+<script src="/frontend/js/magnific-popup.js"></script>
+<link rel="stylesheet" href="/frontend/css/flex-slider.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css" />
+<style>
+	#product-main-slider .slides img { width: 100%; max-height: 400px; object-fit: contain; }
+	#product-thumb-slider .slides img { height: 70px; width: 70px; object-fit: cover; border: 2px solid #eee; border-radius: 4px; cursor: pointer; }
+	#product-thumb-slider .flex-active-slide img { border: 2px solid #007bff; }
+</style>
+<script>
+$(document).ready(function() {
+	// FlexSlider main + thumbnail nav
+	$('#product-main-slider').flexslider({
+		animation: "slide",
+		controlNav: false,
+		animationLoop: false,
+		slideshow: false,
+		sync: "#product-thumb-slider"
+	});
+	$('#product-thumb-slider').flexslider({
+		animation: "slide",
+		controlNav: false,
+		animationLoop: false,
+		slideshow: false,
+		itemWidth: 70,
+		itemMargin: 8,
+		asNavFor: '#product-main-slider'
+	});
+	// Show main image on thumbnail hover
+	$('#product-thumb-slider .slides li').on('mouseenter', function() {
+		var idx = $(this).index();
+		$('#product-main-slider').flexslider(idx);
+	});
+	// Magnific Popup for gallery
+	$('#product-main-slider').magnificPopup({
+		delegate: 'a.product-image-popup',
+		type: 'image',
+		gallery: { enabled: true },
+		mainClass: 'mfp-fade',
+		removalDelay: 300,
+		closeOnContentClick: false,
+		closeBtnInside: false
+	});
+});
+</script>
 
     {{-- <script>
         $('.cart').click(function(){

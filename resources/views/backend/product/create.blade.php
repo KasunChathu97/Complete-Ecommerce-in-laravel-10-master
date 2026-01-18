@@ -23,12 +23,23 @@
           @enderror
         </div>
 
+
         <div class="form-group">
           <label for="description" class="col-form-label">Description</label>
           <textarea class="form-control" id="description" name="description">{{old('description')}}</textarea>
           @error('description')
           <span class="text-danger">{{$message}}</span>
           @enderror
+        </div>
+
+        <div class="form-group">
+          <label for="warranty" class="col-form-label">Warranty</label>
+          <textarea class="form-control" id="warranty" name="warranty" placeholder="Enter warranty details">{{old('warranty')}}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="returns" class="col-form-label">Returns</label>
+          <textarea class="form-control" id="returns" name="returns" placeholder="Enter returns policy">{{old('returns')}}</textarea>
         </div>
 
 
@@ -79,10 +90,27 @@
           <span class="text-danger">{{$message}}</span>
           @enderror
         </div>
+
         <div class="form-group">
-          <label for="size" class="col-form-label">Size</label>
-          <input id="size" type="text" name="size" placeholder="e.g. S,M,L or 38,40" value="{{ old('size') }}" class="form-control">
-          <small class="form-text text-muted">Enter sizes separated by commas.</small>
+          <label for="bulk_discount_type" class="col-form-label">Bulk Discount Type</label>
+          <select name="bulk_discount_type" id="bulk_discount_type" class="form-control">
+            <option value="none" selected>None</option>
+            <option value="qty">By Quantity</option>
+            <option value="value">By Value</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="bulk_discount_threshold" class="col-form-label">Bulk Discount Threshold</label>
+          <input id="bulk_discount_threshold" type="number" name="bulk_discount_threshold" placeholder="Minimum Qty or Value for Discount" value="{{ old('bulk_discount_threshold') }}" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="bulk_discount_amount" class="col-form-label">Bulk Discount Amount (%)</label>
+          <div class="input-group">
+            <input id="bulk_discount_amount" type="number" step="0.01" name="bulk_discount_amount" placeholder="Discount Percent" value="{{ old('bulk_discount_amount') }}" class="form-control">
+            <input type="hidden" name="bulk_discount_amount_type" value="percent">
+            <span class="input-group-text">%</span>
+          </div>
+          <small class="form-text text-muted">Only percentage discount is supported for bulk discount.</small>
         </div>
 
         <div class="form-group">

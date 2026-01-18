@@ -24,7 +24,10 @@
               <th>Is Featured</th>
               <th>Price</th>
               <th>Discount</th>
-              <th>Size</th>
+              <th>Warranty & Returns</th>
+              <th>Bulk Discount Type</th>
+              <th>Bulk Discount Threshold</th>
+              <th>Bulk Discount Amount</th>
               <th>Condition</th>
               <th>Brand</th>
               <th>Stock</th>
@@ -54,7 +57,23 @@
                     </td>
                     <td>Rs. {{$product->price}} /-</td>
                     <td>  {{$product->discount}}% OFF</td>
-                    <td>{{$product->size}}</td>
+                    <td>
+                      @if($product->warranty)
+                        <strong>Warranty:</strong> {{ Str::limit($product->warranty, 40) }}<br>
+                      @endif
+                      @if($product->returns)
+                        <strong>Returns:</strong> {{ Str::limit($product->returns, 40) }}
+                      @endif
+                    </td>
+                    <td>{{ ucfirst($product->bulk_discount_type ?? 'none') }}</td>
+                    <td>{{ $product->bulk_discount_threshold ?? '-' }}</td>
+                    <td>
+                      @if($product->bulk_discount_amount)
+                        {{ $product->bulk_discount_amount }}% OFF
+                      @else
+                        -
+                      @endif
+                    </td>
                     <td>{{$product->condition}}</td>
                     <td>
                       {{ $product->brand->title ?? '-' }}

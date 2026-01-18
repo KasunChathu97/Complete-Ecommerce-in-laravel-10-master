@@ -8,6 +8,7 @@ use App\Models\Wishlist;
 use App\Models\Cart;
 use Illuminate\Support\Str;
 use Helper;
+
 class CartController extends Controller
 {
     protected $product=null;
@@ -15,44 +16,64 @@ class CartController extends Controller
         $this->product=$product;
     }
 
-    public function addToCart(Request $request){
-        // dd($request->all());
-        if (empty($request->slug)) {
-            request()->session()->flash('error','Invalid Products');
-            return back();
-        }        
+    public function buyNow(Request $request){
+        $request->validate([
+            'slug'      =>  'required',
+            'quant'      =>  'required',
+        ]);
         $product = Product::where('slug', $request->slug)->first();
-        // return $product;
-        if (empty($product)) {
+        if($product->stock < $request->quant[1]){
+            return back()->with('error','Out of stock, You can add other products.');
+        }
+        if ( ($request->quant[1] < 1) || empty($product) ) {
             request()->session()->flash('error','Invalid Products');
             return back();
         }
-
         $already_cart = Cart::where('user_id', auth()->user()->id)->where('order_id',null)->where('product_id', $product->id)->first();
-        // return $already_cart;
         if($already_cart) {
-            // dd($already_cart);
-            $already_cart->quantity = $already_cart->quantity + 1;
-            $already_cart->amount = $product->price+ $already_cart->amount;
-            // return $already_cart->quantity;
+            $already_cart->quantity = $request->quant[1];
+            $discounted_price = $product->price - ($product->price * $product->discount / 100);
+            $bulk_discount = 0;
+            if ($product->bulk_discount_type === 'qty' && $already_cart->quantity >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            } elseif ($product->bulk_discount_type === 'value' && ($discounted_price * $already_cart->quantity) >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            }
+            $final_price = max($discounted_price - $bulk_discount, 0);
+            $already_cart->amount = $final_price * $already_cart->quantity;
             if ($already_cart->product->stock < $already_cart->quantity || $already_cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
             $already_cart->save();
-            
         }else{
-            
             $cart = new Cart;
             $cart->user_id = auth()->user()->id;
             $cart->product_id = $product->id;
-            $cart->price = ($product->price-($product->price*$product->discount)/100);
-            $cart->quantity = 1;
-            $cart->amount=$cart->price*$cart->quantity;
+            $discounted_price = $product->price - ($product->price * $product->discount / 100);
+            $bulk_discount = 0;
+            $qty = $request->quant[1];
+            if ($product->bulk_discount_type === 'qty' && $qty >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            } elseif ($product->bulk_discount_type === 'value' && ($discounted_price * $qty) >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            }
+            $final_price = max($discounted_price - $bulk_discount, 0);
+            $cart->price = $final_price;
+            $cart->quantity = $qty;
+            $cart->amount = $final_price * $qty;
             if ($cart->product->stock < $cart->quantity || $cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
             $cart->save();
-            $wishlist=Wishlist::where('user_id',auth()->user()->id)->where('cart_id',null)->update(['cart_id'=>$cart->id]);
         }
-        request()->session()->flash('success','Product successfully added to cart');
-        return back();       
-    }  
+        request()->session()->flash('success','Product successfully added to cart.');
+        return redirect()->route('checkout');
+    }
+
 
     public function singleAddToCart(Request $request){
         $request->validate([
@@ -77,23 +98,42 @@ class CartController extends Controller
 
         if($already_cart) {
             $already_cart->quantity = $already_cart->quantity + $request->quant[1];
-            // $already_cart->price = ($product->price * $request->quant[1]) + $already_cart->price ;
-            $already_cart->amount = ($product->price * $request->quant[1])+ $already_cart->amount;
-
+            $discounted_price = $product->price - ($product->price * $product->discount / 100);
+            $bulk_discount = 0;
+            if ($product->bulk_discount_type === 'qty' && $already_cart->quantity >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            } elseif ($product->bulk_discount_type === 'value' && ($discounted_price * $already_cart->quantity) >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            }
+            $final_price = max($discounted_price - $bulk_discount, 0);
+            $already_cart->amount = $final_price * $already_cart->quantity;
             if ($already_cart->product->stock < $already_cart->quantity || $already_cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
-
             $already_cart->save();
-            
         }else{
-            
             $cart = new Cart;
             $cart->user_id = auth()->user()->id;
             $cart->product_id = $product->id;
-            $cart->price = ($product->price-($product->price*$product->discount)/100);
-            $cart->quantity = $request->quant[1];
-            $cart->amount=($product->price * $request->quant[1]);
+            $discounted_price = $product->price - ($product->price * $product->discount / 100);
+            $bulk_discount = 0;
+            $qty = $request->quant[1];
+            if ($product->bulk_discount_type === 'qty' && $qty >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            } elseif ($product->bulk_discount_type === 'value' && ($discounted_price * $qty) >= $product->bulk_discount_threshold) {
+                if ($product->bulk_discount_amount_type === 'percent') {
+                    $bulk_discount = $discounted_price * ($product->bulk_discount_amount / 100);
+                }
+            }
+            $final_price = max($discounted_price - $bulk_discount, 0);
+            $cart->price = $final_price;
+            $cart->quantity = $qty;
+            $cart->amount = $final_price * $qty;
             if ($cart->product->stock < $cart->quantity || $cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
-            // return $cart;
             $cart->save();
         }
         request()->session()->flash('success','Product successfully added to cart.');

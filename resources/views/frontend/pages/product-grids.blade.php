@@ -1,6 +1,6 @@
 @extends('frontend.layouts.master')
 
-@section('title','E-SHOP || PRODUCT PAGE')
+@section('title','DL || PRODUCT PAGE')
 
 @section('main-content')
 	<!-- Breadcrumbs -->
@@ -61,6 +61,19 @@
                                     </ul>
                                 </div>
                                 <!--/ End Single Widget -->
+                                <!-- Availability Filter -->
+                                <div class="single-widget availability">
+                                    <h3 class="title">Availability</h3>
+                                    <ul class="categor-list">
+                                        <li>
+                                            <label><input type="checkbox" name="availability[]" value="in_stock" @if(!empty(request('availability')) && in_array('in_stock', (array)request('availability'))) checked @endif> In Stock</label>
+                                        </li>
+                                        <li>
+                                            <label><input type="checkbox" name="availability[]" value="out_of_stock" @if(!empty(request('availability')) && in_array('out_of_stock', (array)request('availability'))) checked @endif> Out of Stock</label>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!--/ End Availability Filter -->
                                 <!-- Shop By Price -->
                                     <div class="single-widget range">
                                         <h3 class="title">Shop by Price</h3>

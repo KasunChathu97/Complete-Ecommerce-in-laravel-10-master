@@ -13,7 +13,18 @@ class NotificationController extends Controller
         $notification=Auth()->user()->notifications()->where('id',$request->id)->first();
         if($notification){
             $notification->markAsRead();
-            return redirect($notification->data['actionURL']);
+
+            $target = null;
+            if (is_array($notification->data ?? null)) {
+                $target = $notification->data['actionURL'] ?? $notification->data['url'] ?? null;
+            }
+
+            if ($target) {
+                return redirect($target);
+            }
+
+            request()->session()->flash('error', 'Notification link is missing.');
+            return redirect()->route('all.notification');
         }
     }
     public function delete($id){

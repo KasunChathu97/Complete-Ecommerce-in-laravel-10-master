@@ -56,6 +56,15 @@ class FrontendController extends Controller
 
     public function productGrids(){
         $products=Product::query();
+                // Availability filter
+                if(!empty($_GET['availability'])){
+                    $availability = (array)$_GET['availability'];
+                    if(in_array('in_stock', $availability) && !in_array('out_of_stock', $availability)){
+                        $products->where('stock', '>', 0);
+                    } elseif(!in_array('in_stock', $availability) && in_array('out_of_stock', $availability)){
+                        $products->where('stock', '<=', 0);
+                    }
+                }
         
         if(!empty($_GET['category'])){
             $slug=explode(',',$_GET['category']);
@@ -104,6 +113,15 @@ class FrontendController extends Controller
     }
     public function productLists(){
         $products=Product::query();
+                // Availability filter
+                if(!empty($_GET['availability'])){
+                    $availability = (array)$_GET['availability'];
+                    if(in_array('in_stock', $availability) && !in_array('out_of_stock', $availability)){
+                        $products->where('stock', '>', 0);
+                    } elseif(!in_array('in_stock', $availability) && in_array('out_of_stock', $availability)){
+                        $products->where('stock', '<=', 0);
+                    }
+                }
         
         if(!empty($_GET['category'])){
             $slug=explode(',',$_GET['category']);
@@ -186,6 +204,17 @@ class FrontendController extends Controller
                     }
                 }
             }
+
+            $availabilityURL = "";
+            if(!empty($data['availability'])){
+                foreach($data['availability'] as $avail){
+                    if(empty($availabilityURL)){
+                        $availabilityURL .= '&availability='.$avail;
+                    } else {
+                        $availabilityURL .= '&availability='.$avail;
+                    }
+                }
+            }
             // return $brandURL;
 
             $priceRangeURL="";
@@ -193,10 +222,10 @@ class FrontendController extends Controller
                 $priceRangeURL .='&price='.$data['price_range'];
             }
             if(request()->is('e-shop.loc/product-grids')){
-                return redirect()->route('product-grids',$catURL.$brandURL.$priceRangeURL.$showURL.$sortByURL);
+                return redirect()->route('product-grids',$catURL.$brandURL.$availabilityURL.$priceRangeURL.$showURL.$sortByURL);
             }
             else{
-                return redirect()->route('product-lists',$catURL.$brandURL.$priceRangeURL.$showURL.$sortByURL);
+                return redirect()->route('product-lists',$catURL.$brandURL.$availabilityURL.$priceRangeURL.$showURL.$sortByURL);
             }
     }
     public function productSearch(Request $request){

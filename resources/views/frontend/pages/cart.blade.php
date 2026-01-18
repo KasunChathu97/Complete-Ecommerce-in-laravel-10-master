@@ -1,5 +1,7 @@
 @extends('frontend.layouts.master')
-@section('title','Cart Page')
+
+@section('title','DL || Cart Page')
+
 @section('main-content')
 	<!-- Breadcrumbs -->
 	<div class="breadcrumbs">
@@ -49,7 +51,29 @@
 												<p class="product-name"><a href="{{route('product-detail',$cart->product['slug'])}}" target="_blank">{{$cart->product['title']}}</a></p>
 												<p class="product-des">{!!($cart['summary']) !!}</p>
 											</td>
-											<td class="price" data-title="Price"><span>{{Helper::formatCurrency($cart['price'])}}</span></td>
+											<td class="price" data-title="Price">
+												<span>
+													{{ Helper::formatCurrency($cart->product->price) }}
+													@if($cart->product->discount && $cart->product->discount > 0)
+														<br>
+														<small>Discount: {{ $cart->product->discount }}%</small>
+														<br>
+														<small>Discount Amount: {{ Helper::formatCurrency($cart->product->price * $cart->product->discount / 100) }}</small>
+													@endif
+													@if($cart->product->bulk_discount_type !== 'none' && $cart->product->bulk_discount_amount && $cart->quantity >= $cart->product->bulk_discount_threshold)
+														<br>
+														<small>
+															Bulk Discount:
+															@if($cart->product->bulk_discount_amount_type === 'percent')
+																{{ $cart->product->bulk_discount_amount }}%
+																({{ Helper::formatCurrency(($cart->product->price - ($cart->product->price * $cart->product->discount / 100)) * $cart->product->bulk_discount_amount / 100) }})
+															@else
+																{{ Helper::formatCurrency($cart->product->bulk_discount_amount) }}
+															@endif
+														</small>
+													@endif
+												</span>
+											</td>
 											<td class="qty" data-title="Qty"><!-- Input Order -->
 												<div class="input-group">
 													<div class="button minus">
