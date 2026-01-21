@@ -38,6 +38,8 @@
 <link rel="stylesheet" href="{{asset('frontend/css/responsive.css')}}">
 <link rel="stylesheet" href="{{asset('css/electronics-fonts.css')}}">
 <link rel="stylesheet" href="{{asset('css/electronics-theme.css')}}">
+<!-- Custom Header Icon/Button Colors -->
+<link rel="stylesheet" href="{{asset('css/custom-header.css')}}">
 {{-- Removed external ShareThis script to prevent third-party click hijacking --}}
 
 <script>

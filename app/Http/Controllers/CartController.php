@@ -11,6 +11,18 @@ use Helper;
 
 class CartController extends Controller
 {
+    // Wrapper for GET /add-to-cart/{slug} to call singleAddToCart
+    public function addToCart($slug)
+    {
+        // Simulate a Request object for singleAddToCart
+        $request = request();
+        // Laravel expects 'quant' as an array with index 1, so default to 1
+        $request->merge([
+            'slug' => $slug,
+            'quant' => [1 => 1],
+        ]);
+        return $this->singleAddToCart($request);
+    }
     protected $product=null;
     public function __construct(Product $product){
         $this->product=$product;

@@ -1,0 +1,17 @@
+/* Custom header icon/button color overrides */
+
+.header .single-icon .fa-heart-o,
+.header .single-icon .ti-bag {
+    color: #fff !important; /* Wishlist and cart icons: white */
+}
+
+.header .cta-cart.btn.animate {
+    background: #3490dc !important; /* Add to cart button: blue */
+    border-color: #3490dc !important;
+    color: #fff !important;
+}
+
+.header .cta-cart.btn.animate:hover {
+    background: #2779bd !important;
+    border-color: #2779bd !important;
+}

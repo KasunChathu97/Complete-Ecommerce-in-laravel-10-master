@@ -72,11 +72,11 @@
 								<ul>
 									@if($setting)
 										<li>{{data_get($setting,'address')}}</li>
-										<li>{{data_get($setting,'email')}}</li>
+										   <li><a href="mailto:{{data_get($setting,'email')}}">{{data_get($setting,'email')}}</a></li>
 										<li>{{data_get($setting,'phone')}}</li>
 									@else
 										<li>Delimach Lanka (Pvt) Ltd, 555/22B, Ranmuthugala, Kadawatha</li>
-										<li>eshop@gmail.com</li>
+										   <li><a href="mailto:delimachlanka@gmail.com">delimachlanka@gmail.com</a></li>
 										<li>+94 77 782 0662</li>
 									@endif
 								</ul>
