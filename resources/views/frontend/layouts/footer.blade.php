@@ -27,8 +27,8 @@
 							<h4>Information</h4>
 							<ul>
 								<li><a href="{{route('about-us')}}">About Us</a></li>
-								<li><a href="#">Faq</a></li>
-								<li><a href="#">Terms & Conditions</a></li>
+								<!--<li><a href="#">Faq</a></li>-->
+								<li><a href="{{ url('terms') }}">Terms & Conditions</a></li>
 								<li><a href="{{route('contact')}}">Contact Us</a></li>
 								<li><a href="#">Help</a></li>
 							</ul>
@@ -42,7 +42,7 @@
 							<ul>
 								<li><a href="#">Payment Methods</a></li>
 								<li><a href="#">Money-back</a></li>
-								<li><a href="#">Returns</a></li>
+								<li><a href="{{ url('returns') }}">Returns</a></li>
 								<li><a href="#">Shipping</a></li>
 								<li><a href="#">Privacy Policy</a></li>
 							</ul>
@@ -126,7 +126,7 @@
 					<div class="row">
 						<div class="col-lg-6 col-12">
 							<div class="left">
-								<p>Copyright © {{date('Y')}} <a href="https://github.com/nmdskandy" target="_blank">nmdskandy</a>  -  All Rights Reserved.</p>
+								<p>Copyright © {{date('Y')}} <a href="https://nmdskandy.lk/" target="_blank">nmdskandy</a>  -  All Rights Reserved.</p>
 							</div>
 						</div>
 						<div class="col-lg-6 col-12">

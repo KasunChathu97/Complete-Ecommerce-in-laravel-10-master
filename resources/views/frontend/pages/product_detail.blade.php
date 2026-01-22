@@ -33,197 +33,192 @@
 			</div>
 		</div>
 		<!-- End Breadcrumbs -->
-				
+                
 		<!-- Shop Single -->
 		<section class="shop single section">
-					<div class="container">
-						<div class="row"> 
-							<div class="col-12">
-								<div class="row">
-									<div class="col-lg-6 col-12">
-										<!-- Product Slider -->
-										<div class="product-gallery">
-											<!-- Main Image Slider -->
-											<div id="product-main-slider" class="flexslider">
-												<ul class="slides">
-													@php
-														$photos=[];
-														foreach(explode(',', (string) $product_detail->photo) as $p){
-															$p=trim($p);
-															if(!$p) continue;
-															if(!preg_match('~^https?://~i', $p) && substr($p,0,1) !== '/') {
-																$p = '/'.$p;
-															}
-															$photos[]=$p;
-														}
-														if(empty($photos)){
-															$photos[] = asset('backend/img/logo3.png');
-														}
-													@endphp
-													@foreach($photos as $img)
-														<li>
-															<a href="{{$img}}" class="product-image-popup" title="{{$product_detail->title}}">
-																<img src="{{$img}}" alt="{{$product_detail->title}}" style="width:100%;max-height:400px;object-fit:contain;">
-															</a>
-															<div class="product-image-caption" style="margin-top:10px;text-align:center;font-size:15px;color:#444;">
-																{{ strip_tags($product_detail->description) }}
-															</div>
-														</li>
-													@endforeach
-												<style>
-													.product-image-caption {
-														margin-top: 10px;
-														text-align: center;
-														font-size: 15px;
-														color: #444;
-														line-height: 1.5;
-														background: #f8f9fa;
-														padding: 8px 12px;
-														border-radius: 4px;
-														min-height: 40px;
+			<div class="container">
+				<div class="row"> 
+					<div class="col-12">
+						<div class="row">
+							<div class="col-lg-6 col-12">
+								<!-- Product Slider -->
+								<div class="product-gallery shadow rounded p-2 position-relative" style="background:#fff;">
+									<!-- Product Badge -->
+									@if($product_detail->discount>0)
+										<span class="badge badge-danger position-absolute" style="top:15px;left:15px;font-size:1rem;z-index:2;">{{$product_detail->discount}}% OFF</span>
+									@elseif(now()->diffInDays($product_detail->created_at) < 30)
+										<span class="badge badge-success position-absolute" style="top:15px;left:15px;font-size:1rem;z-index:2;">New</span>
+									@endif
+									<!-- Main Image Slider -->
+									<div id="product-main-slider" class="flexslider">
+										<ul class="slides">
+											@php
+												$photos=[];
+												foreach(explode(',', (string) $product_detail->photo) as $p){
+													$p=trim($p);
+													if(!$p) continue;
+													if(!preg_match('~^https?://~i', $p) && substr($p,0,1) !== '/') {
+														$p = '/'.$p;
 													}
-												</style>
-												</ul>
-											</div>
-											<!-- Thumbnail Navigation Slider -->
-											<div id="product-thumb-slider" class="flexslider flexslider-thumbnails" style="margin-top:15px;">
-												<ul class="slides">
-													@foreach($photos as $img)
-														<li>
-															<img src="{{$img}}" alt="{{$product_detail->title}}" style="height:70px;width:70px;object-fit:cover;border:2px solid #eee;border-radius:4px;cursor:pointer;">
-														</li>
-													@endforeach
-												</ul>
-											</div>
-										</div>
-										<!-- End Product slider -->
+													$photos[]=$p;
+												}
+												if(empty($photos)){
+													$photos[] = asset('backend/img/logo3.png');
+												}
+											@endphp
+											@foreach($photos as $img)
+												<li>
+													<a href="{{$img}}" class="product-image-popup" title="{{$product_detail->title}}">
+														<img src="{{$img}}" alt="{{$product_detail->title}}" style="width:100%;max-height:400px;object-fit:contain;">
+													</a>
+													<div class="product-image-caption" style="margin-top:10px;text-align:center;font-size:15px;color:#444;">
+														{{ strip_tags($product_detail->description) }}
+													</div>
+												</li>
+											@endforeach
+										<style>
+											.product-image-caption {
+												margin-top: 10px;
+												text-align: center;
+												font-size: 15px;
+												color: #444;
+												line-height: 1.5;
+												background: #f8f9fa;
+												padding: 8px 12px;
+												border-radius: 4px;
+												min-height: 40px;
+											}
+										</style>
+										</ul>
 									</div>
-									<div class="col-lg-6 col-12">
-										<div class="product-des">
-											<!-- Description -->
-											<div class="short">
-												<h4>{{$product_detail->title}}</h4>
-												<div class="rating-main">
-													<ul class="rating">
-														@php
-															$rate=ceil($product_detail->getReview->avg('rate'))
-														@endphp
-															@for($i=1; $i<=5; $i++)
-																@if($rate>=$i)
-																	<li><i class="fa fa-star"></i></li>
-																@else 
-																	<li><i class="fa fa-star-o"></i></li>
-																@endif
-															@endfor
-													</ul>
-													<a href="#" class="total-review">({{$product_detail['getReview']->count()}}) Review</a>
-                                                </div>
-                                                @php 
-                                                    $after_discount=($product_detail->price-(($product_detail->price*$product_detail->discount)/100));
-                                                @endphp
-												<p class="price">
-													<span class="discount">{{Helper::formatCurrency($after_discount)}}</span>
-													@if($product_detail->discount>0)
-														<s>{{Helper::formatCurrency($product_detail->price)}}</s>
-													@endif
-												</p>
-												<p class="description">{!!($product_detail->summary)!!}</p>
-
-												@if(!empty($product_detail->warranty))
-												<div class="product-warranty mt-3">
-													<h5 style="font-weight:bold;">Warranty</h5>
-													<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->warranty)) !!}</div>
-												</div>
-												@endif
-
-												@if(!empty($product_detail->returns))
-												<div class="product-returns mt-3">
-													<h5 style="font-weight:bold;">Returns</h5>
-													<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->returns)) !!}</div>
-												</div>
-												@endif
-											</div>
-											<!--/ End Description -->
-											<!-- Color -->
-											{{-- <div class="color">
-												<h4>Available Options <span>Color</span></h4>
-												<ul>
-													<li><a href="#" class="one"><i class="ti-check"></i></a></li>
-													<li><a href="#" class="two"><i class="ti-check"></i></a></li>
-													<li><a href="#" class="three"><i class="ti-check"></i></a></li>
-													<li><a href="#" class="four"><i class="ti-check"></i></a></li>
-												</ul>
-											</div> --}}
-											<!--/ End Color -->
-											<!-- Size -->
-											@if($product_detail->size)
-												<div class="size mt-4">
-													<h4>Size</h4>
-													<ul>
-														@php 
-															$sizes=explode(',',$product_detail->size);
-															// dd($sizes);
-														@endphp
-														@foreach($sizes as $size)
-														<li><a href="#" class="one">{{$size}}</a></li>
-														@endforeach
-													</ul>
-												</div>
-											@endif
-											<!--/ End Size -->
-											<!-- Product Buy -->
-											<div class="product-buy">
-												<form action="{{route('single-add-to-cart')}}" method="POST">
-													@csrf 
-													<div class="quantity">
-														<h6>Quantity :</h6>
-														<!-- Input Order -->
-														<div class="input-group">
-															<div class="button minus">
-																<button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[1]">
-																	<i class="ti-minus"></i>
-																</button>
-															</div>
-															<input type="hidden" name="slug" value="{{$product_detail->slug}}">
-															<input type="text" name="quant[1]" class="input-number"  data-min="1" data-max="1000" value="1" id="quantity">
-															<div class="button plus">
-																<button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[1]">
-																	<i class="ti-plus"></i>
-																</button>
-															</div>
-														</div>
-													<!--/ End Input Order -->
-													</div>
-													<div class="add-to-cart mt-4 d-flex align-items-center gap-2" style="gap: 12px;">
-														<button type="submit" class="btn btn-primary" style="min-width: 120px;">Add to Cart</button>
-													</div>
-												</form>
-												<form action="{{ route('buy-now') }}" method="POST" style="display:inline;">
-													@csrf
-													<input type="hidden" name="slug" value="{{$product_detail->slug}}">
-													<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
-													<button type="submit" class="btn btn-success mt-2" style="min-width: 120px;">Buy Now</button>
-												</form>
-												<a href="{{route('add-to-wishlist',$product_detail->slug)}}" class="btn min" style="background: #f8f9fa; color: #333; border: 1px solid #ddd;"><i class="ti-heart"></i></a>
-													</div>
-												</form>
-
-												<p class="cat">Category :<a href="{{route('product-cat',$product_detail->cat_info['slug'])}}">{{$product_detail->cat_info['title']}}</a></p>
-												@if($product_detail->sub_cat_info)
-												<p class="cat mt-1">Sub Category :<a href="{{route('product-sub-cat',[$product_detail->cat_info['slug'],$product_detail->sub_cat_info['slug']])}}">{{$product_detail->sub_cat_info['title']}}</a></p>
-												@endif
-												<p class="availability">Stock : @if($product_detail->stock>0)<span class="badge badge-success">{{$product_detail->stock}}</span>@else <span class="badge badge-danger">{{$product_detail->stock}}</span>  @endif</p>
-
-												<div class="mt-4">
-													<h6 class="mb-2">Wholesale Pricing</h6>
-													<p class="mb-3">Interested in wholesale pricing? Send us a request and we will contact you.</p>
-													<a href="{{ route('wholesale.request', ['product' => $product_detail->slug]) }}" class="btn">Request Wholesale Pricing</a>
-												</div>
-											</div>
-											<!--/ End Product Buy -->
-										</div>
+									<!-- Thumbnail Navigation Slider -->
+									<div id="product-thumb-slider" class="flexslider flexslider-thumbnails" style="margin-top:15px;">
+										<ul class="slides">
+											@foreach($photos as $img)
+												<li>
+													<img src="{{$img}}" alt="{{$product_detail->title}}" class="thumb-img" style="height:70px;width:70px;object-fit:cover;border:2px solid #eee;border-radius:4px;cursor:pointer;transition:box-shadow .2s;">
+												</li>
+											@endforeach
+										</ul>
 									</div>
 								</div>
+								<!-- End Product slider -->
+							</div>
+							<div class="col-lg-6 col-12">
+								<div class="product-des">
+									<!-- Description -->
+									<div class="short">
+										<div class="d-flex align-items-center mb-2">
+											<h4 class="mb-0">{{$product_detail->title}}</h4>
+											<span class="badge badge-info ml-3" style="font-size:0.95rem;"><i class="fa fa-certificate mr-1"></i>100% Genuine</span>
+											@if(!empty($product_detail->warranty))
+												<span class="badge badge-warning ml-2" style="font-size:0.95rem;"><i class="fa fa-shield mr-1"></i>Warranty</span>
+											@endif
+										</div>
+										<div class="rating-main mb-2">
+											<ul class="rating">
+												@php
+													$rate=ceil($product_detail->getReview->avg('rate'))
+												@endphp
+													@for($i=1; $i<=5; $i++)
+														@if($rate>=$i)
+															<li><i class="fa fa-star"></i></li>
+														@else 
+															<li><i class="fa fa-star-o"></i></li>
+														@endif
+													@endfor
+											</ul>
+											<a href="#" class="total-review">({{$product_detail['getReview']->count()}}) Review</a>
+										</div>
+										@php 
+											$after_discount=($product_detail->price-(($product_detail->price*$product_detail->discount)/100));
+										@endphp
+										<p class="price mb-2" style="font-size:1.7rem;font-weight:600;color:#e74c3c;">
+											<span class="discount">{{Helper::formatCurrency($after_discount)}}</span>
+											@if($product_detail->discount>0)
+												<s style="font-size:1.1rem;color:#888;">{{Helper::formatCurrency($product_detail->price)}}</s>
+											@endif
+										</p>
+										<p class="description">{!!($product_detail->summary)!!}</p>
+
+										@if(!empty($product_detail->warranty))
+										<div class="product-warranty mt-3">
+											<h5 style="font-weight:bold;"><i class="fa fa-shield mr-1 text-warning"></i>Warranty</h5>
+											<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->warranty)) !!}</div>
+										</div>
+										@endif
+
+										@if(!empty($product_detail->returns))
+										<div class="product-returns mt-3">
+											<h5 style="font-weight:bold;"><i class="fa fa-undo mr-1 text-info"></i>Returns</h5>
+											<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->returns)) !!}</div>
+										</div>
+										@endif
+									</div>
+									<!--/ End Description -->
+									<!-- Size -->
+									@if($product_detail->size)
+										<div class="size mt-4">
+											<h4>Size</h4>
+											<ul>
+												@php 
+													$sizes=explode(',',$product_detail->size);
+												@endphp
+												@foreach($sizes as $size)
+												<li><a href="#" class="one">{{$size}}</a></li>
+												@endforeach
+											</ul>
+										</div>
+									@endif
+									<!--/ End Size -->
+									<!-- Product Buy -->
+									<div class="product-buy">
+										<form action="{{route('single-add-to-cart')}}" method="POST">
+											@csrf 
+											<div class="quantity">
+												<h6>Quantity :</h6>
+												<!-- Input Order -->
+												<div class="input-group">
+													<div class="button minus">
+														<button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[1]">
+															<i class="ti-minus"></i>
+														</button>
+													</div>
+													<input type="hidden" name="slug" value="{{$product_detail->slug}}">
+													<input type="text" name="quant[1]" class="input-number"  data-min="1" data-max="1000" value="1" id="quantity">
+													<div class="button plus">
+														<button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[1]">
+															<i class="ti-plus"></i>
+														</button>
+													</div>
+												</div>
+											<!--/ End Input Order -->
+											</div>
+											<div class="add-to-cart mt-4 d-flex align-items-center gap-2" style="gap: 12px;">
+												<button type="submit" class="btn btn-primary d-flex align-items-center" style="min-width: 140px;font-size:1.1rem;"><i class="ti-shopping-cart mr-2"></i> Add to Cart</button>
+											</div>
+										</form>
+										<form action="{{ route('buy-now') }}" method="POST" style="display:inline;">
+											@csrf
+											<input type="hidden" name="slug" value="{{$product_detail->slug}}">
+											<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
+											<button type="submit" class="btn btn-success mt-2 d-flex align-items-center" style="min-width: 140px;font-size:1.1rem;"><i class="fa fa-bolt mr-2"></i> Buy Now</button>
+										</form>
+										<a href="{{route('add-to-wishlist',$product_detail->slug)}}" class="btn min ml-2" style="background: #f8f9fa; color: #e74c3c; border: 1px solid #e74c3c;"><i class="ti-heart"></i></a>
+									</div>
+									<p class="cat mt-3">Category :<a href="{{route('product-cat',$product_detail->cat_info['slug'])}}">{{$product_detail->cat_info['title']}}</a></p>
+									@if($product_detail->sub_cat_info)
+									<p class="cat mt-1">Sub Category :<a href="{{route('product-sub-cat',[$product_detail->cat_info['slug'],$product_detail->sub_cat_info['slug']])}}">{{$product_detail->sub_cat_info['title']}}</a></p>
+									@endif
+									<p class="availability">Stock : @if($product_detail->stock>0)<span class="badge badge-success">{{$product_detail->stock}}</span>@else <span class="badge badge-danger">{{$product_detail->stock}}</span>  @endif</p>
+									<div class="mt-4">
+										<h6 class="mb-2">Wholesale Pricing</h6>
+										<p class="mb-3">Interested in wholesale pricing? Send us a request and we will contact you.</p>
+										<a href="{{ route('wholesale.request', ['product' => $product_detail->slug]) }}" class="btn btn-outline-primary">Request Wholesale Pricing</a>
+									</div>
+								</div>
+							</div>
+						</div>
 								<div class="row">
 									<div class="col-12">
 										<div class="product-info">
