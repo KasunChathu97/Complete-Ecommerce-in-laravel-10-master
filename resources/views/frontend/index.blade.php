@@ -48,7 +48,6 @@
 </div>
 
 @push('styles')
-        @parent
         <style>
         @keyframes marquee-move {
             0% { transform: translateX(100%); }

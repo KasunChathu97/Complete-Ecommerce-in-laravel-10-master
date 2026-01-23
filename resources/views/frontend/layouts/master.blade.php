@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="zxx">
 <head>
-	@include('frontend.layouts.head')	
+	@include('frontend.layouts.head')
+	@stack('styles')
 </head>
 <body class="js theme-electronics-alt">
 	
