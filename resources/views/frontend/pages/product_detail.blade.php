@@ -71,9 +71,6 @@
 													<a href="{{$img}}" class="product-image-popup" title="{{$product_detail->title}}">
 														<img src="{{$img}}" alt="{{$product_detail->title}}" style="width:100%;max-height:400px;object-fit:contain;">
 													</a>
-													<div class="product-image-caption" style="margin-top:10px;text-align:center;font-size:15px;color:#444;">
-														{{ strip_tags($product_detail->description) }}
-													</div>
 												</li>
 											@endforeach
 										<style>
