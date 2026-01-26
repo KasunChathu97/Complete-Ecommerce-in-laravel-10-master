@@ -105,6 +105,8 @@
                                         <!-- Single Post -->
                                         @php
                                             $photo=explode(',',$product->photo);
+                                            $after_discount = $product->price - ($product->price * $product->discount / 100);
+                                            $currency = 'Rs.';
                                         @endphp
                                         <div class="single-post first">
                                             <div class="image">
@@ -112,11 +114,14 @@
                                             </div>
                                             <div class="content">
                                                 <h5><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h5>
-                                                @php
-                                                    $org=($product->price-($product->price*$product->discount)/100);
-                                                @endphp
-                                                <p class="price"><del class="text-muted">${{number_format($product->price,2)}}</del>   ${{number_format($org,2)}}  </p>
-
+                                                @if($product->discount)
+                                                    <div class="discount-below-image" style="margin-top:4px;text-align:left;">
+                                                        <span class="badge badge-warning" style="font-size:0.95rem;padding:4px 12px;background:#F7941D;color:#fff;">{{$product->discount}}% Off</span>
+                                                    </div>
+                                                    <p class="price mb-0"><span style="color:#e74c3c;font-weight:600;">{{$currency}}{{number_format($after_discount,2)}}</span> <del class="text-muted" style="padding-left:4%">{{$currency}}{{number_format($product->price,2)}}</del></p>
+                                                @else
+                                                    <p class="price mb-0"><span style="color:#222;font-weight:600;">{{$currency}}{{number_format($product->price,2)}}</span></p>
+                                                @endif
                                             </div>
                                         </div>
                                         <!-- End Single Post -->
@@ -182,31 +187,38 @@
                                             <div class="product-img">
                                                 <a href="{{route('product-detail',$product->slug)}}">
                                                     @php
-                                                        $photo=explode(',',$product->photo);
+                                                        $photo=explode(',', $product->photo);
                                                     @endphp
                                                     <img class="default-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
                                                     <img class="hover-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
                                                     @if($product->discount)
-                                                                <span class="price-dec">{{$product->discount}} % Off</span>
+                                                        <div class="discount-below-image" style="margin-top:8px;text-align:center;">
+                                                            <span class="badge badge-warning" style="font-size:1rem;padding:6px 16px;background:#F7941D;color:#fff;">{{$product->discount}}% Off</span>
+                                                        </div>
                                                     @endif
+                                                    <div class="button-head">
+                                                        <div class="product-action">
+                                                            <a data-toggle="modal" data-target="#{{$product->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
+                                                            <a title="Wishlist" href="{{route('add-to-wishlist',$product->slug)}}" class="wishlist" data-id="{{$product->id}}"><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
+                                                        </div>
+                                                        <div class="product-action-2">
+                                                            <a title="Add to cart" href="{{route('add-to-cart',$product->slug)}}">Add to cart</a>
+                                                        </div>
+                                                    </div>
                                                 </a>
-                                                <div class="button-head">
-                                                    <div class="product-action">
-                                                        <a data-toggle="modal" data-target="#{{$product->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
-                                                        <a title="Wishlist" href="{{route('add-to-wishlist',$product->slug)}}" class="wishlist" data-id="{{$product->id}}"><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
-                                                    </div>
-                                                    <div class="product-action-2">
-                                                        <a title="Add to cart" href="{{route('add-to-cart',$product->slug)}}">Add to cart</a>
-                                                    </div>
-                                                </div>
                                             </div>
                                             <div class="product-content">
                                                 <h3><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h3>
                                                 @php
                                                     $after_discount=($product->price-($product->price*$product->discount)/100);
+                                                    $currency = 'Rs.';
                                                 @endphp
-                                                <span>${{number_format($after_discount,2)}}</span>
-                                                <del style="padding-left:4%;">${{number_format($product->price,2)}}</del>
+                                                @if($product->discount)
+                                                    <span>{{$currency}}{{number_format($after_discount,2)}}</span>
+                                                    <del style="padding-left:4%;">{{$currency}}{{number_format($product->price,2)}}</del>
+                                                @else
+                                                    <span>{{$currency}}{{number_format($product->price,2)}}</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
