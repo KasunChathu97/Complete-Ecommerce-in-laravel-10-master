@@ -39,9 +39,9 @@
 <!--/ End Slider Area -->
 
 <!-- Cream Horizontal Bar with Navigation and Marquee -->
-<div style="width: 100%; background: #fbf7b9ff; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 6px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); font-size: 1.1em; font-weight: 500; position: relative; overflow: hidden;">
+<div style="width: 100%; background:linear-gradient(90deg,#f7941d 60%,#fffbe7 100%);min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 6px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); font-size: 1.1em; font-weight: 500; position: relative; overflow: hidden;">
     <div style="width: 100%; overflow: hidden; height: 32px; margin-bottom: 4px;">
-        <div id="marquee-offer" style="white-space: nowrap; display: inline-block; font-size: 2.15em; color: #f62727ff; font-weight: bold; animation: marquee-move 12s linear infinite;">
+        <div id="marquee-offer" style="white-space: nowrap; display: inline-block; font-size: 2.15em; color: rgb(238, 0, 0); font-weight: bold; animation: marquee-move 12s linear infinite;">
             අද දින 20% ක වට්ටමක්. ඔබත් ඉක්මනින් ඇණවුම් කරන්න.
         </div>
     </div>
