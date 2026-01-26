@@ -72,15 +72,9 @@
                 <div class="col-lg-8 col-md-7 col-12">
                     <div class="search-bar-top">
                         <div class="search-bar">
-                            <select>
-                                <option >All Category</option>
-                                @foreach(Helper::getAllCategory() as $cat)
-                                    <option>{{$cat->title}}</option>
-                                @endforeach
-                            </select>
-                            <form method="POST" action="{{route('product.search')}}">
+                            <form method="POST" action="{{route('product.search')}}" style="width:100%;display:flex;">
                                 @csrf
-                                <input name="search" placeholder="Search Products Here....." type="search">
+                                <input name="search" placeholder="Search Products Here....." type="search" style="flex:1;">
                                 <button class="btnn" type="submit"><i class="ti-search"></i></button>
                             </form>
                         </div>
