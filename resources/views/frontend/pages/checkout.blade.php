@@ -70,7 +70,7 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-12">
+                                    <!--<div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Country<span>*</span></label>
                                             <select name="country" id="country">
@@ -321,7 +321,7 @@
                                                 <option value="ZW">Zimbabwe</option>
                                             </select>
                                         </div>
-                                    </div>
+                                    </div>-->
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Address Line 1<span>*</span></label>

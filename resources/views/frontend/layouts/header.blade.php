@@ -1,6 +1,58 @@
 <header class="header shop">
+                            <style>
+                                body {
+                                    background: #ffffff !important;
+                                }
+                            </style>
+                        <style>
+                            /* Navigation bar white, menu letters black */
+                            .header-inner, .menu-area, .navbar, .navbar-collapse {
+                                background: #fff !important;
+                            }
+                            .main-menu > li > a, .main-menu > li {
+                                color: #000 !important;
+                            }
+                            /* Black line between header and nav */
+                            .header-inner {
+                                border-top: 2.5px solid #bbb;
+                            }
+                        </style>
+                    <style>
+                        /* Navigation bar white, menu letters black */
+                        .header-inner, .menu-area, .navbar, .navbar-collapse {
+                            background: #fff !important;
+                        }
+                        .main-menu > li > a, .main-menu > li {
+                            color: #000 !important;
+                        }
+                    </style>
+                <style>
+                    /* Add to Cart and Wishlist icons in header */
+                    .right-bar .single-icon i.fa-heart-o,
+                    .right-bar .single-icon i.ti-bag {
+                        color: #000 !important;
+                    }
+                    /* Search bar border dark black */
+                    .search-bar input[type="search"],
+                    .search-form input[type="text"] {
+                        border: 2px solid #111 !important;
+                    }
+                </style>
+            <style>
+                .topbar i {
+                    color: #000 !important;
+                }
+                .topbar .ti-email + a:hover {
+                    color: #afc9f3 !important;
+                }
+            </style>
+        <style>
+            .topbar i {
+                color: #000 !important;
+            }
+        </style>
     <!-- Topbar -->
-    <div class="topbar">
+    <div class="topbar" style="background:#f7941d">
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-md-12 col-12">
@@ -42,7 +94,7 @@
         </div>
     </div>
     <!-- End Topbar -->
-    <div class="middle-inner">
+    <div class="middle-inner" style="background:#ffff">
         <div class="container">
             <div class="row">
                 <div class="col-lg-2 col-md-2 col-12">
@@ -133,38 +185,60 @@
                             <a href="{{route('wishlist')}}" class="single-icon"><i class="fa fa-heart-o" aria-hidden="true"></i></a>
                         </div> --}}
                         <div class="sinlge-bar shopping">
-                            <a href="{{route('cart')}}" class="single-icon"><i class="ti-bag"></i> <span class="total-count">{{Helper::cartCount()}}</span></a>
-                            <!-- Shopping Item -->
-                            @auth
-                                <div class="shopping-item">
-                                    <div class="dropdown-cart-header">
+                            <div class="cart-dropdown-wrapper" style="position:relative;">
+                                <a href="{{route('cart')}}" class="single-icon" id="cartDropdownToggle"><i class="ti-bag"></i> <span class="total-count">{{Helper::cartCount()}}</span></a>
+                                <!-- Shopping Item Dropdown -->
+                                @auth
+                                <div class="shopping-item" id="cartDropdownMenu" style="display:none; position:absolute; right:0; top:100%; background:#fff; min-width:260px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1000; border-radius:8px; padding:12px 0;">
+                                    <div class="dropdown-cart-header" style="padding:0 18px 8px 18px;">
                                         <span>{{count(Helper::getAllProductFromCart())}} Items</span>
                                         <a href="{{route('cart')}}">View Cart</a>
                                     </div>
-                                    <ul class="shopping-list">
-                                        {{-- {{Helper::getAllProductFromCart()}} --}}
-                                            @foreach(Helper::getAllProductFromCart() as $data)
-                                                    @php
-                                                        $photo=explode(',',$data->product['photo']);
-                                                    @endphp
-                                                    <li>
-                                                        <a href="{{route('cart-delete',$data->id)}}" class="remove" title="Remove this item"><i class="fa fa-remove"></i></a>
-                                                        <a class="cart-img" href="{{route('product-detail',$data->product['slug'])}}"><img src="{{$photo[0]}}" alt="{{$data->product['title']}}"></a>
-                                                        <h4><a href="{{route('product-detail',$data->product['slug'])}}" target="_blank">{{$data->product['title']}}</a></h4>
-                                                        <p class="quantity">{{$data->quantity}} x - <span class="amount">{{Helper::formatCurrency($data->price)}}</span></p>
-                                                    </li>
-                                            @endforeach
+                                    <ul class="shopping-list" style="max-height:220px; overflow-y:auto;">
+                                        @foreach(Helper::getAllProductFromCart() as $data)
+                                            <li style="display:flex;align-items:center;padding:6px 18px;gap:10px;">
+                                                @php $photo=explode(',',$data->product['photo']); @endphp
+                                                <a class="cart-img" href="{{route('product-detail',$data->product['slug'])}}"><img src="{{$photo[0]}}" alt="{{$data->product['title']}}" style="width:38px;height:38px;object-fit:cover;border-radius:4px;"></a>
+                                                <div style="flex:1;">
+                                                    <div style="font-size:15px;font-weight:500;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                        {{$data->product['title']}}
+                                                    </div>
+                                                    <div style="font-size:13px;color:#888;">{{$data->quantity}} x {{Helper::formatCurrency($data->price)}}</div>
+                                                </div>
+                                                <a href="{{route('cart-delete',$data->id)}}" class="remove" title="Remove this item" style="color:#e74c3c;"><i class="fa fa-remove"></i></a>
+                                            </li>
+                                        @endforeach
                                     </ul>
-                                    <div class="bottom">
-                                        <div class="total">
+                                    <div class="bottom" style="padding:8px 18px 0 18px;">
+                                        <div class="total" style="display:flex;justify-content:space-between;align-items:center;">
                                             <span>Total</span>
                                             <span class="total-amount">{{Helper::formatCurrency(Helper::totalCartPrice())}}</span>
                                         </div>
-                                            <a href="{{route('checkout')}}" class="btn animate cta-checkout">Checkout</a>
+                                        <a href="{{route('checkout')}}" class="btn animate cta-checkout" style="width:100%;margin-top:10px;">Checkout</a>
                                     </div>
                                 </div>
-                            @endauth
-                            <!--/ End Shopping Item -->
+                                @endauth
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    var toggle = document.getElementById('cartDropdownToggle');
+                                    var menu = document.getElementById('cartDropdownMenu');
+                                    if(toggle && menu) {
+                                        toggle.addEventListener('mouseenter', function() {
+                                            menu.style.display = 'block';
+                                        });
+                                        toggle.addEventListener('mouseleave', function() {
+                                            setTimeout(function(){ menu.style.display = 'none'; }, 200);
+                                        });
+                                        menu.addEventListener('mouseenter', function() {
+                                            menu.style.display = 'block';
+                                        });
+                                        menu.addEventListener('mouseleave', function() {
+                                            menu.style.display = 'none';
+                                        });
+                                    }
+                                });
+                            </script>
                         </div>
                     </div>
                 </div>

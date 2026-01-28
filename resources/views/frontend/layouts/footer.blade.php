@@ -1,3 +1,58 @@
+<style>
+	/* Remove margins above and below copyright */
+	.footer .copyright {
+		margin-top: 0 !important;
+		margin-bottom: 0 !important;
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
+	}
+	.footer .copyright p {
+		margin: 0 !important;
+	}
+</style>
+<style>
+	/* Shadow above the footer */
+	.footer {
+		box-shadow: 0 -8px 24px -8px rgba(0,0,0,0.12);
+		position: relative;
+		z-index: 2;
+	}
+</style>
+<style>
+		/* Light black line above copyright */
+		.footer .copyright {
+			border-top: 2px solid #bbb !important;
+		}
+	/* Force all footer contact info to black */
+	.footer .contact ul li,
+	.footer .contact ul li a {
+		color: #000 !important;
+	}
+</style>
+<style>
+	/* Reduce footer height for a more compact look */
+	.footer, .footer-top.section {
+		padding-top: 18px !important;
+		padding-bottom: 10px !important;
+		background: #fff !important;
+		color: #000 !important;
+	}
+	.footer .single-footer {
+		margin-bottom: 10px !important;
+	}
+	.footer .copyright {
+		padding: 8px 0 !important;
+		margin-top: 0 !important;
+		background: #fff !important;
+		color: #000 !important;
+	}
+	.footer, .footer * {
+		color: #000 !important;
+	}
+	.footer a, .footer a:visited, .footer a:active {
+		color: #000 !important;
+	}
+</style>
 
 	<!-- Start Footer Area -->
 	<footer class="footer">
@@ -69,15 +124,15 @@
 							@endphp
 							<!-- Single Widget -->
 							<div class="contact">
-								<ul>
+								<ul style="color:#000 !important;">
 									@if($setting)
-										<li>{{data_get($setting,'address')}}</li>
-										   <li><a href="mailto:{{data_get($setting,'email')}}">{{data_get($setting,'email')}}</a></li>
-										<li>{{data_get($setting,'phone')}}</li>
+										<li style="color:#000 !important;">{{data_get($setting,'address')}}</li>
+										   <li style="color:#000 !important;"><a href="mailto:{{data_get($setting,'email')}}" style="color:#000 !important;">{{data_get($setting,'email')}}</a></li>
+										<li style="color:#000 !important;">{{data_get($setting,'phone')}}</li>
 									@else
-										<li>Delimach Lanka (Pvt) Ltd, 555/22B, Ranmuthugala, Kadawatha</li>
-										   <li><a href="mailto:delimachlanka@gmail.com">delimachlanka@gmail.com</a></li>
-										<li>+94 77 782 0662</li>
+										<li style="color:#000 !important;">Delimach Lanka (Pvt) Ltd, 555/22B, Ranmuthugala, Kadawatha</li>
+										   <li style="color:#000 !important;"><a href="mailto:delimachlanka@gmail.com" style="color:#000 !important;">delimachlanka@gmail.com</a></li>
+										<li style="color:#000 !important;">+94 77 782 0662</li>
 									@endif
 								</ul>
 							</div>
@@ -122,7 +177,7 @@
 		<!-- End Footer Top -->
 		<div class="copyright">
 			<div class="container">
-				<div class="inner">
+				
 					<div class="row">
 						<div class="col-lg-6 col-12">
 							<div class="left">

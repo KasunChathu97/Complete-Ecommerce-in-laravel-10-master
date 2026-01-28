@@ -257,30 +257,45 @@
 																	<div class="review-inner">
 																			<!-- Form -->
 																@auth
+																@php
+																	$hasPurchased = false;
+																	if(auth()->check()) {
+																		$orders = auth()->user()->orders()->with('cart_info')->get();
+																		foreach($orders as $order) {
+																			foreach($order->cart_info as $cart) {
+																				if($cart->product_id == $product_detail->id) {
+																					$hasPurchased = true;
+																					break 2;
+																				}
+																			}
+																		}
+																	}
+																@endphp
+																@if($hasPurchased)
 																<form class="form" method="post" action="{{route('review.store',$product_detail->slug)}}">
-                                                                    @csrf
-                                                                    <div class="row">
-                                                                        <div class="col-lg-12 col-12">
-                                                                            <div class="rating_box">
-                                                                                  <div class="star-rating">
-                                                                                    <div class="star-rating__wrap">
-                                                                                      <input class="star-rating__input" id="star-rating-5" type="radio" name="rate" value="5">
-                                                                                      <label class="star-rating__ico fa fa-star-o" for="star-rating-5" title="5 out of 5 stars"></label>
-                                                                                      <input class="star-rating__input" id="star-rating-4" type="radio" name="rate" value="4">
-                                                                                      <label class="star-rating__ico fa fa-star-o" for="star-rating-4" title="4 out of 5 stars"></label>
-                                                                                      <input class="star-rating__input" id="star-rating-3" type="radio" name="rate" value="3">
-                                                                                      <label class="star-rating__ico fa fa-star-o" for="star-rating-3" title="3 out of 5 stars"></label>
-                                                                                      <input class="star-rating__input" id="star-rating-2" type="radio" name="rate" value="2">
-                                                                                      <label class="star-rating__ico fa fa-star-o" for="star-rating-2" title="2 out of 5 stars"></label>
-                                                                                      <input class="star-rating__input" id="star-rating-1" type="radio" name="rate" value="1">
+																	@csrf
+																	<div class="row">
+																		<div class="col-lg-12 col-12">
+																			<div class="rating_box">
+																				  <div class="star-rating">
+																					<div class="star-rating__wrap">
+																					  <input class="star-rating__input" id="star-rating-5" type="radio" name="rate" value="5">
+																					  <label class="star-rating__ico fa fa-star-o" for="star-rating-5" title="5 out of 5 stars"></label>
+																					  <input class="star-rating__input" id="star-rating-4" type="radio" name="rate" value="4">
+																					  <label class="star-rating__ico fa fa-star-o" for="star-rating-4" title="4 out of 5 stars"></label>
+																					  <input class="star-rating__input" id="star-rating-3" type="radio" name="rate" value="3">
+																					  <label class="star-rating__ico fa fa-star-o" for="star-rating-3" title="3 out of 5 stars"></label>
+																					  <input class="star-rating__input" id="star-rating-2" type="radio" name="rate" value="2">
+																					  <label class="star-rating__ico fa fa-star-o" for="star-rating-2" title="2 out of 5 stars"></label>
+																					  <input class="star-rating__input" id="star-rating-1" type="radio" name="rate" value="1">
 																					  <label class="star-rating__ico fa fa-star-o" for="star-rating-1" title="1 out of 5 stars"></label>
 																					  @error('rate')
 																						<span class="text-danger">{{$message}}</span>
 																					  @enderror
-                                                                                    </div>
-                                                                                  </div>
-                                                                            </div>
-                                                                        </div>
+																					</div>
+																				  </div>
+																			</div>
+																		</div>
 																		<div class="col-lg-12 col-12">
 																			<div class="form-group">
 																				<label>Write a review</label>
@@ -288,12 +303,17 @@
 																			</div>
 																		</div>
 																		<div class="col-lg-12 col-12">
-																			<div class="form-group button5">	
+																			<div class="form-group button5">  
 																				<button type="submit" class="btn">Submit</button>
 																			</div>
 																		</div>
 																	</div>
 																</form>
+																@else
+																<p class="text-center p-5">
+																	Only customers who have purchased this product can leave a review.
+																</p>
+																@endif
 																@else 
 																<p class="text-center p-5">
 																	You need to <a href="{{route('login.form')}}" style="color:rgb(54, 54, 204)">Login</a> OR <a style="color:blue" href="{{route('register.form')}}">Register</a>
