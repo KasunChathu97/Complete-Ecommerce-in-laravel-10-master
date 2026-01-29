@@ -44,7 +44,7 @@
                 <span>Media Manager</span></a>
         </li>
 
-        <li class="nav-item">
+        <!--<li class="nav-item">
           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
             <i class="fas fa-image"></i>
             <span>Banners</span>
@@ -56,7 +56,7 @@
               <a class="collapse-item" href="{{route('banner.create')}}">Add Banners</a>
             </div>
           </div>
-        </li>
+        </li>-->
         <!-- Divider -->
         <hr class="sidebar-divider">
             <!-- Heading -->
@@ -80,7 +80,7 @@
         </li>
 
     {{-- Brands --}}
-    <li class="nav-item">
+    <!--<li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#brandCollapse" aria-expanded="true" aria-controls="brandCollapse">
           <i class="fas fa-table"></i>
           <span>Brands</span>
@@ -92,7 +92,7 @@
             <a class="collapse-item" href="{{route('brand.create')}}">Add Brand</a>
           </div>
         </div>
-    </li>
+    </li>-->
 
 
 
@@ -189,7 +189,7 @@
         </div>
 
         <!-- Posts -->
-        <li class="nav-item">
+       <!-- <li class="nav-item">
           <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#postCollapse" aria-expanded="true" aria-controls="postCollapse">
             <i class="fas fa-fw fa-folder"></i>
             <span>Posts</span>
@@ -201,7 +201,7 @@
               <a class="collapse-item" href="{{route('post.create')}}">Add Post</a>
             </div>
           </div>
-        </li>
+        </li>-->
 
     <!-- Category -->
     <li class="nav-item">

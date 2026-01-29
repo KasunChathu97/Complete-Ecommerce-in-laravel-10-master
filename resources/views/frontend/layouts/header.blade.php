@@ -1,9 +1,40 @@
 <header class="header shop">
-                            <style>
-                                body {
-                                    background: #ffffff !important;
-                                }
-                            </style>
+    <style>
+        /* Reduce navbar height in normal (not sticky) view */
+        .header-inner, .menu-area, .navbar, .navbar-collapse {
+            min-height: 36px !important;
+            height: 36px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            transition: min-height 0.2s, height 0.2s, padding 0.2s;
+        }
+        .header-inner .main-menu > li > a, .navbar .main-menu > li > a {
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+            font-size: 15px !important;
+            line-height: 24px !important;
+        }
+        /* When sticky/scrolled, restore original/taller height */
+        .header.shop.sticky .header-inner,
+        .header.shop.sticky .menu-area,
+        .header.shop.sticky .navbar,
+        .header.shop.sticky .navbar-collapse {
+            min-height: 60px !important;
+            height: 60px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+        .header.shop.sticky .header-inner .main-menu > li > a,
+        .header.shop.sticky .navbar .main-menu > li > a {
+            padding-top: 14px !important;
+            padding-bottom: 14px !important;
+            font-size: 16px !important;
+            line-height: 28px !important;
+        }
+        body {
+            background: #ffffff !important;
+        }
+    </style>
                         <style>
                             /* Navigation bar white, menu letters black */
                             .header-inner, .menu-area, .navbar, .navbar-collapse {
@@ -12,18 +43,18 @@
                             .main-menu > li > a, .main-menu > li {
                                 color: #000 !important;
                             }
-                            /* Black line between header and nav */
+                            /* Remove line between header and nav */
                             .header-inner {
-                                border-top: 2.5px solid #bbb;
+                                border-top: none !important;
                             }
                         </style>
                     <style>
                         /* Navigation bar white, menu letters black */
                         .header-inner, .menu-area, .navbar, .navbar-collapse {
-                            background: #fff !important;
+                            background: #232F3F !important;
                         }
                         .main-menu > li > a, .main-menu > li {
-                            color: #000 !important;
+                            color: #ffffff !important;
                         }
                     </style>
                 <style>
@@ -48,33 +79,44 @@
             </style>
         <style>
             .topbar i {
-                color: #000 !important;
+                color: rgb(255, 255, 255) !important;
             }
         </style>
     <!-- Topbar -->
-    <div class="topbar" style="background:#f7941d">
-        <div class="container">
+    <div class="topbar" style="background:#121921; min-height:50px;">
+        <div class="container" style="max-width:100%;padding-left:12px;padding-right:12px;">
             <div class="row">
-                <div class="col-lg-6 col-md-12 col-12">
-                    <!-- Top Left -->
-                    <div class="top-left">
-                        <ul class="list-main">
-                            @php
-                                $settings=DB::table('settings')->get();
-                                
-                            @endphp
-                            <li><i class="ti-headphone-alt"></i>@foreach($settings as $data) {{$data->phone}} @endforeach</li>
-                            <li><i class="ti-email"></i> @foreach($settings as $data) <a href="mailto:{{$data->email}}">{{$data->email}}</a> @endforeach</li>
+                <div class="col-lg-4 col-md-12 col-12 d-flex align-items-center">
+                    <!-- Top Left with Logo -->
+                    <div class="top-left d-flex align-items-center" style="gap:16px;">
+                        @php
+                            $settings=DB::table('settings')->get();
+                        @endphp
+                        <a href="{{route('home')}}" style="display:flex;align-items:center;width:100%;height:48px;">
+                            <img src="@foreach($settings as $data) {{$data->logo}} @endforeach" alt="#" style="max-height:44px;max-width:60px;object-fit:contain;display:block;">
+                        </a>
+                        <span class="delimach-brand" style="font-size:20px;font-weight:700;letter-spacing:0.5px;margin:0 10px 0 4px;display:flex;align-items:center;">
+                            <span style="color:#2F40A7;">D</span><span style="color:#fff;">elimach </span><span style="color:#FF282B;">L</span><span style="color:#fff;">anka</span>
+                        </span>
+                        <ul class="list-main d-flex align-items-center mb-0" style="gap:18px;">
+                            <!-- <li style="margin-bottom:0;"><i class="ti-headphone-alt"></i>@foreach($settings as $data) {{$data->phone}} @endforeach</li>
+                            <li style="margin-bottom:0;"><i class="ti-email"></i> @foreach($settings as $data) <a href="mailto:{{$data->email}}">{{$data->email}}</a> @endforeach</li>-->
                         </ul>
                     </div>
-                    <!--/ End Top Left -->
                 </div>
-                <div class="col-lg-6 col-md-12 col-12">
+                <div class="col-lg-4 col-md-12 col-12 d-flex justify-content-center align-items-center">
+                    <!-- Center Search Bar -->
+                        <form method="POST" action="{{route('product.search')}}" class="topbar-search-form" style="width:100%;max-width:420px;margin-left:-60px;display:flex;align-items:center;background:#fff;border-radius:22px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:2px 8px;">
+                        @csrf
+                        <input name="search" placeholder="Search Products Here....." type="search" style="flex:1;border:none;background:transparent;padding:8px 12px;font-size:15px;color:#222;outline:none;">
+                        <button class="btnn" type="submit" style="border:none;background:#f7941d;color:#fff;padding:8px 18px;border-radius:18px;font-size:16px;"><i class="ti-search"></i></button>
+                    </form>
+                </div>
+                <div class="col-lg-4 col-md-12 col-12 d-flex justify-content-end align-items-center">
                     <!-- Top Right -->
                     <div class="right-content">
-                        <ul class="list-main">
-                        <li><i class="ti-location-pin"></i> <a href="{{route('order.track')}}">Track Order</a></li>
-                            {{-- <li><i class="ti-alarm-clock"></i> <a href="#">Daily deal</a></li> --}}
+                        <ul class="list-main" style="display:flex;align-items:center;gap:18px;margin-bottom:0;">
+                            <li><i class="ti-location-pin"></i> <a href="{{route('order.track')}}">Track Order</a></li>
                             @auth 
                                 @if(Auth::user()->role=='admin')
                                     <li><i class="ti-user"></i> <a href="{{route('user')}}"  target="_blank">Dashboard</a></li>
@@ -82,43 +124,43 @@
                                     <li><i class="ti-user"></i> <a href="{{route('user')}}"  target="_blank">Dashboard</a></li>
                                 @endif
                                 <li><i class="ti-power-off"></i> <a href="{{route('user.logout')}}">Logout</a></li>
-
                             @else
                                 <li><i class="ti-power-off"></i><a href="{{route('login.form')}}">Login /</a> <a href="{{route('register.form')}}">Register</a></li>
                             @endauth
+                            <li style="padding:0;margin:0;">
+                                <a href="{{route('cart')}}" style="color:#fff;display:flex;align-items:center;height:60px;">
+                                    <i class="ti-bag" style="font-size:22px;"></i>
+                                    <span style="font-weight:600;margin-left:2px;">Cart</span>
+                                    <span class="total-count" style="background:#f08804;color:#232F3E;border-radius:50%;padding:2px 7px;font-size:13px;margin-left:4px;">{{Helper::cartCount()}}</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
-                    <!-- End Top Right -->
+
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- End Topbar -->
-    <div class="middle-inner" style="background:#ffff">
+    <!--<div class="middle-inner" style="background:#ffff">
         <div class="container">
             <div class="row">
                 <div class="col-lg-2 col-md-2 col-12">
-                    <!-- Logo -->
-                    <div class="logo">
-                        @php
-                            $settings=DB::table('settings')->get();
-                        @endphp                    
-                        <a href="{{route('home')}}"><img src="@foreach($settings as $data) {{$data->logo}} @endforeach" alt="#" style="max-width:60px;height:auto;"></a>
-                    </div>
-                    <!--/ End Logo -->
-                    <!-- Search Form -->
+                     Logo moved to topbar 
+                     Search Form 
                     <div class="search-top">
                         <div class="top-search"><a href="#0"><i class="ti-search"></i></a></div>
-                        <!-- Search Form -->
+                         Search Form 
                         <div class="search-top">
                             <form class="search-form">
                                 <input type="text" placeholder="Search here..." name="search">
                                 <button value="search" type="submit"><i class="ti-search"></i></button>
                             </form>
                         </div>
-                        <!--/ End Search Form -->
+                         End Search Form 
                     </div>
-                    <!--/ End Search Form -->
+                     End Search Form 
                     <div class="mobile-nav"></div>
                 </div>
                 <div class="col-lg-8 col-md-7 col-12">
@@ -134,60 +176,16 @@
                 </div>
                 <div class="col-lg-2 col-md-3 col-12">
                     <div class="right-bar">
-                        <!-- Search Form -->
+                        Search Form 
                         <div class="sinlge-bar shopping">
                             @php 
                                 $total_prod=0;
                                 $total_amount=0;
                             @endphp
-                           @if(session('wishlist'))
-                                @foreach(session('wishlist') as $wishlist_items)
-                                    @php
-                                        $total_prod+=$wishlist_items['quantity'];
-                                        $total_amount+=$wishlist_items['amount'];
-                                    @endphp
-                                @endforeach
-                           @endif
-                            <a href="{{route('wishlist')}}" class="single-icon"><i class="fa fa-heart-o"></i> <span class="total-count">{{Helper::wishlistCount()}}</span></a>
-                            <!-- Shopping Item -->
-                            @auth
-                                <div class="shopping-item">
-                                    <div class="dropdown-cart-header">
-                                        <span>{{count(Helper::getAllProductFromWishlist())}} Items</span>
-                                        <a href="{{route('wishlist')}}">View Wishlist</a>
-                                    </div>
-                                    <ul class="shopping-list">
-                                        {{-- {{Helper::getAllProductFromCart()}} --}}
-                                            @foreach(Helper::getAllProductFromWishlist() as $data)
-                                                    @php
-                                                        $photo=explode(',',$data->product['photo']);
-                                                    @endphp
-                                                    <li>
-                                                        <a href="{{route('wishlist-delete',$data->id)}}" class="remove" title="Remove this item"><i class="fa fa-remove"></i></a>
-                                                        <a class="cart-img" href="{{route('product-detail',$data->product['slug'])}}"><img src="{{$photo[0]}}" alt="{{$data->product['title']}}"></a>
-                                                        <h4><a href="{{route('product-detail',$data->product['slug'])}}" target="_blank">{{$data->product['title']}}</a></h4>
-                                                        <p class="quantity">{{$data->quantity}} x - <span class="amount">{{Helper::formatCurrency($data->price)}}</span></p>
-                                                    </li>
-                                            @endforeach
-                                    </ul>
-                                    <div class="bottom">
-                                        <div class="total">
-                                            <span>Total</span>
-                                            <span class="total-amount">{{Helper::formatCurrency(Helper::totalWishlistPrice())}}</span>
-                                        </div>
-                                        <a href="{{route('cart')}}" class="btn animate cta-cart">Cart</a>
-                                    </div>
-                                </div>
-                            @endauth
-                            <!--/ End Shopping Item -->
-                        </div>
-                        {{-- <div class="sinlge-bar">
-                            <a href="{{route('wishlist')}}" class="single-icon"><i class="fa fa-heart-o" aria-hidden="true"></i></a>
-                        </div> --}}
                         <div class="sinlge-bar shopping">
                             <div class="cart-dropdown-wrapper" style="position:relative;">
                                 <a href="{{route('cart')}}" class="single-icon" id="cartDropdownToggle"><i class="ti-bag"></i> <span class="total-count">{{Helper::cartCount()}}</span></a>
-                                <!-- Shopping Item Dropdown -->
+                                Shopping Item Dropdown 
                                 @auth
                                 <div class="shopping-item" id="cartDropdownMenu" style="display:none; position:absolute; right:0; top:100%; background:#fff; min-width:260px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:1000; border-radius:8px; padding:12px 0;">
                                     <div class="dropdown-cart-header" style="padding:0 18px 8px 18px;">
@@ -244,7 +242,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
     <!-- Header Inner -->
     <div class="header-inner">
         <div class="container">

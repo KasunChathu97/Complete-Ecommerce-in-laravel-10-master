@@ -1,6 +1,6 @@
 <div id="notifications">
     <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        @php $unreadCount = count(Auth::user()->unreadNotifications); @endphp
+        @php $unreadCount = Auth::check() ? count(Auth::user()->unreadNotifications) : 0; @endphp
         <i class="fas fa-bell fa-fw @if($unreadCount>0) notify-bell-animate @endif"></i>
         <!-- Counter - Alerts -->
         <span class="badge badge-danger badge-counter">
@@ -18,7 +18,8 @@
         @if($unreadCount>0)
             <div class="dropdown-item text-center small text-gray-500">You have some notifications</div>
         @endif
-        @foreach(Auth::user()->unreadNotifications as $notification)
+        @if(Auth::check())
+            @foreach(Auth::user()->unreadNotifications as $notification)
     <a class="dropdown-item d-flex align-items-center" target="_blank" href="{{route('admin.notification',$notification->id)}}">
                 <div class="mr-3">
                     <div class="icon-circle bg-primary">
@@ -30,12 +31,13 @@
                     <span class="@if($notification->unread()) font-weight-bold @else small text-gray-500 @endif">{{$notification->data['title']}}</span>
                 </div>
             </a>
-            @if($loop->index+1==5)
+                @if($loop->index+1==5)
                 @php 
                     break;
                 @endphp
             @endif
-        @endforeach
+            @endforeach
+        @endif
 
         <a class="dropdown-item text-center small text-gray-500" href="{{route('all.notification')}}">Show All Notifications</a>
       </div>

@@ -8,7 +8,8 @@ class Product extends Model
 {
     protected $fillable=[
         'title','slug','summary','description','cat_id','child_cat_id','price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
-        'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type'
+        'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type',
+        'weight'
     ];
 
     public function cat_info(){
@@ -41,9 +42,6 @@ class Product extends Model
         return $this->hasMany(Cart::class)->whereNotNull('order_id');
     }
 
-    public function wishlists(){
-        return $this->hasMany(Wishlist::class)->whereNotNull('cart_id');
-    }
 
     public function brand(){
         return $this->hasOne(Brand::class,'id','brand_id');

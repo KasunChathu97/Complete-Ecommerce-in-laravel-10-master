@@ -136,7 +136,13 @@
 												<s style="font-size:1.1rem;color:#888;">{{Helper::formatCurrency($product_detail->price)}}</s>
 											@endif
 										</p>
+
 										<p class="description">{!!($product_detail->summary)!!}</p>
+										@if(!empty($product_detail->weight))
+										<div class="product-weight mt-2">
+											<strong>Weight:</strong> {{ rtrim(rtrim(number_format($product_detail->weight, 2, '.', ''), '0'), '.') }} kg
+										</div>
+										@endif
 
 										@if(!empty($product_detail->warranty))
 										<div class="product-warranty mt-3">
@@ -201,7 +207,6 @@
 											<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
 											<button type="submit" class="btn btn-success mt-2 d-flex align-items-center" style="min-width: 140px;font-size:1.1rem;"><i class="fa fa-bolt mr-2"></i> Buy Now</button>
 										</form>
-										<a href="{{route('add-to-wishlist',$product_detail->slug)}}" class="btn min ml-2" style="background: #f8f9fa; color: #e74c3c; border: 1px solid #e74c3c;"><i class="ti-heart"></i></a>
 									</div>
 									<p class="cat mt-3">Category :<a href="{{route('product-cat',$product_detail->cat_info['slug'])}}">{{$product_detail->cat_info['title']}}</a></p>
 									@if($product_detail->sub_cat_info)
@@ -421,7 +426,6 @@
                                         <div class="button-head">
                                             <div class="product-action">
                                                 <a data-toggle="modal" data-target="#quickview-{{$data->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
-                                                <a title="Wishlist" href="#"><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
                                                 <a title="Compare" href="#"><i class="ti-bar-chart-alt"></i><span>Add to Compare</span></a>
                                             </div>
                                             <div class="product-action-2">

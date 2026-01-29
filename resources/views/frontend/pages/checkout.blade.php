@@ -364,23 +364,20 @@
                                             <li class="order_subtotal" data-price="{{Helper::totalCartPrice()}}">Cart Subtotal<span>{{Helper::formatCurrency(Helper::totalCartPrice())}}</span></li>
                                             <li class="shipping">
                                                 Shipping Cost
-                                                @if(count(Helper::shipping())>0 && Helper::cartCount()>0)
-                                                    <select name="shipping" class="nice-select">
-                                                        <option value="">Select your address</option>
-                                                        @foreach(Helper::shipping() as $shipping)
-                                                            <option value="{{$shipping->id}}" class="shippingOption" data-price="{{$shipping->price}}">{{$shipping->type}}: {{Helper::formatCurrency($shipping->price)}}</option>
-                                                        @endforeach
-                                                    </select>
-                                                @else 
-                                                    <span>Free</span>
-                                                @endif
+                                                @php
+                                                    $cart_shipping_cost = \App\Models\Cart::where('user_id', auth()->user()->id)->where('order_id', null)->sum('shipping_cost');
+                                                @endphp
+                                                <span>{{ Helper::formatCurrency($cart_shipping_cost) }}</span>
+                                                <br>
+                                                <small style="color:#888;">Calculated by product weight</small>
                                             </li>
                                             
                                             @if(session('coupon'))
                                             <li class="coupon_price" data-price="{{session('coupon')['value']}}">You Save<span>{{Helper::formatCurrency(session('coupon')['value'])}}</span></li>
                                             @endif
                                             @php
-                                                $total_amount=Helper::totalCartPrice();
+                                                $cart_shipping_cost = \App\Models\Cart::where('user_id', auth()->user()->id)->where('order_id', null)->sum('shipping_cost');
+                                                $total_amount=Helper::totalCartPrice() + $cart_shipping_cost;
                                                 if(session('coupon')){
                                                     $total_amount=$total_amount-session('coupon')['value'];
                                                 }

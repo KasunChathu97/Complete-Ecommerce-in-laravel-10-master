@@ -113,26 +113,28 @@ class OrderController extends Controller
         $order_data['user_id']=$request->user()->id;
         $order_data['shipping_id']=$request->shipping;
         $shipping=Shipping::where('id',$order_data['shipping_id'])->pluck('price');
-        // return session('coupon')['value'];
         $order_data['sub_total']=Helper::totalCartPrice();
         $order_data['quantity']=Helper::cartCount();
+        // Sum shipping_cost from cart items for this user
+        $cart_shipping_cost = Cart::where('user_id', auth()->user()->id)->where('order_id', null)->sum('shipping_cost');
+        $order_data['delivery_charge'] = $cart_shipping_cost;
         if(session('coupon')){
             $order_data['coupon']=session('coupon')['value'];
         }
         if($request->shipping){
             if(session('coupon')){
-                $order_data['total_amount']=Helper::totalCartPrice()+$shipping[0]-session('coupon')['value'];
+                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping[0]-session('coupon')['value'];
             }
             else{
-                $order_data['total_amount']=Helper::totalCartPrice()+$shipping[0];
+                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping[0];
             }
         }
         else{
             if(session('coupon')){
-                $order_data['total_amount']=Helper::totalCartPrice()-session('coupon')['value'];
+                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost-session('coupon')['value'];
             }
             else{
-                $order_data['total_amount']=Helper::totalCartPrice();
+                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost;
             }
         }
         // return $order_data['total_amount'];

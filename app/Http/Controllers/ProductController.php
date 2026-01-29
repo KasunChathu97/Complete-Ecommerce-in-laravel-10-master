@@ -51,9 +51,11 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'warranty' => 'nullable|string',
             'returns' => 'nullable|string',
-            'photo' => 'required|string',
+            'photo' => 'required',
+            'photo.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:4096',
             'size' => 'nullable',
             'stock' => 'required|numeric',
+            'weight' => 'nullable|numeric|min:0',
             'cat_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'child_cat_id' => 'nullable|exists:categories,id',
@@ -87,12 +89,22 @@ class ProductController extends Controller
         } else {
             $sizes = [];
         }
-
         $sizes = array_values(array_filter(array_map('trim', $sizes), function ($value) {
             return $value !== '';
         }));
-
         $validatedData['size'] = empty($sizes) ? '' : implode(',', $sizes);
+
+        // Handle multiple image upload
+        $imagePaths = [];
+        if($request->hasFile('photo')) {
+            foreach($request->file('photo') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('products', 'public');
+                    $imagePaths[] = '/storage/' . $path;
+                }
+            }
+        }
+        $validatedData['photo'] = implode(',', $imagePaths);
 
         $product = Product::create($validatedData);
 
@@ -150,9 +162,11 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'warranty' => 'nullable|string',
             'returns' => 'nullable|string',
-            'photo' => 'required|string',
+            'photo' => 'nullable',
+            'photo.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:4096',
             'size' => 'nullable',
             'stock' => 'required|numeric',
+            'weight' => 'nullable|numeric|min:0',
             'cat_id' => 'required|exists:categories,id',
             'child_cat_id' => 'nullable|exists:categories,id',
             'is_featured' => 'sometimes|in:1',
@@ -183,12 +197,24 @@ class ProductController extends Controller
         } else {
             $sizes = [];
         }
-
         $sizes = array_values(array_filter(array_map('trim', $sizes), function ($value) {
             return $value !== '';
         }));
-
         $validatedData['size'] = empty($sizes) ? '' : implode(',', $sizes);
+
+        // Handle new image uploads and merge with existing
+        $existingImages = $product->photo ? explode(',', $product->photo) : [];
+        $newImages = [];
+        if($request->hasFile('photo')) {
+            foreach($request->file('photo') as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('products', 'public');
+                    $newImages[] = '/storage/' . $path;
+                }
+            }
+        }
+        $allImages = array_merge($existingImages, $newImages);
+        $validatedData['photo'] = implode(',', array_filter($allImages));
 
         $status = $product->update($validatedData);
 

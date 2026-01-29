@@ -5,7 +5,7 @@
 <div class="card">
     <h5 class="card-header">Add Product</h5>
     <div class="card-body">
-      <form method="post" action="{{route('product.store')}}">
+      <form method="post" action="{{route('product.store')}}" enctype="multipart/form-data">
         {{csrf_field()}}
         <div class="form-group">
           <label for="inputTitle" class="col-form-label">Title <span class="text-danger">*</span></label>
@@ -136,6 +136,13 @@
         </div>
 
         <div class="form-group">
+          <label for="weight" class="col-form-label">Weight (kg)</label>
+          <input id="weight" type="number" step="0.01" name="weight" placeholder="Enter product weight" value="{{ old('weight') }}" class="form-control">
+          @error('weight')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+        <div class="form-group">
           <label for="stock">Quantity <span class="text-danger">*</span></label>
           <input id="quantity" type="number" name="stock" min="0" placeholder="Enter quantity"  value="{{old('stock')}}" class="form-control">
           @error('stock')
@@ -143,16 +150,11 @@
           @enderror
         </div>
         <div class="form-group">
-          <label for="inputPhoto" class="col-form-label">Photo <span class="text-danger">*</span></label>
-          <div class="input-group">
-              <span class="input-group-btn">
-                  <a id="lfm" data-input="thumbnail" data-preview="holder" class="btn btn-primary">
-                  <i class="fa fa-picture-o"></i> Choose
-                  </a>
-              </span>
-          <input id="thumbnail" class="form-control" type="text" name="photo" value="{{old('photo')}}">
-        </div>
-        <div id="holder" style="margin-top:15px;max-height:100px;"></div>
+          <label for="inputPhoto" class="col-form-label">Photos <span class="text-danger">*</span></label>
+          <div class="custom-file">
+            <input id="inputPhoto" type="file" name="photo[]" accept="image/*" class="custom-file-input" multiple>
+            <label class="custom-file-label" for="inputPhoto">Choose Photos</label>
+          </div>
           @error('photo')
           <span class="text-danger">{{$message}}</span>
           @enderror
@@ -179,10 +181,43 @@
 @endsection
 
 @push('styles')
+<style>
+  .custom-file-label {
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    color: #495057;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .custom-file-input:focus ~ .custom-file-label {
+    background: #e9ecef;
+    color: #495057;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  }
+</style>
+@endpush
+
+@push('styles')
 <link rel="stylesheet" href="{{asset('backend/summernote/summernote.min.css')}}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
 @endpush
 @push('scripts')
+<script>
+  // Show selected file name
+  document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('inputPhoto');
+    if(input) {
+      input.addEventListener('change', function(e) {
+        var fileName = e.target.files[0] ? e.target.files[0].name : 'Choose Photo';
+        var label = input.nextElementSibling;
+        if(label) label.innerText = fileName;
+      });
+    }
+  });
+</script>
 <script src="/vendor/laravel-filemanager/js/stand-alone-button.js"></script>
 <script src="{{asset('backend/summernote/summernote.min.js')}}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 use Auth;
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Wishlist;
 use App\Models\Cart;
 use Illuminate\Support\Str;
 use Helper;
@@ -34,6 +33,17 @@ class CartController extends Controller
             'quant'      =>  'required',
         ]);
         $product = Product::where('slug', $request->slug)->first();
+        // Calculate shipping cost based on total weight (weight * quantity)
+        $shipping_cost = 0;
+        $qty = $request->quant[1];
+        if (!empty($product->weight)) {
+            $total_weight_grams = $product->weight * $qty * 1000;
+            if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
+                $shipping_cost = 350;
+            } elseif ($total_weight_grams > 1000) {
+                $shipping_cost = 350 + 80;
+            }
+        }
         if($product->stock < $request->quant[1]){
             return back()->with('error','Out of stock, You can add other products.');
         }
@@ -56,7 +66,8 @@ class CartController extends Controller
                 }
             }
             $final_price = max($discounted_price - $bulk_discount, 0);
-            $already_cart->amount = $final_price * $already_cart->quantity;
+            $already_cart->amount = $final_price * $already_cart->quantity + $shipping_cost;
+            $already_cart->shipping_cost = $shipping_cost;
             if ($already_cart->product->stock < $already_cart->quantity || $already_cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
             $already_cart->save();
         }else{
@@ -78,7 +89,8 @@ class CartController extends Controller
             $final_price = max($discounted_price - $bulk_discount, 0);
             $cart->price = $final_price;
             $cart->quantity = $qty;
-            $cart->amount = $final_price * $qty;
+            $cart->amount = $final_price * $qty + $shipping_cost;
+            $cart->shipping_cost = $shipping_cost;
             if ($cart->product->stock < $cart->quantity || $cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
             $cart->save();
         }
@@ -106,7 +118,17 @@ class CartController extends Controller
 
         $already_cart = Cart::where('user_id', auth()->user()->id)->where('order_id',null)->where('product_id', $product->id)->first();
 
-        // return $already_cart;
+        // Calculate shipping cost based on total weight (weight * quantity)
+        $shipping_cost = 0;
+        $qty = $request->quant[1];
+        if (!empty($product->weight)) {
+            $total_weight_grams = $product->weight * $qty * 1000;
+            if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
+                $shipping_cost = 350;
+            } elseif ($total_weight_grams > 1000) {
+                $shipping_cost = 350 + 80;
+            }
+        }
 
         if($already_cart) {
             $already_cart->quantity = $already_cart->quantity + $request->quant[1];
@@ -122,7 +144,8 @@ class CartController extends Controller
                 }
             }
             $final_price = max($discounted_price - $bulk_discount, 0);
-            $already_cart->amount = $final_price * $already_cart->quantity;
+            $already_cart->amount = $final_price * $already_cart->quantity + $shipping_cost;
+            $already_cart->shipping_cost = $shipping_cost;
             if ($already_cart->product->stock < $already_cart->quantity || $already_cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
             $already_cart->save();
         }else{
@@ -144,7 +167,8 @@ class CartController extends Controller
             $final_price = max($discounted_price - $bulk_discount, 0);
             $cart->price = $final_price;
             $cart->quantity = $qty;
-            $cart->amount = $final_price * $qty;
+            $cart->amount = $final_price * $qty + $shipping_cost;
+            $cart->shipping_cost = $shipping_cost;
             if ($cart->product->stock < $cart->quantity || $cart->product->stock <= 0) return back()->with('error','Stock not sufficient!.');
             $cart->save();
         }
@@ -183,12 +207,20 @@ class CartController extends Controller
                         return back();
                     }
                     $cart->quantity = ($cart->product->stock > $quant) ? $quant  : $cart->product->stock;
-                    // return $cart;
-                    
                     if ($cart->product->stock <=0) continue;
                     $after_price=($cart->product->price-($cart->product->price*$cart->product->discount)/100);
-                    $cart->amount = $after_price * $quant;
-                    // return $cart->price;
+                    // Calculate shipping cost based on total weight (weight * quantity)
+                    $shipping_cost = 0;
+                    if (!empty($cart->product->weight)) {
+                        $total_weight_grams = $cart->product->weight * $quant * 1000;
+                        if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
+                            $shipping_cost = 350;
+                        } elseif ($total_weight_grams > 1000) {
+                            $shipping_cost = 350 + 80;
+                        }
+                    }
+                    $cart->shipping_cost = $shipping_cost;
+                    $cart->amount = $after_price * $quant + $shipping_cost;
                     $cart->save();
                     $success = 'Cart successfully updated!';
                 }else{

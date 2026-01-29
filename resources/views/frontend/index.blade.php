@@ -100,15 +100,17 @@
                                     <div class="single-product" data-product-url="{{route('product-detail',$product->slug)}}">
                                         <div class="product-img">
                                             <a href="{{route('product-detail',$product->slug)}}">
-                                                @php
-                                                    $photo=explode(',',$product->photo);
-                                                    $firstPhoto=$photo[0] ?? '';
-                                                    if ($firstPhoto && preg_match('~(/storage/[^,\s]+?\.(?:png|jpe?g|gif|webp|svg))~i', $firstPhoto, $m)) {
-                                                        $firstPhoto=$m[1];
-                                                    }
-                                                @endphp
-                                                <img class="default-img" src="{{$firstPhoto}}" alt="{{$product->title}}">
-                                                <img class="hover-img" src="{{$firstPhoto}}" alt="{{$product->title}}">
+                                                <div class="product-image-box" style="width:230px;height:230px;display:flex;align-items:center;justify-content:center;background:#F5F5F5;overflow:hidden;margin:auto;">
+                                                    @php
+                                                        $photo=explode(',',$product->photo);
+                                                        $firstPhoto=$photo[0] ?? '';
+                                                        if ($firstPhoto && preg_match('~(/storage/[^,\s]+?\.(?:png|jpe?g|gif|webp|svg))~i', $firstPhoto, $m)) {
+                                                            $firstPhoto=$m[1];
+                                                        }
+                                                    @endphp
+                                                    <img class="default-img" src="{{$firstPhoto}}" alt="{{$product->title}}" style="width:100%;height:100%;object-fit:contain;">
+                                                    <img class="hover-img" src="{{$firstPhoto}}" alt="{{$product->title}}" style="width:100%;height:100%;object-fit:contain;position:absolute;left:-9999px;">
+                                                </div>
                                                 @if($product->stock<=0)
                                                     <span class="out-of-stock">Sale out</span>
                                                 @elseif($product->condition=='new')
@@ -118,13 +120,12 @@
                                                 @else
                                                     <span class="price-dec">{{$product->discount}}% Off</span>
                                                 @endif
-
+                                            </a>
 
                                             </a>
                                             <div class="button-head">
                                                 <div class="product-action">
                                                     <a data-toggle="modal" data-target="#{{$product->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
-                                                    <a title="Wishlist" href="{{route('add-to-wishlist',$product->slug)}}" ><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
                                                 </div>
                                                 <div class="product-action-2">
                                                     <a title="Add to cart" href="{{route('add-to-cart',$product->slug)}}">Add to cart</a>
@@ -199,7 +200,6 @@
                                 <div class="button-head">
                                     <div class="product-action">
                                         <a data-toggle="modal" data-target="#{{$product->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
-                                        <a title="Wishlist" href="{{route('add-to-wishlist',$product->slug)}}" ><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
                                     </div>
                                     <div class="product-action-2">
                                         <a href="{{route('add-to-cart',$product->slug)}}">Add to cart</a>
@@ -317,50 +317,50 @@
 </section>
  End Shop Blog  -->
 
-<!-- Start Shop Services Area -->
+<!-- Start Shop Services Area 
 <section class="shop-services section home">
     <div class="container">
         <div class="row">
             <div class="col-lg-3 col-md-6 col-12">
-                <!-- Start Single Service -->
+                 Start Single Service 
                 <div class="single-service">
                     <i class="ti-rocket"></i>
                     <h4>Free shiping</h4>
                     <p>Orders over {{Helper::formatCurrency(100)}}</p>
                 </div>
-                <!-- End Single Service -->
+                End Single Service 
             </div>
             <div class="col-lg-3 col-md-6 col-12">
-                <!-- Start Single Service -->
+               Start Single Service 
                 <div class="single-service">
                     <i class="ti-reload"></i>
                     <h4>Free Return</h4>
                     <p>Within 30 days returns</p>
                 </div>
-                <!-- End Single Service -->
+                 End Single Service 
             </div>
             <div class="col-lg-3 col-md-6 col-12">
-                <!-- Start Single Service -->
+                 Start Single Service 
                 <div class="single-service">
                     <i class="ti-lock"></i>
                     <h4>Sucure Payment</h4>
                     <p>100% secure payment</p>
                 </div>
-                <!-- End Single Service -->
+                 End Single Service 
             </div>
             <div class="col-lg-3 col-md-6 col-12">
-                <!-- Start Single Service -->
+                 Start Single Service 
                 <div class="single-service">
                     <i class="ti-tag"></i>
                     <h4>Best Peice</h4>
                     <p>Guaranteed price</p>
                 </div>
-                <!-- End Single Service -->
+                 End Single Service 
             </div>
         </div>
     </div>
 </section>
-<!-- End Shop Services Area -->
+ End Shop Services Area -->
 
 @include('frontend.layouts.newsletter')
 
@@ -481,7 +481,6 @@
                                             </div>
                                             <div class="add-to-cart">
                                                 <button type="submit" class="btn">Add to cart</button>
-                                                <a href="{{route('add-to-wishlist',$product->slug)}}" class="btn min"><i class="ti-heart"></i></a>
                                             </div>
                                         </form>
                                         <div class="default-social"></div>

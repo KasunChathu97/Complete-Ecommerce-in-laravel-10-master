@@ -5,7 +5,7 @@
 <div class="card">
     <h5 class="card-header">Edit Product</h5>
     <div class="card-body">
-      <form method="post" action="{{route('product.update',$product->id)}}">
+      <form method="post" action="{{route('product.update',$product->id)}}" enctype="multipart/form-data">
         @csrf 
         @method('PATCH')
         <div class="form-group">
@@ -137,6 +137,13 @@
         </div>
 
         <div class="form-group">
+          <label for="weight" class="col-form-label">Weight (kg)</label>
+          <input id="weight" type="number" step="0.01" name="weight" placeholder="Enter product weight" value="{{ old('weight', $product->weight) }}" class="form-control">
+          @error('weight')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+        <div class="form-group">
           <label for="stock">Quantity <span class="text-danger">*</span></label>
           <input id="quantity" type="number" name="stock" min="0" placeholder="Enter quantity"  value="{{$product->stock}}" class="form-control">
           @error('stock')
@@ -146,17 +153,17 @@
 
         <div class="form-group">
           <label for="inputPhoto" class="col-form-label">Photos <span class="text-danger">*</span></label>
-          <div class="input-group mb-2">
-              <span class="input-group-btn">
-                  <a id="lfm-multi" data-input="thumbnails" data-preview="holder-multi" class="btn btn-primary text-white">
-                  <i class="fas fa-image"></i> Choose Images
-                  </a>
-              </span>
-              <input id="thumbnails" class="form-control" type="text" name="photo" value="{{$product->photo}}" placeholder="Comma-separated image URLs">
+          <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
+            @php $photos = $product->photo ? explode(',', $product->photo) : []; @endphp
+            @foreach($photos as $img)
+              <img src="{{$img}}" style="max-height:80px; max-width:80px; object-fit:cover; border:1px solid #ddd; border-radius:4px;">
+            @endforeach
           </div>
-          <button type="button" id="add-images-btn" class="btn btn-info mb-2"><i class="fas fa-plus"></i> Add Images</button>
-          <div id="holder-multi" style="margin-top:15px;max-height:120px; display:flex; gap:10px; flex-wrap:wrap;"></div>
-          <small class="form-text text-muted">You can select multiple images. Hold Ctrl (or Cmd) to select more than one in the file manager. Images will be saved as a comma-separated list.</small>
+          <div class="custom-file mb-2">
+            <input id="inputPhoto" type="file" name="photo[]" accept="image/*" class="custom-file-input" multiple>
+            <label class="custom-file-label" for="inputPhoto">Choose New Photos (optional)</label>
+          </div>
+          <small class="form-text text-muted">Existing images are shown above. You can add more by selecting files. All images will be combined on save.</small>
           @error('photo')
           <span class="text-danger">{{$message}}</span>
           @enderror
