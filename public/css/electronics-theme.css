@@ -1,3 +1,21 @@
+/* FINAL OVERRIDE: Sticky menu-area background white, highest specificity */
+body.theme-electronics .header.shop.sticky .cat-nav-head > .row > .col-lg-12 > .menu-area,
+body.theme-electronics-alt .header.shop.sticky .cat-nav-head > .row > .col-lg-12 > .menu-area,
+.header.shop.sticky .menu-area {
+  background: #fff !important;
+  box-shadow: 0 4px 18px rgba(252, 252, 252, 0.1), 0 1.5px 4px rgba(44,62,80,0.04) !important;
+  border-radius: 0 0 16px 16px !important;
+  transition: background 0.3s, box-shadow 0.3s, border-radius 0.3s !important;
+  z-index: 1002 !important;
+}
+/* Force sticky menu bar background white regardless of theme */
+body.theme-electronics .header.shop.sticky .menu-area,
+body.theme-electronics-alt .header.shop.sticky .menu-area {
+  background: #fff !important;
+  box-shadow: 0 4px 18px rgba(44,62,80,0.10), 0 1.5px 4px rgba(44,62,80,0.04);
+  border-radius: 0 0 16px 16px;
+  transition: background 0.3s, box-shadow 0.3s, border-radius 0.3s;
+}
 /* Electronics Theme Palette (centralized)
    Header / Footer: #0B1F3A
    Background:      #FFFFFF

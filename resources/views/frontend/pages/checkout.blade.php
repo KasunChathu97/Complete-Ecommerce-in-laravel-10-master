@@ -64,7 +64,8 @@
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Phone Number <span>*</span></label>
-                                            <input type="number" name="phone" placeholder="" required value="{{old('phone')}}">
+                                            <input type="text" name="phone" id="phone" maxlength="10" pattern="\d{10}" required value="{{old('phone')}}" oninput="this.value=this.value.replace(/[^\d]/g,'').slice(0,10)">
+                                            <span id="phone-error" class="text-danger" style="display:none;">Phone number must be exactly 10 digits.</span>
                                             @error('phone')
                                                 <span class='text-danger'>{{$message}}</span>
                                             @enderror
@@ -340,7 +341,25 @@
                                             @enderror
                                         </div>
                                     </div>
+                                                                        <div class="col-lg-6 col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label>Address Line 3</label>
+                                            <input type="text" name="address2" placeholder="" value="{{old('address2')}}">
+                                            @error('address2')
+                                                <span class='text-danger'>{{$message}}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                     <div class="col-lg-6 col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label>Town / City</label>
+                                            <input type="text" name="city" placeholder="" value="{{old('city')}}">
+                                            @error('city')
+                                                <span class='text-danger'>{{$message}}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <!--<div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Postal Code</label>
                                             <input type="text" name="post_code" placeholder="" value="{{old('post_code')}}">
@@ -349,7 +368,7 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    
+                                    -->
                                 </div>
                                 <!--/ End Form -->
                             </div>

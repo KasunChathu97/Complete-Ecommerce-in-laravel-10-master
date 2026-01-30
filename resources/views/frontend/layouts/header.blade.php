@@ -1,5 +1,8 @@
 <header class="header shop">
     <style>
+                .header.shop.sticky .sticky-menu-area .menu-area {
+                    background: #fff !important;
+                }
         /* Reduce navbar height in normal (not sticky) view */
         .header-inner, .menu-area, .navbar, .navbar-collapse {
             min-height: 36px !important;
@@ -15,22 +18,6 @@
             line-height: 24px !important;
         }
         /* When sticky/scrolled, restore original/taller height */
-        .header.shop.sticky .header-inner,
-        .header.shop.sticky .menu-area,
-        .header.shop.sticky .navbar,
-        .header.shop.sticky .navbar-collapse {
-            min-height: 60px !important;
-            height: 60px !important;
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
-        }
-        .header.shop.sticky .header-inner .main-menu > li > a,
-        .header.shop.sticky .navbar .main-menu > li > a {
-            padding-top: 14px !important;
-            padding-bottom: 14px !important;
-            font-size: 16px !important;
-            line-height: 28px !important;
-        }
         body {
             background: #ffffff !important;
         }
@@ -38,7 +25,7 @@
                         <style>
                             /* Navigation bar white, menu letters black */
                             .header-inner, .menu-area, .navbar, .navbar-collapse {
-                                background: #fff !important;
+                                background: #ffffff !important;
                             }
                             .main-menu > li > a, .main-menu > li {
                                 color: #000 !important;
@@ -274,4 +261,50 @@
         </div>
     </div>
     <!--/ End Header Inner -->
+        <!-- Sticky Menu Area (only visible when sticky) -->
+        <div class="sticky-menu-area" style="display:none;"></div>
+        <style>
+            .header.shop.sticky .sticky-menu-area {
+                display: block !important;
+                background: #fff !important;
+                box-shadow: 0 4px 18px rgba(44,62,80,0.10), 0 1.5px 4px rgba(44,62,80,0.04);
+                border-radius: 0 0 16px 16px;
+                transition: background 0.3s, box-shadow 0.3s, border-radius 0.3s;
+                z-index: 1002;
+            }
+            .sticky-menu-area {
+                width: 100%;
+                min-height: 36px;
+                position: fixed;
+                top: 0;
+                left: 0;
+            }
+            .header.shop:not(.sticky) .sticky-menu-area {
+                display: none !important;
+            }
+        </style>
+        <script>
+            // Move menu content into sticky-menu-area when sticky
+            document.addEventListener('DOMContentLoaded', function() {
+                var header = document.querySelector('.header.shop');
+                var stickyMenu = document.querySelector('.sticky-menu-area');
+                var menuArea = document.querySelector('.menu-area');
+                var isCloned = false;
+                function updateStickyMenu() {
+                    if(header.classList.contains('sticky')) {
+                        if(!isCloned && menuArea && stickyMenu) {
+                            stickyMenu.innerHTML = menuArea.innerHTML;
+                            isCloned = true;
+                        }
+                    } else {
+                        if(stickyMenu) stickyMenu.innerHTML = '';
+                        isCloned = false;
+                    }
+                }
+                window.addEventListener('scroll', updateStickyMenu);
+                updateStickyMenu();
+            });
+        </script>
+    <!-- Sticky: force white background for .header-inner and .menu-area -->
+    <!-- Removed duplicate sticky menu-area background rules. Rely on public/css/electronics-theme.css for sticky menu-area background white. -->
 </header>
