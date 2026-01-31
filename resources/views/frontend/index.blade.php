@@ -122,6 +122,7 @@
                                                 @endif
                                             </a>
 
+
                                             </a>
                                             <div class="button-head">
                                                 <div class="product-action">
@@ -134,6 +135,20 @@
                                         </div>
                                         <div class="product-content">
                                             <h3><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h3>
+                                                <div class="product-rating mb-1">
+                                                    @php
+                                                        $rate=DB::table('product_reviews')->where('product_id',$product->id)->avg('rate');
+                                                        $rate_count=DB::table('product_reviews')->where('product_id',$product->id)->count();
+                                                    @endphp
+                                                    @for($i=1; $i<=5; $i++)
+                                                        @if($rate>=$i)
+                                                            <i class="yellow fa fa-star"></i>
+                                                        @else
+                                                            <i class="fa fa-star"></i>
+                                                        @endif
+                                                    @endfor
+                                                    <small>({{$rate_count}})</small>
+                                                </div>
                                             <div class="product-price">
                                                 @php
                                                     $after_discount=($product->price-($product->price*$product->discount)/100);
@@ -141,6 +156,14 @@
                                                 <span>{{Helper::formatCurrency($after_discount)}}</span>
                                                 @if($product->discount>0)
                                                     <del style="padding-left:4%;">{{Helper::formatCurrency($product->price)}}</del>
+                                                @endif
+                                                @php
+                                                    // Free shipping if product shipping_cost is 0 (if available)
+                                                    $cart_shipping = 0;
+                                                    if(property_exists($product, 'shipping_cost')) $cart_shipping = $product->shipping_cost;
+                                                @endphp
+                                                @if(isset($product->shipping_cost) && $product->shipping_cost == 0)
+                                                    <span class="badge badge-success">Free Shipping</span>
                                                 @endif
                                             </div>
                                         </div>
