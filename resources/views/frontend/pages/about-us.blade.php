@@ -7,7 +7,7 @@
 		$setting = DB::table('settings')->first();
 	@endphp
 
-	<!-- Breadcrumbs -->
+	<!-- Breadcrumbs 
 	<div class="breadcrumbs">
 		<div class="container">
 			<div class="row">
@@ -22,7 +22,7 @@
 			</div>
 		</div>
 	</div>
-	<!-- End Breadcrumbs -->
+ End Breadcrumbs -->
 
 	<!-- About Us -->
 	<section class="about-us section">

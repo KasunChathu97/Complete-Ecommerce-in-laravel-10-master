@@ -198,8 +198,8 @@
 											<!--/ End Input Order -->
 											</div>
 											<div class="add-to-cart mt-4 d-flex align-items-center gap-2" style="gap: 12px;">
-												<button type="submit" class="btn btn-danger d-flex align-items-center add-to-cart-btn-aliexpress" style="min-width: 140px;font-size:1.1rem;font-weight:600;background: #ff4747;border-color: #ff4747;box-shadow: 0 2px 8px rgba(255,71,71,0.15);transition: background 0.2s, box-shadow 0.2s;">
-													<i class="ti-shopping-cart mr-2"></i> Add to Cart
+												<button type="submit" class="btn add-to-cart-btn-aliexpress same-size-btn" style="min-width: 160px; font-size:1.1rem; font-weight:600;">
+													Add to Cart
 												</button>
 												<style>
 												.add-to-cart-btn-aliexpress:hover, .add-to-cart-btn-aliexpress:focus {
@@ -215,8 +215,8 @@
 											@csrf
 											<input type="hidden" name="slug" value="{{$product_detail->slug}}">
 											<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
-											<button type="submit" class="btn btn-danger mt-2 d-flex align-items-center buy-now-btn-aliexpress" style="min-width: 140px;font-size:1.1rem;font-weight:600;background: #ff4747;border-color: #ff4747;box-shadow: 0 2px 8px rgba(255,71,71,0.15);transition: background 0.2s, box-shadow 0.2s;">
-												<i class="fa fa-bolt mr-2"></i> Buy Now
+											<button type="submit" class="btn buy-now-btn-aliexpress same-size-btn" style="min-width: 160px; font-size:1.1rem; font-weight:600; margin-top: 12px;">
+												Buy Now
 											</button>
 										</form>
 										<style>
@@ -236,7 +236,7 @@
 									<div class="mt-4">
 										<h6 class="mb-2">Wholesale Pricing</h6>
 										<p class="mb-3">Interested in wholesale pricing? Send us a request and we will contact you.</p>
-										<a href="{{ route('wholesale.request', ['product' => $product_detail->slug]) }}" class="btn btn-outline-primary">Request Wholesale Pricing</a>
+										<a href="{{ route('wholesale.request', ['product' => $product_detail->slug]) }}" class="btn wholesale-btn">Request Wholesale Pricing</a>
 									</div>
 								</div>
 							</div>
@@ -598,6 +598,55 @@
 		content: "\F005";
 		}
 
+		.wholesale-btn {
+			background: #b3d8fd;
+			color: #000 !important;
+			border: none;
+			border-radius: 7px;
+			padding: 10px 22px;
+			font-weight: 500;
+			transition: background 0.2s, color 0.2s;
+		}
+		.wholesale-btn:hover, .wholesale-btn:focus {
+			background: #111;
+			color: #fff !important;
+		}
+		.buy-now-btn-aliexpress {
+			background: #ff4747 !important;
+			color: #fff !important;
+			border-color: #ff4747 !important;
+			border-radius: 7px !important;
+			box-shadow: 0 2px 8px rgba(255,71,71,0.15);
+			transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+		}
+		.buy-now-btn-aliexpress:hover, .buy-now-btn-aliexpress:focus {
+			background: #e02e24 !important;
+			color: #fff !important;
+			border-color: #e02e24 !important;
+			box-shadow: 0 4px 16px rgba(255,71,71,0.25);
+		}
+		.add-to-cart-btn-aliexpress {
+			background: #ffe066 !important;
+			color: #222 !important;
+			border-color: #ffe066 !important;
+			border-radius: 7px !important;
+			box-shadow: 0 2px 8px rgba(255,224,102,0.15);
+			transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+		}
+		.add-to-cart-btn-aliexpress:hover, .add-to-cart-btn-aliexpress:focus {
+			background: #fff !important;
+			color: #222 !important;
+			border-color: #ffe066 !important;
+			box-shadow: 0 4px 16px rgba(255,224,102,0.25);
+		}
+		.same-size-btn {
+			min-width: 160px !important;
+			height: 44px !important;
+			padding: 0 24px !important;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
 	</style>
 @endpush
 
