@@ -4,7 +4,7 @@
 
 @section('main-content')
 
-    <!-- Breadcrumbs -->
+    <!-- Breadcrumbs 
     <div class="breadcrumbs">
         <div class="container">
             <div class="row">
@@ -19,7 +19,7 @@
             </div>
         </div>
     </div>
-    <!-- End Breadcrumbs -->
+     End Breadcrumbs -->
             
     <!-- Start Checkout -->
     <section class="shop checkout section">

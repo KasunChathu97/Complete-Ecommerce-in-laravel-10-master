@@ -17,7 +17,7 @@
 @section('title','DL || PRODUCT DETAIL')
 @section('main-content')
 
-		<!-- Breadcrumbs -->
+		<!-- Breadcrumbs 
 		<div class="breadcrumbs">
 			<div class="container">
 				<div class="row">
@@ -32,7 +32,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- End Breadcrumbs -->
+	 End Breadcrumbs -->
                 
 		<!-- Shop Single -->
 		<section class="shop single section">
@@ -198,15 +198,35 @@
 											<!--/ End Input Order -->
 											</div>
 											<div class="add-to-cart mt-4 d-flex align-items-center gap-2" style="gap: 12px;">
-												<button type="submit" class="btn btn-primary d-flex align-items-center" style="min-width: 140px;font-size:1.1rem;"><i class="ti-shopping-cart mr-2"></i> Add to Cart</button>
+												<button type="submit" class="btn btn-danger d-flex align-items-center add-to-cart-btn-aliexpress" style="min-width: 140px;font-size:1.1rem;font-weight:600;background: #ff4747;border-color: #ff4747;box-shadow: 0 2px 8px rgba(255,71,71,0.15);transition: background 0.2s, box-shadow 0.2s;">
+													<i class="ti-shopping-cart mr-2"></i> Add to Cart
+												</button>
+												<style>
+												.add-to-cart-btn-aliexpress:hover, .add-to-cart-btn-aliexpress:focus {
+													background: #e02e24 !important;
+													border-color: #e02e24 !important;
+													color: #fff !important;
+													box-shadow: 0 4px 16px rgba(255,71,71,0.25);
+												}
+												</style>
 											</div>
 										</form>
 										<form action="{{ route('buy-now') }}" method="POST" style="display:inline;">
 											@csrf
 											<input type="hidden" name="slug" value="{{$product_detail->slug}}">
 											<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
-											<button type="submit" class="btn btn-success mt-2 d-flex align-items-center" style="min-width: 140px;font-size:1.1rem;"><i class="fa fa-bolt mr-2"></i> Buy Now</button>
+											<button type="submit" class="btn btn-danger mt-2 d-flex align-items-center buy-now-btn-aliexpress" style="min-width: 140px;font-size:1.1rem;font-weight:600;background: #ff4747;border-color: #ff4747;box-shadow: 0 2px 8px rgba(255,71,71,0.15);transition: background 0.2s, box-shadow 0.2s;">
+												<i class="fa fa-bolt mr-2"></i> Buy Now
+											</button>
 										</form>
+										<style>
+										.buy-now-btn-aliexpress:hover, .buy-now-btn-aliexpress:focus {
+											background: #e02e24 !important;
+											border-color: #e02e24 !important;
+											color: #fff !important;
+											box-shadow: 0 4px 16px rgba(255,71,71,0.25);
+										}
+										</style>
 									</div>
 									<p class="cat mt-3">Category :<a href="{{route('product-cat',$product_detail->cat_info['slug'])}}">{{$product_detail->cat_info['title']}}</a></p>
 									@if($product_detail->sub_cat_info)

@@ -13,6 +13,8 @@ use Notification;
 use Helper;
 use Illuminate\Support\Str;
 use App\Notifications\StatusNotification;
+use App\Exports\OrderItemsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -39,10 +41,27 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $orders=Order::orderBy('id','DESC')->paginate(10);
-        return view('backend.order.index')->with('orders',$orders);
+        $validated = $request->validate([
+            'date' => 'nullable|date',
+        ]);
+
+        $query = Order::query()->orderBy('id', 'DESC');
+        if (!empty($validated['date'])) {
+            $query->whereDate('created_at', $validated['date']);
+        }
+
+        if (!empty($validated['date'])) {
+            $orders = $query->get();
+        } else {
+            $orders = $query->paginate(10)->appends($request->query());
+        }
+
+        return view('backend.order.index', [
+            'orders' => $orders,
+            'date' => $validated['date'] ?? null,
+        ]);
     }
 
     /**
@@ -193,6 +212,39 @@ class OrderController extends Controller
         $order=Order::find($id);
         // return $order;
         return view('backend.order.show')->with('order',$order);
+    }
+
+    public function exportByDateExcel(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+        ]);
+
+        $date = $validated['date'];
+
+        $items = Cart::query()
+            ->with(['product', 'order'])
+            ->whereNotNull('order_id')
+            ->whereHas('order', function ($q) use ($date) {
+                $q->whereDate('created_at', $date);
+            })
+            ->orderBy('order_id')
+            ->get();
+
+        $filename = 'orders-' . $date . '.xlsx';
+        return Excel::download(new OrderItemsExport($items), $filename);
+    }
+
+    public function exportSingleExcel(Order $order)
+    {
+        $items = Cart::query()
+            ->with(['product', 'order'])
+            ->where('order_id', $order->id)
+            ->orderBy('id')
+            ->get();
+
+        $filename = 'order-' . ($order->order_number ?? $order->id) . '.xlsx';
+        return Excel::download(new OrderItemsExport($items), $filename);
     }
 
     /**

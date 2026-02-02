@@ -50,7 +50,25 @@
 				</div>
 				<div class="col-lg-6 col-12">
 					<div class="about-img overlay">
-						<img class="img-fluid" src="{{ $setting->photo ?? '' }}" alt="Delimach Lanka (Pvt) Ltd">
+						<img class="img-fluid about-us-img-reduced" src="{{ $setting->photo ?? '' }}" alt="Delimach Lanka (Pvt) Ltd">
+						<style>
+						.about-us-img-reduced {
+							max-width: 340px;
+							max-height: 340px;
+							width: 100%;
+							height: auto;
+							border-radius: 12px;
+							box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+							margin: 0 auto;
+							display: block;
+						}
+						@media (max-width: 768px) {
+							.about-us-img-reduced {
+								max-width: 220px;
+								max-height: 220px;
+							}
+						}
+						</style>
 					</div>
 				</div>
 			</div>

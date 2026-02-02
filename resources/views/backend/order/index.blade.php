@@ -12,6 +12,30 @@
       <h6 class="m-0 font-weight-bold text-primary float-left">Order Lists</h6>
     </div>
     <div class="card-body">
+      <div class="d-flex flex-wrap align-items-end justify-content-between mb-3" style="gap: 12px;">
+        <form action="{{ route('order.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap: 10px;">
+          <div>
+            <label for="order_date" class="mb-1"><small>Order date</small></label>
+            <input type="date" id="order_date" name="date" value="{{ request('date', $date ?? '') }}" class="form-control" style="min-width: 180px;" />
+          </div>
+          <div class="d-flex" style="gap: 8px;">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ route('order.index') }}" class="btn btn-outline-secondary">Reset</a>
+          </div>
+        </form>
+
+        <div>
+          @if(request('date'))
+            <a href="{{ route('orders.export.excel', ['date' => request('date')]) }}" class="btn btn-success">
+              <i class="fas fa-file-excel mr-1"></i> Export (Order Date)
+            </a>
+          @else
+            <button class="btn btn-success" disabled title="Select a date first">
+              <i class="fas fa-file-excel mr-1"></i> Export (Order Date)
+            </button>
+          @endif
+        </div>
+      </div>
       <div class="table-responsive">
         @if(count($orders)>0)
         <table class="table table-bordered" id="order-dataTable" width="100%" cellspacing="0">
@@ -22,8 +46,8 @@
               <th>Name</th>
               <th>Email</th>
               <th>Quantity</th>
-              <th>Charge</th>
               <th>Total Amount</th>
+              <th>Order Date</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -35,8 +59,8 @@
               <th>Name</th>
               <th>Email</th>
               <th>Quantity</th>
-              <th>Charge</th>
               <th>Total Amount</th>
+              <th>Order Date</th>
               <th>Status</th>
               <th>Action</th>
               </tr>
@@ -52,8 +76,8 @@
                     <td>{{$order->first_name}} {{$order->last_name}}</td>
                     <td>{{$order->email}}</td>
                     <td>{{$order->quantity}}</td>
-                    <td>@foreach($shipping_charge as $data) $ {{number_format($data,2)}} @endforeach</td>
                     <td>${{number_format($order->total_amount,2)}}</td>
+                    <td>{{ optional($order->created_at)->format('Y-m-d') }}</td>
                     <td>
                         @if($order->status=='new')
                           <span class="badge badge-primary">{{$order->status}}</span>
@@ -68,6 +92,7 @@
                     <td>
                         <a href="{{route('order.show',$order->id)}}" class="btn btn-warning btn-sm float-left mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="view" data-placement="bottom"><i class="fas fa-eye"></i></a>
                         <a href="{{route('order.edit',$order->id)}}" class="btn btn-primary btn-sm float-left mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="edit" data-placement="bottom"><i class="fas fa-edit"></i></a>
+                      <!--<a href="{{ route('orders.export.single.excel', $order->id) }}" class="btn btn-success btn-sm float-left mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="Export Excel" data-placement="bottom"><i class="fas fa-file-excel"></i></a>-->
                         <form method="POST" action="{{route('order.destroy',[$order->id])}}">
                           @csrf 
                           @method('delete')
@@ -78,7 +103,9 @@
             @endforeach
           </tbody>
         </table>
-        <span style="float:right">{{$orders->links()}}</span>
+        @if(is_object($orders) && method_exists($orders, 'links'))
+          <span style="float:right">{{$orders->links()}}</span>
+        @endif
         @else
           <h6 class="text-center">No orders found!!! Please order some products</h6>
         @endif
@@ -108,13 +135,13 @@
   <script src="{{asset('backend/js/demo/datatables-demo.js')}}"></script>
   <script>
       
-      $('#order-dataTable').DataTable( {
-            "columnDefs":[
-                {
-                    "orderable":false,
-                    "targets":[8]
-                }
-            ]
+        $('#order-dataTable').DataTable( {
+          "columnDefs":[
+            {
+              "orderable":false,
+              "targets":[9]
+            }
+          ]
         } );
 
         // Sweet alert

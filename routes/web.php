@@ -135,6 +135,8 @@
         })->name('file-manager');
 
         // Orders
+        Route::get('/orders/export/excel', 'OrderController@exportByDateExcel')->name('orders.export.excel');
+        Route::get('/orders/{order}/export/excel', 'OrderController@exportSingleExcel')->name('orders.export.single.excel');
         Route::resource('/order', 'OrderController');
 
         // Shipment Tracking (per order)
