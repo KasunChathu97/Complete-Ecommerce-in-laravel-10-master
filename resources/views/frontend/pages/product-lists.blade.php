@@ -212,7 +212,9 @@
 															<div class="button-head">
 																<div class="product-action">
 																	<a data-toggle="modal" data-target="#{{$product->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
-																	<a title="Wishlist" href="{{route('add-to-wishlist',$product->slug)}}" class="wishlist" data-id="{{$product->id}}"><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
+																	@if (Route::has('add-to-wishlist'))
+																		<a title="Wishlist" href="{{route('add-to-wishlist',$product->slug)}}" class="wishlist" data-id="{{$product->id}}"><i class=" ti-heart "></i><span>Add to Wishlist</span></a>
+																	@endif
 																</div>
 																<div class="product-action-2">
 																	<a title="Add to cart" href="{{route('add-to-cart',$product->slug)}}">Add to cart</a>
@@ -363,7 +365,9 @@
 													</div>
 													<div class="add-to-cart">
 														<button type="submit" class="btn">Add to cart</button>
-														<a href="{{route('add-to-wishlist',$product->slug)}}" class="btn min"><i class="ti-heart"></i></a>
+														@if (Route::has('add-to-wishlist'))
+															<a href="{{route('add-to-wishlist',$product->slug)}}" class="btn min"><i class="ti-heart"></i></a>
+														@endif
 													</div>
 												</form>
 												<div class="default-social"></div>

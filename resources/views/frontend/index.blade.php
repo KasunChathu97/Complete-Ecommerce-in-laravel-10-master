@@ -97,77 +97,99 @@
                             @if($product_lists)
                                 @foreach($product_lists as $key=>$product)
                                 <div class="col-6 col-md-4 col-lg-2 p-b-35 isotope-item cat-{{$product->cat_id}}">
-                                    <div class="single-product" data-product-url="{{route('product-detail',$product->slug)}}">
-                                        <div class="product-img">
-                                            <a href="{{route('product-detail',$product->slug)}}">
-                                                <div class="product-image-box" style="width:230px;height:230px;display:flex;align-items:center;justify-content:center;background:#F5F5F5;overflow:hidden;margin:auto;">
+                                        <div class="single-product">
+                                            <div class="product-img">
+                                                <a href="{{route('product-detail',$product->slug)}}">
                                                     @php
-                                                        $photo=explode(',',$product->photo);
-                                                        $firstPhoto=$photo[0] ?? '';
-                                                        if ($firstPhoto && preg_match('~(/storage/[^,\s]+?\.(?:png|jpe?g|gif|webp|svg))~i', $firstPhoto, $m)) {
-                                                            $firstPhoto=$m[1];
-                                                        }
+                                                        $photo=explode(',', $product->photo);
                                                     @endphp
-                                                    <img class="default-img" src="{{$firstPhoto}}" alt="{{$product->title}}" style="width:100%;height:100%;object-fit:contain;">
-                                                    <img class="hover-img" src="{{$firstPhoto}}" alt="{{$product->title}}" style="width:100%;height:100%;object-fit:contain;position:absolute;left:-9999px;">
-                                                </div>
-                                                @if($product->stock<=0)
-                                                    <span class="out-of-stock">Sale out</span>
-                                                @elseif($product->condition=='new')
-                                                    <span class="new">New</span>
-                                                @elseif($product->condition=='hot')
-                                                    <span class="hot">Hot</span>
-                                                @else
-                                                    <span class="price-dec">{{$product->discount}}% Off</span>
-                                                @endif
-                                            </a>
-
-
-                                            </a>
-                                            <div class="button-head">
-                                                <div class="product-action">
-                                                    <a data-toggle="modal" data-target="#{{$product->id}}" title="Quick View" href="#"><i class=" ti-eye"></i><span>Quick Shop</span></a>
-                                                </div>
-                                                <div class="product-action-2">
-                                                    <a title="Add to cart" href="{{route('add-to-cart',$product->slug)}}">Add to cart</a>
-                                                </div>
+                                                    <img class="default-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
+                                                    <img class="hover-img" src="{{$photo[0]}}" alt="{{$photo[0]}}">
+                                                    @if($product->discount)
+                                                        <div class="discount-badge">
+                                                            <span>-{{$product->discount}}%</span>
+                                                        </div>
+                                                    @endif
+                                                </a>
                                             </div>
-                                        </div>
-                                        <div class="product-content">
-                                            <h3><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h3>
-                                                <div class="product-rating mb-1">
+                                            <div class="product-content">
+                                                <div class="product-category">
+                                                    <span class="category-badge">{{$product->cat_info->title ?? ''}}</span>
+                                                </div>
+                                                <h3 class="product-title">
+                                                    <a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a>
+                                                </h3>
+                                                
+                                                <!-- Product Rating -->
+                                                <div class="product-rating">
                                                     @php
-                                                        $rate=DB::table('product_reviews')->where('product_id',$product->id)->avg('rate');
-                                                        $rate_count=DB::table('product_reviews')->where('product_id',$product->id)->count();
+                                                        $avg_rating = DB::table('product_reviews')->where('product_id',$product->id)->avg('rate');
+                                                        $rating_count = DB::table('product_reviews')->where('product_id',$product->id)->count();
                                                     @endphp
-                                                    @for($i=1; $i<=5; $i++)
-                                                        @if($rate>=$i)
-                                                            <i class="yellow fa fa-star"></i>
+                                                    <div class="stars">
+                                                        @if($avg_rating > 0)
+                                                            @for($i = 1; $i <= 5; $i++)
+                                                                @if($avg_rating >= $i)
+                                                                    <i class="fas fa-star"></i>
+                                                                @elseif($avg_rating > ($i - 0.5))
+                                                                    <i class="fas fa-star-half-alt"></i>
+                                                                @else
+                                                                    <i class="far fa-star"></i>
+                                                                @endif
+                                                            @endfor
                                                         @else
-                                                            <i class="fa fa-star"></i>
+                                                            @for($i = 1; $i <= 5; $i++)
+                                                                <i class="far fa-star"></i>
+                                                            @endfor
                                                         @endif
-                                                    @endfor
-                                                    <small>({{$rate_count}})</small>
+                                                    </div>
+                                                    @if($rating_count > 0)
+                                                        <span class="rating-count">({{$rating_count}})</span>
+                                                    @else
+                                                        <span class="rating-count">No reviews</span>
+                                                    @endif
                                                 </div>
-                                            <div class="product-price">
-                                                @php
-                                                    $after_discount=($product->price-($product->price*$product->discount)/100);
-                                                @endphp
-                                                <span>{{Helper::formatCurrency($after_discount)}}</span>
-                                                @if($product->discount>0)
-                                                    <del style="padding-left:4%;">{{Helper::formatCurrency($product->price)}}</del>
-                                                @endif
-                                                @php
-                                                    // Free shipping if product shipping_cost is 0 (if available)
-                                                    $cart_shipping = 0;
-                                                    if(property_exists($product, 'shipping_cost')) $cart_shipping = $product->shipping_cost;
-                                                @endphp
-                                                @if(isset($product->shipping_cost) && $product->shipping_cost == 0)
-                                                    <span class="badge badge-success">Free Shipping</span>
-                                                @endif
+                                                
+                                                <!-- Product Price -->
+                                                <div class="product-price">
+                                                    @php
+                                                        $after_discount = ($product->price - ($product->price * $product->discount / 100));
+                                                        $currency = 'Rs.';
+                                                    @endphp
+                                                    @if($product->discount)
+                                                        <span class="current-price">{{$currency}}{{number_format($after_discount,2)}}</span>
+                                                        <span class="old-price">{{$currency}}{{number_format($product->price,2)}}</span>
+                                                    @else
+                                                        <span class="current-price">{{$currency}}{{number_format($product->price,2)}}</span>
+                                                    @endif
+                                                </div>
+                                                
+                                                <!-- Stock Status -->
+                                                <div class="stock-status">
+                                                    @if($product->stock > 0)
+                                                        <span class="in-stock">
+                                                            <i class="fas fa-check-circle"></i>
+                                                            In Stock
+                                                        </span>
+                                                    @else
+                                                        <span class="out-of-stock">
+                                                            <i class="fas fa-times-circle"></i>
+                                                            Out of Stock
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                
+                                                <!-- Product Actions -->
+                                                <div class="product-actions">
+                                                    <a href="{{route('add-to-cart',$product->slug)}}" class="btn-add-to-cart">
+                                                        Add to Cart
+                                                    </a>
+                                                    <a href="{{route('product-detail',$product->slug)}}" class="btn-view-details">
+                                                        View Details
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
                                 @endforeach
 
@@ -555,11 +577,427 @@
         #Gslider .carousel-indicators {
         bottom: 70px;
         }
-    </style>
+
+    /* Product Card Styles */
+    .single-product {
+        border: 1px solid #eaeaea;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: #fff;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    
+    .single-product:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-color: #000000;
+    }
+    
+    .product-img {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .product-img img {
+        width: 100%;
+        height: 230px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .single-product:hover .product-img img {
+        transform: scale(1.05);
+    }
+    
+    /* Discount Badge */
+    .discount-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 5;
+        background: #ff4444;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    /* Product Content */
+    .product-content {
+        padding: 20px;
+    }
+    
+    .product-category {
+        margin-bottom: 8px;
+    }
+    
+    .category-badge {
+        background: #f8f9fa;
+        color: #6c757d;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .product-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 0px;
+        line-height: 1.0;
+        min-height: 32px;
+    }
+    
+    .product-title a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .product-title a:hover {
+        color: #F7941D;
+    }
+    
+    /* Product Rating */
+    .product-rating {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2px;
+    }
+    
+    .stars {
+        display: flex;
+        align-items: center;
+        margin-right: 8px;
+    }
+    
+    .stars i {
+        font-size: 14px;
+        color: #ffc107;
+        margin-right: 2px;
+    }
+    
+    .stars .far {
+        color: #ddd;
+    }
+    
+    .stars .fas.fa-star-half-alt {
+        color: #ffc107;
+    }
+    
+    .rating-count {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    /* Product Price */
+    .product-price {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 2px;
+        margin-bottom: 2px;
+    }
+    
+    .current-price {
+        font-size: 18px;
+        font-weight: 700;
+        color: #F7941D;
+    }
+    
+    .old-price {
+        font-size: 14px;
+        color: #999;
+        text-decoration: line-through;
+    }
+    
+    /* Stock Status */
+    .stock-status {
+        font-size: 13px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .in-stock {
+        color: #28a745;
+    }
+    
+    .in-stock i {
+        color: #28a745;
+    }
+    
+    .out-of-stock {
+        color: #dc3545;
+    }
+    
+    .out-of-stock i {
+        color: #dc3545;
+    }
+    
+    /* Product Actions - Rounded Buttons */
+    .product-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .btn-add-to-cart, .btn-view-details {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 6px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+    }
+    
+    /* Add to Cart Button - Normal State */
+    .btn-add-to-cart {
+        background: #f4a13d;
+        color: white !important;
+        border: 1px solid #F7941D;
+    }
+    
+    /* Add to Cart Button - Hover State */
+    .btn-add-to-cart:hover {
+        background: #000000 !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        border-color: #000000;
+    }
+    
+    /* View Details Button */
+    .btn-view-details {
+        background: transparent;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+    
+    .btn-view-details:hover {
+        background: #f8f9fa;
+        color: #F7941D;
+        border-color: #F7941D;
+        transform: translateY(-2px);
+    }
+    
+    /* Modal Styles */
+    .modal-lg {
+        max-width: 900px;
+    }
+    
+    .quickview-content .product-header {
+        margin-bottom: 20px;
+    }
+    
+    .quickview-content .product-meta {
+        display: flex;
+        gap: 15px;
+        margin-top: 5px;
+    }
+    
+    .quickview-content .product-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 14px;
+        color: #6c757d;
+    }
+    
+    /* Rating in Modal */
+    .quickview-ratting {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .quickview-ratting .stars {
+        margin-right: 10px;
+    }
+    
+    .quickview-ratting .stars i {
+        font-size: 16px;
+        color: #ffc107;
+    }
+    
+    .quickview-ratting .stars .far {
+        color: #ddd;
+    }
+    
+    .quickview-ratting .stars .fas.fa-star-half-alt {
+        color: #ffc107;
+    }
+    
+    .quickview-stock {
+        font-size: 14px;
+    }
+    
+    .size-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .size-option {
+        position: relative;
+    }
+    
+    .size-option input {
+        display: none;
+    }
+    
+    .size-option span {
+        display: inline-block;
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .size-option input:checked + span {
+        border-color: #F7941D;
+        background: #F7941D;
+        color: white;
+    }
+    
+    .quantity-input-group {
+        display: flex;
+        align-items: center;
+        max-width: 150px;
+    }
+    
+    .qty-btn {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ddd;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 4px;
+    }
+    
+    .qty-btn:hover {
+        background: #f8f9fa;
+        border-color: #F7941D;
+        color: #F7941D;
+    }
+    
+    .qty-input {
+        width: 60px;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-left: none;
+        border-right: none;
+        text-align: center;
+    }
+    
+    /* Modal Action Buttons - Rounded */
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .action-buttons .btn {
+        flex: 1;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 20px;
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    /* Modal Add to Cart Button */
+    .btn-add-to-cart-modal {
+        background: #57534d;
+        color: white !important;
+        border: 1px solid #F7941D;
+    }
+    
+    .btn-add-to-cart-modal:hover {
+        background: #000000 !important;
+        color: white !important;
+        border-color: #000000;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Buy Now Button */
+    .btn-buy-now {
+        background: transparent;
+        color: #F7941D;
+        border: 1px solid #F7941D;
+    }
+    
+    .btn-buy-now:hover {
+        background: #F7941D;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(247, 148, 29, 0.3);
+    }
+    
+    /* Pagination */
+    .pagination {
+        display: inline-flex;
+    }
+    
+    .filter_button {
+        text-align: center;
+        background: #F7941D;
+        padding: 10px 20px;
+        margin-top: 10px;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .filter_button:hover {
+        background: #e6891c;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(247, 148, 29, 0.3);
+    }
+    
+    /* No Products */
+    .no-products {
+        padding: 60px 20px;
+    }
+    
+    .no-products i {
+        font-size: 80px;
+        color: #eee;
+        margin-bottom: 20px;
+    }
+</style>
 @endpush
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+<!-- Add Font Awesome for star icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script>
 
         /*==================================================================
