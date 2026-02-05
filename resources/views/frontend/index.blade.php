@@ -764,7 +764,7 @@
     
     /* Add to Cart Button - Normal State */
     .btn-add-to-cart {
-        background: #f4a13d;
+        background: #F7941D;
         color: white !important;
         border: 1px solid #F7941D;
     }
