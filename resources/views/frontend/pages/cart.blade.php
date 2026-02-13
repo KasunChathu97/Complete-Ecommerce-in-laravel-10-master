@@ -147,6 +147,18 @@
 								<div class="right">
 									<ul>
 										<li class="order_subtotal" data-price="{{Helper::totalCartPrice()}}">Cart Subtotal<span>{{Helper::formatCurrency(Helper::totalCartPrice())}}</span></li>
+										@php
+											$cartBaseQuery = \App\Models\Cart::where('user_id', auth()->user()->id)->where('order_id', null);
+											$cart_has_items = (clone $cartBaseQuery)->exists();
+											$has_non_free_shipping_product = (clone $cartBaseQuery)
+												->whereHas('product', function ($q) {
+													$q->where('free_shipping', 0);
+												})
+												->exists();
+											$all_free_shipping = $cart_has_items && !$has_non_free_shipping_product;
+											$cart_shipping_cost = $all_free_shipping ? 0 : (clone $cartBaseQuery)->sum('shipping_cost');
+										@endphp
+										<li class="shipping">Shipping Cost<span>{{ $all_free_shipping ? 'Free' : Helper::formatCurrency($cart_shipping_cost) }}</span></li>
 
 										@if(session()->has('coupon'))
 										<li class="coupon_price" data-price="{{Session::get('coupon')['value']}}">You Save<span>{{Helper::formatCurrency(Session::get('coupon')['value'])}}</span></li>

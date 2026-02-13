@@ -48,8 +48,8 @@
           <input type="checkbox" name='is_featured' id='is_featured' value='1' checked> Yes                        
         </div>
         <div class="form-group">
-          <label for="free_shipping_enabled">Enable Free Shipping</label><br>
-          <input type="checkbox" name='free_shipping_enabled' id='free_shipping_enabled' value='1' {{ old('free_shipping_enabled') ? 'checked' : '' }}> Yes
+          <label for="free_shipping">Enable Free Shipping</label><br>
+          <input type="checkbox" name='free_shipping' id='free_shipping' value='1' {{ old('free_shipping') ? 'checked' : '' }}> Yes
         </div>
               {{-- {{$categories}} --}}
 

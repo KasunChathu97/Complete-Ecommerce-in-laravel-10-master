@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Order @if($order)- {{$order->order_number}} @endif</title>
-  {{-- Avoid remote CSS in PDF rendering to prevent timeouts --}}
+  <meta charset="utf-8">
+  <title>Invoice @if($order)- {{$order->order_number}} @endif</title>
+  {{-- Keep PDF rendering self-contained (no remote CSS/assets). --}}
 </head>
 <body>
 
@@ -23,183 +24,203 @@
     $settingRow = null;
   }
 
+  $companyName = (string) (env('APP_NAME') ?? '');
   $companyAddress = (string) (($settingRow->address ?? '') ?: (env('APP_ADDRESS') ?? ''));
   $companyPhone = (string) (($settingRow->phone ?? '') ?: (env('APP_PHONE') ?? ''));
   $companyEmail = (string) (($settingRow->email ?? '') ?: (env('APP_EMAIL') ?? ''));
+
+  $subTotal = (float) ($order->sub_total ?? 0);
+  $discount = (float) ($order->coupon ?? 0);
+  $deliveryCharge = (float) ($order->delivery_charge ?? 0);
+  $grandTotal = (float) ($order->total_amount ?? 0);
+
+  // The app does not store the chosen shipping method fee on the order; derive it from totals.
+  $derivedShippingFee = $grandTotal - $subTotal - $deliveryCharge + $discount;
+  $shippingFee = max(0, (float) $derivedShippingFee);
+  $shippingTotal = $deliveryCharge + $shippingFee;
+  $showShippingBreakdown = abs($shippingFee - $deliveryCharge) > 0.01 && $shippingFee > 0.01;
+
+  $invoiceDate = optional($order->created_at)->format('d M Y') ?? '';
 @endphp
+
 <style type="text/css">
-  .invoice-header {
-    background: #f7f7f7;
-    padding: 10px 20px 10px 20px;
-    border-bottom: 1px solid gray;
-  }
-  .site-logo {
-    margin-top: 20px;
-  }
-  .site-logo img {
-    max-width: 140px;
-    height: auto;
-  }
-  .invoice-right-top h3 {
-    padding-right: 20px;
-    margin-top: 20px;
-    color: green;
-    font-size: 30px!important;
-    font-family: serif;
-  }
-  .invoice-left-top {
-    border-left: 4px solid green;
-    padding-left: 20px;
-    padding-top: 20px;
-  }
-  .invoice-left-top p {
-    margin: 0;
-    line-height: 20px;
-    font-size: 16px;
-    margin-bottom: 3px;
-  }
-  thead {
-    background: green;
-    color: #FFF;
-  }
-  .authority h5 {
-    margin-top: -10px;
-    color: green;
-  }
-  .thanks h4 {
-    color: green;
-    font-size: 25px;
-    font-weight: normal;
-    font-family: serif;
-    margin-top: 20px;
-  }
-  .site-address p {
-    line-height: 6px;
-    font-weight: 300;
-  }
-  .table tfoot .empty {
-    border: none;
-  }
-  .table-bordered {
-    border: none;
-  }
-  .table-header {
-    padding: .75rem 1.25rem;
-    margin-bottom: 0;
-    background-color: rgba(0,0,0,.03);
-    border-bottom: 1px solid rgba(0,0,0,.125);
-  }
-  .table td, .table th {
-    padding: .30rem;
-  }
+  @page { margin: 24px; }
+  body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; color: #111827; }
+  .muted { color: #6b7280; }
+  .h1 { font-size: 18px; font-weight: 700; margin: 0; }
+  .h2 { font-size: 13px; font-weight: 700; margin: 0 0 6px 0; }
+  .box { border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; }
+  .mt-12 { margin-top: 12px; }
+  .mb-6 { margin-bottom: 6px; }
+  .w-100 { width: 100%; }
+  .text-right { text-align: right; }
+  .text-center { text-align: center; }
+  .nowrap { white-space: nowrap; }
+  .divider { height: 1px; background: #e5e7eb; margin: 12px 0; }
+
+  table { border-collapse: collapse; }
+  .items th { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 8px; font-weight: 700; }
+  .items td { border: 1px solid #e5e7eb; padding: 8px; vertical-align: top; }
+  .totals td { padding: 4px 0; }
 </style>
-  <div class="invoice-header">
-    <div class="float-left site-logo">
+
+<table class="w-100">
+  <tr>
+    <td style="width: 55%; vertical-align: top;">
       @if($logoDataUri)
-        <img src="{{$logoDataUri}}" alt="">
+        <img src="{{$logoDataUri}}" alt="" style="max-width: 140px; height: auto;">
       @endif
-    </div>
-    <div class="float-right site-address">
-      <h4>{{env('APP_NAME')}}</h4>
+      <div class="h1" style="margin-top: 6px;">{{ $companyName }}</div>
       @if($companyAddress !== '')
-        <p>{{ $companyAddress }}</p>
+        <div class="muted" style="margin-top: 4px;">{{ $companyAddress }}</div>
       @endif
       @if($companyPhone !== '')
-        <p>Phone: <a href="tel:{{ $companyPhone }}">{{ $companyPhone }}</a></p>
+        <div class="muted" style="margin-top: 2px;">Phone: {{ $companyPhone }}</div>
       @endif
       @if($companyEmail !== '')
-        <p>Email: <a href="mailto:{{ $companyEmail }}">{{ $companyEmail }}</a></p>
+        <div class="muted" style="margin-top: 2px;">Email: {{ $companyEmail }}</div>
       @endif
-    </div>
-    <div class="clearfix"></div>
-  </div>
-  <div class="invoice-description">
-    <div class="invoice-left-top float-left">
-      <h6>Invoice to</h6>
-       <h3>{{$order->first_name}} {{$order->last_name}}</h3>
-       <div class="address">
-        <p>
-          <strong>Country: </strong>
-          {{$order->country}}
-        </p>
-        <p>
-          <strong>Address: </strong>
-          {{ $order->address1 }} OR {{ $order->address2}}
-        </p>
-         <p><strong>Phone:</strong> {{ $order->phone }}</p>
-         <p><strong>Email:</strong> {{ $order->email }}</p>
-       </div>
-    </div>
-    <div class="invoice-right-top float-right" class="text-right">
-      <h3>Invoice #{{$order->order_number}}</h3>
-      <p>{{ $order->created_at->format('D d m Y') }}</p>
-      {{-- <img class="img-responsive" src="data:image/png;base64, {{ base64_encode(QrCode::format('png')->size(150)->generate(route('admin.product.order.show', $order->id )))}}"> --}}
-    </div>
-    <div class="clearfix"></div>
-  </div>
-  <section class="order_details pt-3">
-    <div class="table-header">
-      <h5>Order Details</h5>
-    </div>
-    <table class="table table-bordered table-stripe">
-      <thead>
-        <tr>
-          <th scope="col" class="col-6">Product</th>
-          <th scope="col" class="col-3">Quantity</th>
-          <th scope="col" class="col-3">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-      @foreach($order->cart_info as $cart)
-        <tr>
-          <td><span>
-              {{ optional($cart->product)->title }}
-            </span></td>
-          <td>x{{$cart->quantity}}</td>
-          <td><span>${{number_format($cart->price,2)}}</span></td>
-        </tr>
-      @endforeach
-      </tbody>
-      <tfoot>
-        <tr>
-          <th scope="col" class="empty"></th>
-          <th scope="col" class="text-right">Subtotal:</th>
-          <th scope="col"> <span>${{number_format($order->sub_total,2)}}</span></th>
-        </tr>
-      {{-- @if(!empty($order->coupon))
-        <tr>
-          <th scope="col" class="empty"></th>
-          <th scope="col" class="text-right">Discount:</th>
-          <th scope="col"><span>-{{$order->coupon->discount(Helper::orderPrice($order->id, $order->user->id))}}{{Helper::base_currency()}}</span></th>
-        </tr>
-      @endif --}}
-        <tr>
-          <th scope="col" class="empty"></th>
-          <th scope="col" class="text-right ">Shipping:</th>
-          <th><span>${{number_format(optional($order->shipping)->price ?? 0,2)}}</span></th>
-        </tr>
-        <tr>
-          <th scope="col" class="empty"></th>
-          <th scope="col" class="text-right">Total:</th>
-          <th>
-            <span>
-                ${{number_format($order->total_amount,2)}}
-            </span>
-          </th>
-        </tr>
-      </tfoot>
-    </table>
-  </section>
-  <div class="thanks mt-3">
-    <h4>Thank you for your business !!</h4>
-  </div>
-  <div class="authority float-right mt-5">
-    <p>-----------------------------------</p>
-    <h5>Authority Signature:</h5>
-  </div>
-  <div class="clearfix"></div>
+    </td>
+    <td style="width: 45%; vertical-align: top;" class="text-right">
+      <div class="h1">INVOICE</div>
+      <div class="muted" style="margin-top: 6px;">Invoice #: <strong>{{ $order->order_number }}</strong></div>
+      @if($invoiceDate !== '')
+        <div class="muted" style="margin-top: 2px;">Date: <strong>{{ $invoiceDate }}</strong></div>
+      @endif
+      <div class="muted" style="margin-top: 2px;">Order Status: <strong>{{ strtoupper((string) $order->status) }}</strong></div>
+      <div class="muted" style="margin-top: 2px;">Payment: <strong>{{ strtoupper((string) $order->payment_method) }}</strong> ({{ strtoupper((string) $order->payment_status) }})</div>
+      @if(!empty($order->payment_reference))
+        <div class="muted" style="margin-top: 2px;">Reference: <strong>{{ $order->payment_reference }}</strong></div>
+      @endif
+    </td>
+  </tr>
+</table>
+
+<div class="divider"></div>
+
+<table class="w-100">
+  <tr>
+    <td style="width: 50%; vertical-align: top; padding-right: 8px;">
+      <div class="box">
+        <div class="h2">Bill To</div>
+        <div><strong>{{ $order->first_name }} {{ $order->last_name }}</strong></div>
+        <div class="muted">{{ $order->email }}</div>
+        <div class="muted">{{ $order->phone }}</div>
+        <div style="margin-top: 6px;">{{ $order->address1 }}</div>
+        @if(!empty($order->address2))
+          <div>{{ $order->address2 }}</div>
+        @endif
+        <div class="muted" style="margin-top: 4px;">{{ $order->country }} @if(!empty($order->post_code)) - {{ $order->post_code }} @endif</div>
+      </div>
+    </td>
+    <td style="width: 50%; vertical-align: top; padding-left: 8px;">
+      <div class="box">
+        <div class="h2">Shipping</div>
+        <div class="muted">Method: <strong>{{ optional($order->shipping)->type ?? 'N/A' }}</strong></div>
+        <div class="muted">Shipping Total: <strong>{{ Helper::formatCurrency($shippingTotal) }}</strong></div>
+        @if($showShippingBreakdown)
+          <div class="muted" style="margin-top: 2px;">Delivery Charge: <strong>{{ Helper::formatCurrency($deliveryCharge) }}</strong></div>
+          <div class="muted" style="margin-top: 2px;">Shipping Fee: <strong>{{ Helper::formatCurrency($shippingFee) }}</strong></div>
+        @endif
+        @if(!empty($order->courier_name) || !empty($order->tracking_number))
+          <div style="margin-top: 6px;">
+            @if(!empty($order->courier_name))
+              <div class="muted">Courier: <strong>{{ $order->courier_name }}</strong></div>
+            @endif
+            @if(!empty($order->tracking_number))
+              <div class="muted">Tracking #: <strong>{{ $order->tracking_number }}</strong></div>
+            @endif
+          </div>
+        @endif
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div class="mt-12"></div>
+
+<table class="w-100 items">
+  <thead>
+    <tr>
+      <th style="width: 45%;">Item</th>
+      <th style="width: 15%;" class="text-center">Qty</th>
+      <th style="width: 20%;" class="text-right">Unit Price</th>
+      <th style="width: 20%;" class="text-right">Line Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach($order->cart_info as $cart)
+      @php
+        $unitPrice = (float) ($cart->price ?? 0);
+        $qty = (int) ($cart->quantity ?? 0);
+        $lineTotal = (float) ($cart->amount ?? ($unitPrice * $qty));
+      @endphp
+      <tr>
+        <td>
+          <div><strong>{{ optional($cart->product)->title ?? 'Item' }}</strong></div>
+        </td>
+        <td class="text-center nowrap">{{ $qty }}</td>
+        <td class="text-right nowrap">{{ Helper::formatCurrency($unitPrice) }}</td>
+        <td class="text-right nowrap">{{ Helper::formatCurrency($lineTotal) }}</td>
+      </tr>
+    @endforeach
+  </tbody>
+</table>
+
+<table class="w-100 mt-12">
+  <tr>
+    <td style="width: 55%; vertical-align: top;">
+      @if(!empty($order->notes))
+        <div class="box">
+          <div class="h2">Notes</div>
+          <div class="muted">{{ $order->notes }}</div>
+        </div>
+      @endif
+    </td>
+    <td style="width: 45%; vertical-align: top;">
+      <div class="box">
+        <table class="w-100 totals">
+          <tr>
+            <td class="muted">Subtotal</td>
+            <td class="text-right nowrap"><strong>{{ Helper::formatCurrency($subTotal) }}</strong></td>
+          </tr>
+          @if($discount > 0)
+            <tr>
+              <td class="muted">Discount</td>
+              <td class="text-right nowrap"><strong>-{{ Helper::formatCurrency($discount) }}</strong></td>
+            </tr>
+          @endif
+          <tr>
+            <td class="muted">Shipping</td>
+            <td class="text-right nowrap"><strong>{{ Helper::formatCurrency($shippingTotal) }}</strong></td>
+          </tr>
+          @if($showShippingBreakdown)
+            <tr>
+              <td class="muted">&nbsp;&nbsp;Delivery Charge</td>
+              <td class="text-right nowrap"><strong>{{ Helper::formatCurrency($deliveryCharge) }}</strong></td>
+            </tr>
+            <tr>
+              <td class="muted">&nbsp;&nbsp;Shipping Fee</td>
+              <td class="text-right nowrap"><strong>{{ Helper::formatCurrency($shippingFee) }}</strong></td>
+            </tr>
+          @endif
+          <tr>
+            <td colspan="2"><div class="divider" style="margin: 8px 0;"></div></td>
+          </tr>
+          <tr>
+            <td style="font-size: 13px; font-weight: 700;">Grand Total</td>
+            <td class="text-right nowrap" style="font-size: 13px; font-weight: 700;">{{ Helper::formatCurrency($grandTotal) }}</td>
+          </tr>
+        </table>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div class="mt-12"></div>
+<div class="text-center muted">Thank you for your purchase.</div>
 @else
-  <h5 class="text-danger">Invalid</h5>
+  <h5>Invalid</h5>
 @endif
 </body>
 </html>

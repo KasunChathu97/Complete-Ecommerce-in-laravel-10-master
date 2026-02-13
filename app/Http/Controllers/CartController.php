@@ -44,6 +44,9 @@ class CartController extends Controller
                 $shipping_cost = 350 + 80;
             }
         }
+        if (!empty($product->free_shipping) || !empty($product->free_shipping_enabled)) {
+            $shipping_cost = 0;
+        }
         if($product->stock < $request->quant[1]){
             return back()->with('error','Out of stock, You can add other products.');
         }
@@ -128,6 +131,9 @@ class CartController extends Controller
             } elseif ($total_weight_grams > 1000) {
                 $shipping_cost = 350 + 80;
             }
+        }
+        if (!empty($product->free_shipping) || !empty($product->free_shipping_enabled)) {
+            $shipping_cost = 0;
         }
 
         if($already_cart) {
@@ -218,6 +224,9 @@ class CartController extends Controller
                         } elseif ($total_weight_grams > 1000) {
                             $shipping_cost = 350 + 80;
                         }
+                    }
+                    if (!empty($cart->product->free_shipping) || !empty($cart->product->free_shipping_enabled)) {
+                        $shipping_cost = 0;
                     }
                     $cart->shipping_cost = $shipping_cost;
                     $cart->amount = $after_price * $quant + $shipping_cost;

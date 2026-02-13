@@ -23,6 +23,7 @@
     <!-- Product Style -->
     <form action="{{route('shop.filter')}}" method="POST">
         @csrf
+        <input type="hidden" name="view" value="grid">
         <section class="product-area shop-sidebar shop section">
             <div class="container">
                 <div class="row">
@@ -65,9 +66,28 @@
                                         <li>
                                             <label><input type="checkbox" name="availability[]" value="out_of_stock" @if(!empty(request('availability')) && in_array('out_of_stock', (array)request('availability'))) checked @endif> Out of Stock</label>
                                         </li>
+                                        <li style="margin-top: 10px;">
+                                            <button type="submit" class="filter_button">Filter</button>
+                                        </li>
                                     </ul>
                                 </div>
                                 <!--/ End Availability Filter -->
+                                <!-- Free Shipping Filter -->
+                                <div class="single-widget free-shipping">
+                                    <h3 class="title">Shipping</h3>
+                                    <ul class="categor-list">
+                                        <li>
+                                            <label>
+                                                <input type="checkbox" name="free_shipping" value="1" @if(request('free_shipping')) checked @endif>
+                                                Free Shipping
+                                            </label>
+                                        </li>
+                                        <li style="margin-top: 10px;">
+                                            <button type="submit" class="filter_button">Filter</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!--/ End Free Shipping Filter -->
                                 <!-- Shop By Price -->
                                     <div class="single-widget range">
                                         <h3 class="title">Shop by Price</h3>
@@ -252,6 +272,10 @@
                                                             <i class="fas fa-times-circle"></i>
                                                             Out of Stock
                                                         </span>
+                                                    @endif
+
+                                                    @if(!empty($product->free_shipping) || !empty($product->free_shipping_enabled))
+                                                        <span class="free-shipping-text">Free Shipping</span>
                                                     @endif
                                                 </div>
                                                 
@@ -514,6 +538,16 @@
         font-size: 14px;
         font-weight: 600;
     }
+
+    /* Free Shipping (text next to stock) */
+    .free-shipping-text {
+        margin-left: auto;
+        color: #007bff;
+        font-weight: 600;
+        font-size: 13px;
+        line-height: 1;
+        white-space: nowrap;
+    }
     
     /* Product Content */
     .product-content {
@@ -610,7 +644,15 @@
         margin-bottom: 15px;
         display: flex;
         align-items: center;
-        gap: 5px;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .stock-status .in-stock,
+    .stock-status .out-of-stock {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
     
     .in-stock {

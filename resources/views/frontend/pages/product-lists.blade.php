@@ -22,6 +22,7 @@
 		<!-- End Breadcrumbs -->
 		<form action="{{route('shop.filter')}}" method="POST">
 		@csrf
+			<input type="hidden" name="view" value="list">
 			<!-- Product Style 1 -->
 			<section class="product-area shop-sidebar shop-list shop section">
 				<div class="container">
@@ -77,6 +78,22 @@
 									</ul>
 									</div>
 									<!--/ End Availability Filter -->
+									<!-- Free Shipping Filter -->
+									<div class="single-widget free-shipping">
+										<h3 class="title">Shipping</h3>
+										<ul class="categor-list">
+											<li>
+												<label>
+													<input type="checkbox" name="free_shipping" value="1" @if(request('free_shipping')) checked @endif>
+													Free Shipping
+												</label>
+											</li>
+											<li style="margin-top: 10px;">
+												<button type="submit" class="filter_button">Filter</button>
+											</li>
+										</ul>
+									</div>
+									<!--/ End Free Shipping Filter -->
 								<!-- Shop By Price -->
 								<div class="single-widget range">
 									<h3 class="title">Shop by Price</h3>

@@ -9,7 +9,14 @@ class Product extends Model
     protected $fillable=[
         'title','slug','summary','description','cat_id','child_cat_id','price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
         'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type',
-        'weight'
+        'weight',
+        'free_shipping',
+        'free_shipping_enabled'
+    ];
+
+    protected $casts = [
+        'free_shipping' => 'boolean',
+        'free_shipping_enabled' => 'boolean',
     ];
 
     public function cat_info(){

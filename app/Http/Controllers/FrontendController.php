@@ -54,43 +54,49 @@ class FrontendController extends Controller
         return view('frontend.pages.product_detail')->with('product_detail',$product_detail);
     }
 
-    public function productGrids(){
+    public function productGrids(Request $request){
         $products=Product::query();
                 // Availability filter
-                if(!empty($_GET['availability'])){
-                    $availability = (array)$_GET['availability'];
+                if(!empty($request->query('availability'))){
+                    $availability = (array) $request->query('availability');
                     if(in_array('in_stock', $availability) && !in_array('out_of_stock', $availability)){
                         $products->where('stock', '>', 0);
                     } elseif(!in_array('in_stock', $availability) && in_array('out_of_stock', $availability)){
                         $products->where('stock', '<=', 0);
                     }
                 }
+
+        // Free shipping filter
+        if ($request->boolean('free_shipping')) {
+            $products->where(function ($q) {
+                $q->where('free_shipping', 1)->orWhere('free_shipping_enabled', 1);
+            });
+        }
         
-        if(!empty($_GET['category'])){
-            $slug=explode(',',$_GET['category']);
+        if(!empty($request->query('category'))){
+            $slug=explode(',',$request->query('category'));
             // dd($slug);
             $cat_ids=Category::select('id')->whereIn('slug',$slug)->pluck('id')->toArray();
             // dd($cat_ids);
             $products->whereIn('cat_id',$cat_ids);
             // return $products;
         }
-        if(!empty($_GET['brand'])){
-            $slugs=explode(',',$_GET['brand']);
+        if(!empty($request->query('brand'))){
+            $slugs=explode(',',$request->query('brand'));
             $brand_ids=Brand::select('id')->whereIn('slug',$slugs)->pluck('id')->toArray();
-            return $brand_ids;
             $products->whereIn('brand_id',$brand_ids);
         }
-        if(!empty($_GET['sortBy'])){
-            if($_GET['sortBy']=='title'){
+        if(!empty($request->query('sortBy'))){
+            if($request->query('sortBy')=='title'){
                 $products=$products->where('status','active')->orderBy('title','ASC');
             }
-            if($_GET['sortBy']=='price'){
+            if($request->query('sortBy')=='price'){
                 $products=$products->orderBy('price','ASC');
             }
         }
 
-        if(!empty($_GET['price'])){
-            $price=explode('-',$_GET['price']);
+        if(!empty($request->query('price'))){
+            $price=explode('-',$request->query('price'));
             // return $price;
             // if(isset($price[0]) && is_numeric($price[0])) $price[0]=floor(Helper::base_amount($price[0]));
             // if(isset($price[1]) && is_numeric($price[1])) $price[1]=ceil(Helper::base_amount($price[1]));
@@ -100,8 +106,8 @@ class FrontendController extends Controller
 
         $recent_products=Product::where('status','active')->orderBy('id','DESC')->limit(3)->get();
         // Sort by number
-        if(!empty($_GET['show'])){
-            $products=$products->where('status','active')->paginate($_GET['show']);
+        if(!empty($request->query('show'))){
+            $products=$products->where('status','active')->paginate($request->query('show'));
         }
         else{
             $products=$products->where('status','active')->paginate(9);
@@ -111,43 +117,49 @@ class FrontendController extends Controller
       
         return view('frontend.pages.product-grids')->with('products',$products)->with('recent_products',$recent_products);
     }
-    public function productLists(){
+    public function productLists(Request $request){
         $products=Product::query();
                 // Availability filter
-                if(!empty($_GET['availability'])){
-                    $availability = (array)$_GET['availability'];
+                if(!empty($request->query('availability'))){
+                    $availability = (array) $request->query('availability');
                     if(in_array('in_stock', $availability) && !in_array('out_of_stock', $availability)){
                         $products->where('stock', '>', 0);
                     } elseif(!in_array('in_stock', $availability) && in_array('out_of_stock', $availability)){
                         $products->where('stock', '<=', 0);
                     }
                 }
+
+        // Free shipping filter
+        if ($request->boolean('free_shipping')) {
+            $products->where(function ($q) {
+                $q->where('free_shipping', 1)->orWhere('free_shipping_enabled', 1);
+            });
+        }
         
-        if(!empty($_GET['category'])){
-            $slug=explode(',',$_GET['category']);
+        if(!empty($request->query('category'))){
+            $slug=explode(',',$request->query('category'));
             // dd($slug);
             $cat_ids=Category::select('id')->whereIn('slug',$slug)->pluck('id')->toArray();
             // dd($cat_ids);
             $products->whereIn('cat_id',$cat_ids)->paginate;
             // return $products;
         }
-        if(!empty($_GET['brand'])){
-            $slugs=explode(',',$_GET['brand']);
+        if(!empty($request->query('brand'))){
+            $slugs=explode(',',$request->query('brand'));
             $brand_ids=Brand::select('id')->whereIn('slug',$slugs)->pluck('id')->toArray();
-            return $brand_ids;
             $products->whereIn('brand_id',$brand_ids);
         }
-        if(!empty($_GET['sortBy'])){
-            if($_GET['sortBy']=='title'){
+        if(!empty($request->query('sortBy'))){
+            if($request->query('sortBy')=='title'){
                 $products=$products->where('status','active')->orderBy('title','ASC');
             }
-            if($_GET['sortBy']=='price'){
+            if($request->query('sortBy')=='price'){
                 $products=$products->orderBy('price','ASC');
             }
         }
 
-        if(!empty($_GET['price'])){
-            $price=explode('-',$_GET['price']);
+        if(!empty($request->query('price'))){
+            $price=explode('-',$request->query('price'));
             // return $price;
             // if(isset($price[0]) && is_numeric($price[0])) $price[0]=floor(Helper::base_amount($price[0]));
             // if(isset($price[1]) && is_numeric($price[1])) $price[1]=ceil(Helper::base_amount($price[1]));
@@ -157,8 +169,8 @@ class FrontendController extends Controller
 
         $recent_products=Product::where('status','active')->orderBy('id','DESC')->limit(3)->get();
         // Sort by number
-        if(!empty($_GET['show'])){
-            $products=$products->where('status','active')->paginate($_GET['show']);
+        if(!empty($request->query('show'))){
+            $products=$products->where('status','active')->paginate($request->query('show'));
         }
         else{
             $products=$products->where('status','active')->paginate(6);
@@ -171,62 +183,41 @@ class FrontendController extends Controller
     public function productFilter(Request $request){
             $data= $request->all();
             // return $data;
-            $showURL="";
-            if(!empty($data['show'])){
-                $showURL .='&show='.$data['show'];
+            $query = [];
+            if (!empty($data['show'])) {
+                $query['show'] = $data['show'];
+            }
+            if (!empty($data['sortBy'])) {
+                $query['sortBy'] = $data['sortBy'];
+            }
+            if (!empty($data['category']) && is_array($data['category'])) {
+                $query['category'] = implode(',', $data['category']);
+            }
+            if (!empty($data['brand']) && is_array($data['brand'])) {
+                $query['brand'] = implode(',', $data['brand']);
+            }
+            if (!empty($data['availability']) && is_array($data['availability'])) {
+                $query['availability'] = $data['availability'];
+            }
+            if (!empty($data['price_range'])) {
+                $query['price'] = $data['price_range'];
+            }
+            if (!empty($data['free_shipping'])) {
+                $query['free_shipping'] = 1;
             }
 
-            $sortByURL='';
-            if(!empty($data['sortBy'])){
-                $sortByURL .='&sortBy='.$data['sortBy'];
-            }
-
-            $catURL="";
-            if(!empty($data['category'])){
-                foreach($data['category'] as $category){
-                    if(empty($catURL)){
-                        $catURL .='&category='.$category;
-                    }
-                    else{
-                        $catURL .=','.$category;
-                    }
+            $targetView = $data['view'] ?? null;
+            if (empty($targetView)) {
+                $previous = url()->previous();
+                if (Str::contains($previous, 'product-grids')) {
+                    $targetView = 'grid';
+                } elseif (Str::contains($previous, 'product-lists')) {
+                    $targetView = 'list';
                 }
             }
 
-            $brandURL="";
-            if(!empty($data['brand'])){
-                foreach($data['brand'] as $brand){
-                    if(empty($brandURL)){
-                        $brandURL .='&brand='.$brand;
-                    }
-                    else{
-                        $brandURL .=','.$brand;
-                    }
-                }
-            }
-
-            $availabilityURL = "";
-            if(!empty($data['availability'])){
-                foreach($data['availability'] as $avail){
-                    if(empty($availabilityURL)){
-                        $availabilityURL .= '&availability='.$avail;
-                    } else {
-                        $availabilityURL .= '&availability='.$avail;
-                    }
-                }
-            }
-            // return $brandURL;
-
-            $priceRangeURL="";
-            if(!empty($data['price_range'])){
-                $priceRangeURL .='&price='.$data['price_range'];
-            }
-            if(request()->is('e-shop.loc/product-grids')){
-                return redirect()->route('product-grids',$catURL.$brandURL.$availabilityURL.$priceRangeURL.$showURL.$sortByURL);
-            }
-            else{
-                return redirect()->route('product-lists',$catURL.$brandURL.$availabilityURL.$priceRangeURL.$showURL.$sortByURL);
-            }
+            $targetRoute = ($targetView === 'list') ? 'product-lists' : 'product-grids';
+            return redirect()->route($targetRoute, $query);
     }
     public function productSearch(Request $request){
         $recent_products=Product::where('status','active')->orderBy('id','DESC')->limit(3)->get();

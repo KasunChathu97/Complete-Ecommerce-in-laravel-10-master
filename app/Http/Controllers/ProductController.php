@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Brand;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class ProductController extends Controller
 {
@@ -65,6 +66,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'discount_enabled' => 'sometimes|in:1',
             'discount' => 'nullable|numeric|min:0|max:100',
+            'free_shipping' => 'sometimes|in:1',
             'bulk_discount_type' => 'nullable|in:none,qty,value',
             'bulk_discount_threshold' => 'nullable|numeric',
             'bulk_discount_amount' => 'nullable|numeric',
@@ -76,6 +78,10 @@ class ProductController extends Controller
         $slug = generateUniqueSlug($request->title, Product::class);
         $validatedData['slug'] = $slug;
         $validatedData['is_featured'] = $request->input('is_featured', 0);
+        $validatedData['free_shipping'] = $request->boolean('free_shipping');
+        if (Schema::hasColumn('products', 'free_shipping_enabled')) {
+            $validatedData['free_shipping_enabled'] = $validatedData['free_shipping'];
+        }
 
         if (!$request->boolean('discount_enabled')) {
             $validatedData['discount'] = 0;
@@ -176,6 +182,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'discount_enabled' => 'sometimes|in:1',
             'discount' => 'nullable|numeric|min:0|max:100',
+            'free_shipping' => 'sometimes|in:1',
             'bulk_discount_type' => 'nullable|in:none,qty,value',
             'bulk_discount_threshold' => 'nullable|numeric',
             'bulk_discount_amount' => 'nullable|numeric',
@@ -184,6 +191,10 @@ class ProductController extends Controller
         $validatedData['bulk_discount_amount_type'] = 'percent';
 
         $validatedData['is_featured'] = $request->input('is_featured', 0);
+        $validatedData['free_shipping'] = $request->boolean('free_shipping');
+        if (Schema::hasColumn('products', 'free_shipping_enabled')) {
+            $validatedData['free_shipping_enabled'] = $validatedData['free_shipping'];
+        }
 
         if (!$request->boolean('discount_enabled')) {
             $validatedData['discount'] = 0;

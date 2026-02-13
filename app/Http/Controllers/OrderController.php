@@ -90,7 +90,8 @@ class OrderController extends Controller
             'coupon'=>'nullable|numeric',
             'phone'=>'string|required|max:50|regex:/^\+?[0-9\s\-()]+$/',
             'post_code'=>'string|nullable',
-            'email'=>'string|required'
+            'email'=>'string|required',
+            'country'=>'string|nullable|max:255'
         ]);
         // return $request->all();
 
@@ -128,24 +129,44 @@ class OrderController extends Controller
 
         $order=new Order();
         $order_data=$request->all();
+
+        // Country is a required DB column; the checkout form may not submit it (field is commented out)
+        if (empty($order_data['country'])) {
+            $order_data['country'] = 'Sri Lanka';
+        }
+
         $order_data['order_number']='ORD-'.strtoupper(Str::random(10));
         $order_data['user_id']=$request->user()->id;
         $order_data['shipping_id']=$request->shipping;
         $shipping=Shipping::where('id',$order_data['shipping_id'])->pluck('price');
         $order_data['sub_total']=Helper::totalCartPrice();
         $order_data['quantity']=Helper::cartCount();
-        // Sum shipping_cost from cart items for this user
-        $cart_shipping_cost = Cart::where('user_id', auth()->user()->id)->where('order_id', null)->sum('shipping_cost');
-        $order_data['delivery_charge'] = $cart_shipping_cost;
+
+        $cartBaseQuery = Cart::where('user_id', auth()->user()->id)->where('order_id', null);
+        $cartItems = (clone $cartBaseQuery)
+            ->with('product:id,free_shipping,free_shipping_enabled')
+            ->get();
+
+        $cart_has_items = $cartItems->isNotEmpty();
+        $all_free_shipping = $cart_has_items && $cartItems->every(function ($cart) {
+            return !empty($cart->product)
+                && (!empty($cart->product->free_shipping) || !empty($cart->product->free_shipping_enabled));
+        });
+
+        // Sum shipping_cost from cart items for this user (weight-based shipping)
+        $cart_shipping_cost = $all_free_shipping ? 0 : (clone $cartBaseQuery)->sum('shipping_cost');
+        $shipping_price = ($all_free_shipping || empty($request->shipping)) ? 0 : (float) ($shipping[0] ?? 0);
+
+        $order_data['delivery_charge'] = $all_free_shipping ? 0 : $cart_shipping_cost;
         if(session('coupon')){
             $order_data['coupon']=session('coupon')['value'];
         }
         if($request->shipping){
             if(session('coupon')){
-                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping[0]-session('coupon')['value'];
+                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping_price-session('coupon')['value'];
             }
             else{
-                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping[0];
+                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping_price;
             }
         }
         else{
@@ -164,7 +185,7 @@ class OrderController extends Controller
         }
         else{
             $order_data['payment_method']='cod';
-            $order_data['payment_status']='Unpaid';
+            $order_data['payment_status']='unpaid';
         }
         $order->fill($order_data);
         $status=$order->save();
@@ -367,11 +388,26 @@ class OrderController extends Controller
 
     // PDF generate
     public function pdf($id){
+        // Require authentication to download invoices.
+        if (!auth()->check()) {
+            abort(403);
+        }
+
         $order=Order::getAllOrder($id);
         if(!$order){
             request()->session()->flash('error','Order not found');
             return redirect()->back();
         }
+
+        // Authorization: allow admins/staff to download any invoice, otherwise only the owner.
+        $role = (string) (auth()->user()->role ?? '');
+        $staffRoles = ['admin', 'staff', 'seller', 'salesman', 'manager', 'superadmin'];
+        $isStaff = in_array($role, $staffRoles, true);
+
+        if (!$isStaff && (int) $order->user_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
         $file_name=$order->order_number.'-'.$order->first_name.'.pdf';
         // Dompdf can time out if it tries to fetch remote assets; keep rendering self-contained.
         // Also raise the execution time limit for PDF generation only.
