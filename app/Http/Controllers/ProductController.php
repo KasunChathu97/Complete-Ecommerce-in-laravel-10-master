@@ -50,6 +50,7 @@ class ProductController extends Controller
             'title' => 'required|string',
             'summary' => 'required|string',
             'description' => 'nullable|string',
+            'youtube_link' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i'],
             'warranty' => 'nullable|string',
             'returns' => 'nullable|string',
             'photo' => 'required',
@@ -74,6 +75,14 @@ class ProductController extends Controller
         ]);
         // Force only percent type for bulk discount
         $validatedData['bulk_discount_amount_type'] = 'percent';
+
+        if (!empty($validatedData['youtube_link'])) {
+            $youtube = trim((string) $validatedData['youtube_link']);
+            if (!preg_match('~^https?://~i', $youtube)) {
+                $youtube = 'https://' . $youtube;
+            }
+            $validatedData['youtube_link'] = $youtube;
+        }
 
         $slug = generateUniqueSlug($request->title, Product::class);
         $validatedData['slug'] = $slug;
@@ -166,6 +175,7 @@ class ProductController extends Controller
             'title' => 'required|string',
             'summary' => 'required|string',
             'description' => 'nullable|string',
+            'youtube_link' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i'],
             'warranty' => 'nullable|string',
             'returns' => 'nullable|string',
             'photo' => 'nullable',
@@ -189,6 +199,14 @@ class ProductController extends Controller
         ]);
         // Force only percent type for bulk discount
         $validatedData['bulk_discount_amount_type'] = 'percent';
+
+        if (!empty($validatedData['youtube_link'])) {
+            $youtube = trim((string) $validatedData['youtube_link']);
+            if (!preg_match('~^https?://~i', $youtube)) {
+                $youtube = 'https://' . $youtube;
+            }
+            $validatedData['youtube_link'] = $youtube;
+        }
 
         $validatedData['is_featured'] = $request->input('is_featured', 0);
         $validatedData['free_shipping'] = $request->boolean('free_shipping');

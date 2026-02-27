@@ -87,6 +87,10 @@
                       <td> : {{ $order->tracking_number ?? '-' }}</td>
                     </tr>
                     <tr>
+                      <td>Assigned Sales Admin</td>
+                      <td> : {{ optional($order->salesStaff)->name ?? '-' }}</td>
+                    </tr>
+                    <tr>
                         <td>Shipping Charge</td>
                       <td> : $ {{ optional($order->shipping)->price ?? 0 }}</td>
                     </tr>
@@ -125,6 +129,10 @@
                     <tr>
                         <td>Phone No.</td>
                         <td> : {{$order->phone}}</td>
+                    </tr>
+                    <tr>
+                      <td>Emergency Contact</td>
+                      <td> : {{ $order->emergency_contact ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Address</td>

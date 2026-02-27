@@ -7474,6 +7474,69 @@ button.bg-dark:focus {
   padding-top: 100%;
 }
 
+/* Product detail: make "Other Items" sidebar larger */
+.product-detail-page .product-des {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.product-detail-page .product-video-card {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.product-detail-page .product-video-card .card-header {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.product-detail-page .product-video-card .card-body {
+  padding: 12px;
+}
+
+/* Product detail: remove right spacing for the right sidebar */
+@media (min-width: 992px) {
+  .product-detail-page .other-items-col {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+.other-items-card {
+  min-height: 700px;
+}
+
+.other-items-card .card-body {
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+@media (min-width: 992px) {
+  .other-items-card {
+    min-height: 760px;
+    position: sticky;
+    top: 90px;
+  }
+
+  .other-items-card .card-body {
+    max-height: 760px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .other-items-card {
+    min-height: 0;
+  }
+
+  .other-items-card .card-body {
+    max-height: none;
+  }
+}
+
 .flex-row {
   flex-direction: row !important;
 }

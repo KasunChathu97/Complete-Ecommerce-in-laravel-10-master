@@ -113,6 +113,10 @@ class ReportController extends Controller
             ->whereNotNull('carts.order_id')
             ->where('orders.status', 'delivered');
 
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $query->where('orders.sales_staff_id', auth()->id());
+        }
+
         if ($from) {
             $query->whereDate('orders.created_at', '>=', $from);
         }
@@ -136,6 +140,10 @@ class ReportController extends Controller
     {
         $query = DB::table('orders')
             ->where('status', 'delivered');
+
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $query->where('sales_staff_id', auth()->id());
+        }
 
         if ($from) {
             $query->whereDate('created_at', '>=', $from);

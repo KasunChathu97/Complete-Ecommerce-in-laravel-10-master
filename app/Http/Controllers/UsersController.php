@@ -25,7 +25,10 @@ class UsersController extends Controller
      */
     public function create()
     {
-        return view('backend.users.create');
+        $existingAdminId = User::where('role', 'admin')->value('id');
+        return view('backend.users.create', [
+            'existingAdminId' => $existingAdminId,
+        ]);
     }
 
     /**
@@ -40,16 +43,32 @@ class UsersController extends Controller
         [
             'name'=>'string|required|max:30',
             'email'=>'string|required|unique:users',
+            'phone'=>'nullable|string|max:50',
             'password'=>'string|required',
-            'role'=>'required|in:admin,user,staff,salesman',
+            'role'=>'required|in:admin,user,sales_admin',
             'status'=>'required|in:active,inactive',
             'photo'=>'nullable|string',
         ]);
         // dd($request->all());
         $data=$request->all();
+
+        if (!array_key_exists('phone', $data) || $data['phone'] === null) {
+            $data['phone'] = '';
+        }
+
+        // Only one full admin is allowed in the system.
+        if (($data['role'] ?? null) === 'admin') {
+            $existingAdminId = User::where('role', 'admin')->value('id');
+            if (!empty($existingAdminId)) {
+                return back()->withInput()->withErrors([
+                    'role' => 'Only one admin is allowed. Create a Sales Admin instead.',
+                ]);
+            }
+        }
+
         $data['password']=Hash::make($request->password);
 
-        if (isset($data['role']) && in_array($data['role'], ['staff', 'salesman'], true)) {
+        if (isset($data['role']) && in_array($data['role'], ['sales_admin'], true)) {
             $data['is_sales_staff'] = 1;
         } else {
             $data['is_sales_staff'] = $data['is_sales_staff'] ?? 0;
@@ -87,7 +106,11 @@ class UsersController extends Controller
     public function edit($id)
     {
         $user=User::findOrFail($id);
-        return view('backend.users.edit')->with('user',$user);
+        $existingAdminId = User::where('role', 'admin')->value('id');
+        return view('backend.users.edit', [
+            'user' => $user,
+            'existingAdminId' => $existingAdminId,
+        ]);
     }
 
     /**
@@ -104,14 +127,29 @@ class UsersController extends Controller
         [
             'name'=>'string|required|max:30',
             'email'=>'string|required',
-            'role'=>'required|in:admin,user,staff,salesman',
+            'phone'=>'nullable|string|max:50',
+            'role'=>'required|in:admin,user,sales_admin',
             'status'=>'required|in:active,inactive',
             'photo'=>'nullable|string',
         ]);
         // dd($request->all());
         $data=$request->all();
 
-        if (isset($data['role']) && in_array($data['role'], ['staff', 'salesman'], true)) {
+        if (!array_key_exists('phone', $data) || $data['phone'] === null) {
+            $data['phone'] = '';
+        }
+
+        // Only one full admin is allowed in the system.
+        if (($data['role'] ?? null) === 'admin') {
+            $existingAdminId = User::where('role', 'admin')->where('id', '!=', $user->id)->value('id');
+            if (!empty($existingAdminId)) {
+                return back()->withInput()->withErrors([
+                    'role' => 'Only one admin is allowed. Promote to Sales Admin instead.',
+                ]);
+            }
+        }
+
+        if (isset($data['role']) && in_array($data['role'], ['sales_admin'], true)) {
             $data['is_sales_staff'] = 1;
         } else {
             $data['is_sales_staff'] = $data['is_sales_staff'] ?? 0;

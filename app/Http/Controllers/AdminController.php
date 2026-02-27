@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Settings;
+use App\Models\Order;
 use App\User;
 use App\Rules\MatchOldPassword;
 use Hash;
@@ -11,9 +12,38 @@ use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 class AdminController extends Controller
 {
     public function index(){
+        // Dedicated dashboard for Sales Admin users
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $salesAdminId = auth()->id();
+
+            $baseQuery = Order::query()->where('sales_staff_id', $salesAdminId);
+
+            $metrics = [
+                'assigned_total' => (clone $baseQuery)->count(),
+                'assigned_today' => (clone $baseQuery)->whereDate('created_at', Carbon::today())->count(),
+                'status_new' => (clone $baseQuery)->where('status', 'new')->count(),
+                'status_pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+                'status_process' => (clone $baseQuery)->where('status', 'process')->count(),
+                'status_delivered' => (clone $baseQuery)->where('status', 'delivered')->count(),
+                'status_cancel' => (clone $baseQuery)->where('status', 'cancel')->count(),
+                'delivered_revenue' => (clone $baseQuery)->where('status', 'delivered')->sum('total_amount'),
+            ];
+
+            $recentOrders = (clone $baseQuery)
+                ->orderBy('id', 'DESC')
+                ->limit(10)
+                ->get();
+
+            return view('backend.sales_admins.dashboard', [
+                'metrics' => $metrics,
+                'recentOrders' => $recentOrders,
+            ]);
+        }
+
         $data = User::select(\DB::raw("COUNT(*) as count"), \DB::raw("DAYNAME(created_at) as day_name"), \DB::raw("DAY(created_at) as day"))
         ->where('created_at', '>', Carbon::today()->subDay(6))
         ->groupBy('day_name','day')
@@ -43,22 +73,27 @@ class AdminController extends Controller
 
         $rules = [
             'name' => 'string|required|max:30',
-            'photo' => 'nullable|string',
+            'photo_file' => 'nullable|image|max:2048',
         ];
 
         // Only admins can change roles.
         if (auth()->user() && auth()->user()->role === 'admin') {
-            $rules['role'] = 'nullable|in:admin,user,staff,salesman';
+            $rules['role'] = 'nullable|in:admin,user,sales_admin';
         }
 
         $this->validate($request, $rules);
 
-        $data = $request->only(['name', 'photo']);
+        $data = $request->only(['name']);
+
+        if ($request->hasFile('photo_file')) {
+            $path = $request->file('photo_file')->store('profiles', 'public');
+            $data['photo'] = Storage::url($path);
+        }
 
         if (auth()->user() && auth()->user()->role === 'admin') {
             if ($request->filled('role')) {
                 $data['role'] = $request->input('role');
-                $data['is_sales_staff'] = in_array($data['role'], ['staff', 'salesman'], true) ? 1 : 0;
+                $data['is_sales_staff'] = in_array($data['role'], ['sales_admin'], true) ? 1 : 0;
             }
         }
 

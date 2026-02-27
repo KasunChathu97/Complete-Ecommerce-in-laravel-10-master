@@ -26,6 +26,10 @@ class ProductSalesExport implements FromCollection, WithHeadings, ShouldAutoSize
             ->whereNotNull('carts.order_id')
             ->where('orders.status', 'delivered');
 
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $query->where('orders.sales_staff_id', auth()->id());
+        }
+
         if ($this->from) {
             $query->whereDate('orders.created_at', '>=', $this->from);
         }

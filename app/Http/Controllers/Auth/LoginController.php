@@ -42,11 +42,11 @@ class LoginController extends Controller
     }
 
     /**
-     * Restrict default Laravel login (/login) to admin/staff/salesman only.
+     * Restrict default Laravel login (/login) to admin/sales_admin only.
      */
     protected function authenticated(Request $request, $user)
     {
-        if (!in_array($user->role, ['admin', 'staff', 'salesman'], true)) {
+        if (!in_array($user->role, ['admin', 'sales_admin'], true)) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

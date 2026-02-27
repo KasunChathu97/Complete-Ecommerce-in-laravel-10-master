@@ -273,6 +273,14 @@
           <i class="fas fa-users"></i>
           <span>Users</span></a>
       </li>
+
+      <!-- Sales Admins -->
+      <li class="nav-item">
+        <a class="nav-link" href="{{route('sales-admins.index')}}">
+          <i class="fas fa-user-tag"></i>
+          <span>Sales Admins</span></a>
+      </li>
+
       <!-- General settings -->
       <li class="nav-item">
         <a class="nav-link" href="{{route('settings')}}">

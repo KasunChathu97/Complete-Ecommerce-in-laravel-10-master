@@ -35,12 +35,12 @@
 	 End Breadcrumbs -->
                 
 		<!-- Shop Single -->
-		<section class="shop single section">
+		<section class="shop single section product-detail-page">
 			<div class="container">
 				<div class="row"> 
 					<div class="col-12">
 						<div class="row">
-							<div class="col-lg-6 col-12">
+							<div class="col-lg-5 col-12">
 								<!-- Product Slider -->
 								<div class="product-gallery shadow rounded p-2 position-relative" style="background:#fff;">
 									<!-- Product Badge -->
@@ -100,8 +100,36 @@
 									</div>
 								</div>
 								<!-- End Product slider -->
+
+								@if(!empty($product_detail->youtube_link))
+									@php
+										$yt = trim((string) $product_detail->youtube_link);
+										$ytId = null;
+										if (preg_match('~youtu\.be/([\w-]{6,})~i', $yt, $m)) {
+											$ytId = $m[1];
+										} elseif (preg_match('~[\?&]v=([\w-]{6,})~i', $yt, $m)) {
+											$ytId = $m[1];
+										} elseif (preg_match('~youtube\.com/(?:embed|shorts)/([\w-]{6,})~i', $yt, $m)) {
+											$ytId = $m[1];
+										}
+									@endphp
+									<div class="card product-video-card mt-3">
+										<div class="card-header">
+											<i class="fa fa-youtube-play mr-1 text-danger"></i>Product Video
+										</div>
+										<div class="card-body">
+											@if($ytId)
+												<div class="embed-responsive embed-responsive-16by9" style="background:#000;border-radius:6px;overflow:hidden;">
+													<iframe class="embed-responsive-item" src="https://www.youtube.com/embed/{{ $ytId }}" allowfullscreen></iframe>
+											</div>
+										@else
+											<a href="{{ e($yt) }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger">Watch on YouTube</a>
+										@endif
+										</div>
+									</div>
+								@endif
 							</div>
-							<div class="col-lg-6 col-12">
+							<div class="col-lg-7 col-12">
 								<div class="product-des">
 									<!-- Description -->
 									<div class="short">
@@ -157,6 +185,7 @@
 											<div style="background:#f8f9fa;padding:10px 15px;border-radius:4px;">{!! nl2br(e($product_detail->returns)) !!}</div>
 										</div>
 										@endif
+
 									</div>
 									<!--/ End Description -->
 									<!-- Size -->
@@ -176,49 +205,51 @@
 									<!--/ End Size -->
 									<!-- Product Buy -->
 									<div class="product-buy">
-										<form action="{{route('single-add-to-cart')}}" method="POST">
-											@csrf 
-											<div class="quantity">
-												<h6>Quantity :</h6>
-												<!-- Input Order -->
-												<div class="input-group">
-													<div class="button minus">
-														<button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[1]">
-															<i class="ti-minus"></i>
-														</button>
-													</div>
-													<input type="hidden" name="slug" value="{{$product_detail->slug}}">
-													<input type="text" name="quant[1]" class="input-number"  data-min="1" data-max="1000" value="1" id="quantity">
-													<div class="button plus">
-														<button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[1]">
-															<i class="ti-plus"></i>
+										<div class="product-action-row" style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+											<form action="{{route('single-add-to-cart')}}" method="POST" style="flex:1 1 320px;margin:0;">
+												@csrf 
+												<div class="quantity">
+													<h6>Quantity :</h6>
+													<!-- Input Order -->
+													<div class="input-group">
+														<div class="button minus">
+															<button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[1]">
+																<i class="ti-minus"></i>
+															</button>
+														</div>
+														<input type="hidden" name="slug" value="{{$product_detail->slug}}">
+														<input type="text" name="quant[1]" class="input-number"  data-min="1" data-max="1000" value="1" id="quantity">
+														<div class="button plus">
+															<button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[1]">
+																<i class="ti-plus"></i>
 														</button>
 													</div>
 												</div>
-											<!--/ End Input Order -->
-											</div>
-											<div class="add-to-cart mt-4 d-flex align-items-center gap-2" style="gap: 12px;">
-												<button type="submit" class="btn add-to-cart-btn-aliexpress same-size-btn" style="min-width: 160px; font-size:1.1rem; font-weight:600;">
-													Add to Cart
+												<!--/ End Input Order -->
+												</div>
+												<div class="add-to-cart mt-4">
+													<button type="submit" class="btn add-to-cart-btn-aliexpress same-size-btn" style="min-width: 160px; font-size:1.1rem; font-weight:600;">
+														Add to Cart
+													</button>
+													<style>
+													.add-to-cart-btn-aliexpress:hover, .add-to-cart-btn-aliexpress:focus {
+														background: #e02e24 !important;
+														border-color: #e02e24 !important;
+														color: #fff !important;
+														box-shadow: 0 4px 16px rgba(255,71,71,0.25);
+													}
+													</style>
+												</div>
+											</form>
+											<form action="{{ route('buy-now') }}" method="POST" style="flex:0 0 auto;margin:0;">
+												@csrf
+												<input type="hidden" name="slug" value="{{$product_detail->slug}}">
+												<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
+												<button type="submit" class="btn buy-now-btn-aliexpress same-size-btn" style="min-width: 160px; font-size:1.1rem; font-weight:600;">
+													Buy Now
 												</button>
-												<style>
-												.add-to-cart-btn-aliexpress:hover, .add-to-cart-btn-aliexpress:focus {
-													background: #e02e24 !important;
-													border-color: #e02e24 !important;
-													color: #fff !important;
-													box-shadow: 0 4px 16px rgba(255,71,71,0.25);
-												}
-												</style>
-											</div>
-										</form>
-										<form action="{{ route('buy-now') }}" method="POST" style="display:inline;">
-											@csrf
-											<input type="hidden" name="slug" value="{{$product_detail->slug}}">
-											<input type="hidden" name="quant[1]" id="buy_now_quantity" value="1">
-											<button type="submit" class="btn buy-now-btn-aliexpress same-size-btn" style="min-width: 160px; font-size:1.1rem; font-weight:600; margin-top: 12px;">
-												Buy Now
-											</button>
-										</form>
+											</form>
+										</div>
 										<style>
 										.buy-now-btn-aliexpress:hover, .buy-now-btn-aliexpress:focus {
 											background: #e02e24 !important;
@@ -240,6 +271,7 @@
 									</div>
 								</div>
 							</div>
+
 						</div>
 								<div class="row">
 									<div class="col-12">

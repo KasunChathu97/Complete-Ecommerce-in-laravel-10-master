@@ -27,6 +27,10 @@ class SalesSummaryExport implements FromCollection, WithHeadings, ShouldAutoSize
         $query = DB::table('orders')
             ->where('status', 'delivered');
 
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $query->where('sales_staff_id', auth()->id());
+        }
+
         if ($this->from) {
             $query->whereDate('created_at', '>=', $this->from);
         }

@@ -12,6 +12,12 @@ class ShipmentTrackingController extends Controller
     {
         $order = Order::findOrFail($orderId);
 
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            if ((int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        }
+
         $this->validate($request, [
             'status' => 'required|string|max:50',
             'location' => 'nullable|string|max:255',
@@ -35,6 +41,13 @@ class ShipmentTrackingController extends Controller
     public function destroy($trackingId)
     {
         $tracking = ShipmentTracking::findOrFail($trackingId);
+
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $order = $tracking->order;
+            if (!$order || (int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        }
         $tracking->delete();
 
         request()->session()->flash('success', 'Tracking update deleted successfully.');

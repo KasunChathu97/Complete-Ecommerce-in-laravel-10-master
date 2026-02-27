@@ -34,9 +34,18 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label>Your Name<span>*</span></label>
-                                        <input type="text" name="name" placeholder="Enter Name" required="required" value="{{old('name')}}">
-                                        @error('name')
+                                        <label>First Name<span>*</span></label>
+                                        <input type="text" name="first_name" placeholder="Enter First Name" required="required" value="{{old('first_name')}}">
+                                        @error('first_name')
+                                            <span class="text-danger">{{$message}}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Last Name<span>*</span></label>
+                                        <input type="text" name="last_name" placeholder="Enter Last Name" required="required" value="{{old('last_name')}}">
+                                        @error('last_name')
                                             <span class="text-danger">{{$message}}</span>
                                         @enderror
                                     </div>
@@ -46,6 +55,42 @@
                                         <label>Your Email<span>*</span></label>
                                         <input type="text" name="email" placeholder="Enter Email" required="required" value="{{old('email')}}">
                                         @error('email')
+                                            <span class="text-danger">{{$message}}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Phone Number<span>*</span></label>
+                                        <input type="text" name="phone" id="phone" placeholder="Enter Phone Number" maxlength="10" pattern="\d{10}" required="required" value="{{old('phone')}}" oninput="this.value=this.value.replace(/[^\d]/g,'').slice(0,10)">
+                                        @error('phone')
+                                            <span class="text-danger">{{$message}}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Address Line 1<span>*</span></label>
+                                        <input type="text" name="address1" placeholder="Enter Address Line 1" required="required" value="{{old('address1')}}">
+                                        @error('address1')
+                                            <span class="text-danger">{{$message}}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Address Line 2</label>
+                                        <input type="text" name="address2" placeholder="Enter Address Line 2" value="{{old('address2')}}">
+                                        @error('address2')
+                                            <span class="text-danger">{{$message}}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Address Line 3</label>
+                                        <input type="text" name="address3" placeholder="Enter Address Line 3" value="{{old('address3')}}">
+                                        @error('address3')
                                             <span class="text-danger">{{$message}}</span>
                                         @enderror
                                     </div>
@@ -62,7 +107,7 @@
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label>Confirm Password<span>*</span></label>
-                                        <input type="password" name="password_confirmation" placeholder="" required="required" value="{{old('password_confirmation')}}">
+                                        <input type="password" name="password_confirmation" placeholder="Enter Confirm Password" required="required" value="{{old('password_confirmation')}}">
                                         @error('password_confirmation')
                                             <span class="text-danger">{{$message}}</span>
                                         @enderror

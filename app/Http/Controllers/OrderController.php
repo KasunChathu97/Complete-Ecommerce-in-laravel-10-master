@@ -12,9 +12,11 @@ use PDF;
 use Notification;
 use Helper;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use App\Notifications\StatusNotification;
 use App\Exports\OrderItemsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\QueryException;
 
 class OrderController extends Controller
 {
@@ -43,24 +45,45 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
+        $allowedStatuses = ['new', 'pending', 'process', 'delivered', 'cancel'];
+
         $validated = $request->validate([
             'date' => 'nullable|date',
+            'status' => ['nullable', 'string', Rule::in($allowedStatuses)],
         ]);
 
-        $query = Order::query()->orderBy('id', 'DESC');
-        if (!empty($validated['date'])) {
-            $query->whereDate('created_at', $validated['date']);
+        $baseQuery = Order::query()->with('salesStaff:id,name')->orderBy('id', 'DESC');
+
+        // Sales admins can only view orders assigned to them.
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $baseQuery->where('sales_staff_id', auth()->id());
         }
 
         if (!empty($validated['date'])) {
-            $orders = $query->get();
+            $baseQuery->whereDate('created_at', $validated['date']);
+        }
+
+        $statusCounts = [];
+        foreach ($allowedStatuses as $status) {
+            $statusCounts[$status] = (clone $baseQuery)->where('status', $status)->count();
+        }
+        $statusCounts['all'] = (clone $baseQuery)->count();
+
+        if (!empty($validated['status'])) {
+            $baseQuery->where('status', $validated['status']);
+        }
+
+        if (!empty($validated['date'])) {
+            $orders = $baseQuery->get();
         } else {
-            $orders = $query->paginate(10)->appends($request->query());
+            $orders = $baseQuery->paginate(10)->appends($request->query());
         }
 
         return view('backend.order.index', [
             'orders' => $orders,
             'date' => $validated['date'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'statusCounts' => $statusCounts,
         ]);
     }
 
@@ -82,6 +105,8 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        $emergencyContactRule = optional($request->route())->getName() === 'cart.order' ? 'required' : 'nullable';
+
         $this->validate($request,[
             'first_name'=>'string|required',
             'last_name'=>'string|required',
@@ -89,6 +114,7 @@ class OrderController extends Controller
             'address2'=>'string|nullable',
             'coupon'=>'nullable|numeric',
             'phone'=>'string|required|max:50|regex:/^\+?[0-9\s\-()]+$/',
+            'emergency_contact'=>[$emergencyContactRule,'string','max:50','regex:/^\+?[0-9\s\-()]+$/'],
             'post_code'=>'string|nullable',
             'email'=>'string|required',
             'country'=>'string|nullable|max:255'
@@ -135,7 +161,16 @@ class OrderController extends Controller
             $order_data['country'] = 'Sri Lanka';
         }
 
-        $order_data['order_number']='ORD-'.strtoupper(Str::random(10));
+        // Generate sequential order + tracking numbers.
+        // If collisions occur under concurrency, retry a few times.
+        $maxAttempts = 5;
+        $attempt = 0;
+        $saved = false;
+
+        while (!$saved && $attempt < $maxAttempts) {
+            $attempt++;
+            $order_data['order_number'] = Order::nextOrderNumber();
+            $order_data['tracking_number'] = $order_data['tracking_number'] ?? Order::nextTrackingNumber();
         $order_data['user_id']=$request->user()->id;
         $order_data['shipping_id']=$request->shipping;
         $shipping=Shipping::where('id',$order_data['shipping_id'])->pluck('price');
@@ -187,8 +222,23 @@ class OrderController extends Controller
             $order_data['payment_method']='cod';
             $order_data['payment_status']='unpaid';
         }
-        $order->fill($order_data);
-        $status=$order->save();
+            $order->fill($order_data);
+
+            try {
+                $status = $order->save();
+                $saved = (bool) $status;
+            } catch (QueryException $e) {
+                // Duplicate order number (unique index) - regenerate.
+                $order->exists = false;
+                $order->id = null;
+                if ($attempt >= $maxAttempts) {
+                    throw $e;
+                }
+                continue;
+            }
+        }
+
+        $status = $saved;
         if($order)
         // dd($order->id);
         $users=User::where('role','admin')->first();
@@ -230,7 +280,12 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order=Order::find($id);
+        $order=Order::with('salesStaff:id,name')->find($id);
+        if ($order && auth()->check() && auth()->user()->role === 'sales_admin') {
+            if ((int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        }
         // return $order;
         return view('backend.order.show')->with('order',$order);
     }
@@ -238,26 +293,50 @@ class OrderController extends Controller
     public function exportByDateExcel(Request $request)
     {
         $validated = $request->validate([
-            'date' => 'required|date',
+            'date' => 'nullable|date',
+            'status' => 'nullable|in:new,pending,process,delivered,cancel',
         ]);
 
-        $date = $validated['date'];
+        $date = $validated['date'] ?? null;
+        $status = $validated['status'] ?? null;
 
         $items = Cart::query()
             ->with(['product', 'order'])
             ->whereNotNull('order_id')
-            ->whereHas('order', function ($q) use ($date) {
-                $q->whereDate('created_at', $date);
+            ->whereHas('order', function ($q) use ($date, $status) {
+                if (!empty($date)) {
+                    $q->whereDate('created_at', $date);
+                }
+
+                if (!empty($status)) {
+                    $q->where('status', $status);
+                }
+
+                if (auth()->check() && auth()->user()->role === 'sales_admin') {
+                    $q->where('sales_staff_id', auth()->id());
+                }
             })
             ->orderBy('order_id')
             ->get();
 
-        $filename = 'orders-' . $date . '.xlsx';
+        $filenameParts = ['orders'];
+        if (!empty($status)) {
+            $filenameParts[] = $status;
+        }
+        if (!empty($date)) {
+            $filenameParts[] = $date;
+        }
+        $filename = implode('-', $filenameParts) . '.xlsx';
         return Excel::download(new OrderItemsExport($items), $filename);
     }
 
     public function exportSingleExcel(Order $order)
     {
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            if ((int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        }
         $items = Cart::query()
             ->with(['product', 'order'])
             ->where('order_id', $order->id)
@@ -277,7 +356,26 @@ class OrderController extends Controller
     public function edit($id)
     {
         $order=Order::find($id);
-        return view('backend.order.edit')->with('order',$order);
+
+        if ($order && auth()->check() && auth()->user()->role === 'sales_admin') {
+            if ((int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        }
+
+        $salesAdmins = [];
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $salesAdmins = User::query()
+                ->where('role', 'sales_admin')
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']);
+        }
+
+        return view('backend.order.edit', [
+            'order' => $order,
+            'salesAdmins' => $salesAdmins,
+        ]);
     }
 
     /**
@@ -290,12 +388,30 @@ class OrderController extends Controller
     public function update(Request $request, $id)
     {
         $order=Order::find($id);
+        if ($order && auth()->check() && auth()->user()->role === 'sales_admin') {
+            if ((int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        }
+
         $this->validate($request,[
-            'status'=>'required|in:new,process,delivered,cancel',
+            'status'=>'required|in:new,pending,process,delivered,cancel',
             'courier_name' => 'nullable|string|max:100',
             'tracking_number' => 'nullable|string|max:150',
+            'sales_staff_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('users', 'id')->where(function ($q) {
+                    $q->where('role', 'sales_admin');
+                }),
+            ],
         ]);
         $data=$request->all();
+
+        // Only the main admin can assign/unassign sales admins.
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            unset($data['sales_staff_id']);
+        }
         // return $request->status;
         if($request->status=='delivered'){
             foreach($order->cart as $cart){
@@ -342,6 +458,11 @@ class OrderController extends Controller
     public function destroy($id)
     {
         $order=Order::find($id);
+
+        // Sales admins cannot delete orders.
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            abort(403);
+        }
         if($order){
             $status=$order->delete();
             if($status){
@@ -399,13 +520,23 @@ class OrderController extends Controller
             return redirect()->back();
         }
 
-        // Authorization: allow admins/staff to download any invoice, otherwise only the owner.
+        // Authorization:
+        // - admin (and any legacy staff roles) can download any invoice
+        // - sales_admin can download invoices for orders assigned to them
+        // - regular users can download their own invoices
         $role = (string) (auth()->user()->role ?? '');
+
         $staffRoles = ['admin', 'staff', 'seller', 'salesman', 'manager', 'superadmin'];
         $isStaff = in_array($role, $staffRoles, true);
 
-        if (!$isStaff && (int) $order->user_id !== (int) auth()->id()) {
-            abort(403);
+        if ($role === 'sales_admin') {
+            if ((int) $order->sales_staff_id !== (int) auth()->id()) {
+                abort(403);
+            }
+        } elseif (!$isStaff) {
+            if ((int) $order->user_id !== (int) auth()->id()) {
+                abort(403);
+            }
         }
 
         $file_name=$order->order_number.'-'.$order->first_name.'.pdf';

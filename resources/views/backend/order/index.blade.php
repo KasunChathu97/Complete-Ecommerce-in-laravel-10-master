@@ -12,8 +12,35 @@
       <h6 class="m-0 font-weight-bold text-primary float-left">Order Lists</h6>
     </div>
     <div class="card-body">
+      @php
+        $activeStatus = request('status', $status ?? null);
+        $dateParam = request('date', $date ?? null);
+      @endphp
+
+      <div class="d-flex flex-wrap mb-3" style="gap:10px;">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam])) }}" class="btn btn-sm {{ empty($activeStatus) ? 'btn-primary' : 'btn-outline-primary' }}">
+          All ({{ $statusCounts['all'] ?? 0 }})
+        </a>
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'new'])) }}" class="btn btn-sm {{ $activeStatus==='new' ? 'btn-primary' : 'btn-outline-primary' }}">
+          New ({{ $statusCounts['new'] ?? 0 }})
+        </a>
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'pending'])) }}" class="btn btn-sm {{ $activeStatus==='pending' ? 'btn-info' : 'btn-outline-info' }}">
+          Pending ({{ $statusCounts['pending'] ?? 0 }})
+        </a>
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'process'])) }}" class="btn btn-sm {{ $activeStatus==='process' ? 'btn-warning' : 'btn-outline-warning' }}">
+          Process ({{ $statusCounts['process'] ?? 0 }})
+        </a>
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'delivered'])) }}" class="btn btn-sm {{ $activeStatus==='delivered' ? 'btn-success' : 'btn-outline-success' }}">
+          Delivered ({{ $statusCounts['delivered'] ?? 0 }})
+        </a>
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'cancel'])) }}" class="btn btn-sm {{ $activeStatus==='cancel' ? 'btn-danger' : 'btn-outline-danger' }}">
+          Cancel ({{ $statusCounts['cancel'] ?? 0 }})
+        </a>
+      </div>
+
       <div class="d-flex flex-wrap align-items-end justify-content-between mb-3" style="gap: 12px;">
         <form action="{{ route('order.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap: 10px;">
+          <input type="hidden" name="status" value="{{ $activeStatus }}" />
           <div>
             <label for="order_date" class="mb-1"><small>Order date</small></label>
             <input type="date" id="order_date" name="date" value="{{ request('date', $date ?? '') }}" class="form-control" style="min-width: 180px;" />
@@ -25,15 +52,15 @@
         </form>
 
         <div>
-          @if(request('date'))
-            <a href="{{ route('orders.export.excel', ['date' => request('date')]) }}" class="btn btn-success">
-              <i class="fas fa-file-excel mr-1"></i> Export (Order Date)
-            </a>
-          @else
-            <button class="btn btn-success" disabled title="Select a date first">
-              <i class="fas fa-file-excel mr-1"></i> Export (Order Date)
-            </button>
-          @endif
+          @php
+            $exportParams = array_filter([
+              'date' => request('date'),
+              'status' => $activeStatus,
+            ]);
+          @endphp
+          <a href="{{ route('orders.export.excel', $exportParams) }}" class="btn btn-success">
+            <i class="fas fa-file-excel mr-1"></i> Export Excel
+          </a>
         </div>
       </div>
       <div class="table-responsive">
@@ -45,6 +72,7 @@
               <th>Order No.</th>
               <th>Name</th>
               <th>Email</th>
+              <th>Sales Admin</th>
               <th>Quantity</th>
               <th>Total Amount</th>
               <th>Order Date</th>
@@ -58,6 +86,7 @@
               <th>Order No.</th>
               <th>Name</th>
               <th>Email</th>
+              <th>Sales Admin</th>
               <th>Quantity</th>
               <th>Total Amount</th>
               <th>Order Date</th>
@@ -75,12 +104,15 @@
                     <td>{{$order->order_number}}</td>
                     <td>{{$order->first_name}} {{$order->last_name}}</td>
                     <td>{{$order->email}}</td>
+                    <td>{{ optional($order->salesStaff)->name ?? '-' }}</td>
                     <td>{{$order->quantity}}</td>
                     <td>${{number_format($order->total_amount,2)}}</td>
                     <td>{{ optional($order->created_at)->format('Y-m-d') }}</td>
                     <td>
                         @if($order->status=='new')
                           <span class="badge badge-primary">{{$order->status}}</span>
+                        @elseif($order->status=='pending')
+                          <span class="badge badge-info">{{$order->status}}</span>
                         @elseif($order->status=='process')
                           <span class="badge badge-warning">{{$order->status}}</span>
                         @elseif($order->status=='delivered')
@@ -139,7 +171,7 @@
           "columnDefs":[
             {
               "orderable":false,
-              "targets":[9]
+              "targets":[10]
             }
           ]
         } );

@@ -9,9 +9,15 @@ class SmsLogController extends Controller
 {
     public function index()
     {
-        $smsLogs = SmsLog::with(['order', 'creator'])
-            ->latest()
-            ->paginate(50);
+        $query = SmsLog::with(['order', 'creator'])->latest();
+
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $query->whereHas('order', function ($q) {
+                $q->where('sales_staff_id', auth()->id());
+            });
+        }
+
+        $smsLogs = $query->paginate(50);
 
         return view('backend.sms-log.index', compact('smsLogs'));
     }

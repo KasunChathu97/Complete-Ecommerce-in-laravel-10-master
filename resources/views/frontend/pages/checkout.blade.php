@@ -4,6 +4,22 @@
 
 @section('main-content')
 
+    @php
+        $checkoutUser = auth()->user();
+        $checkoutFullName = trim((string) optional($checkoutUser)->name);
+        $checkoutNameParts = preg_split('/\s+/', $checkoutFullName, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $checkoutPrefillFirstName = $checkoutNameParts[0] ?? '';
+        $checkoutPrefillLastName = count($checkoutNameParts) > 1 ? implode(' ', array_slice($checkoutNameParts, 1)) : '';
+        $checkoutPrefillEmail = (string) (optional($checkoutUser)->email ?? '');
+
+        $checkoutPhoneRaw = (string) (optional($checkoutUser)->phone ?? '');
+        $checkoutPhoneDigits = preg_replace('/\D+/', '', $checkoutPhoneRaw);
+        if (strlen($checkoutPhoneDigits) > 10) {
+            $checkoutPhoneDigits = substr($checkoutPhoneDigits, -10);
+        }
+    @endphp
+
     <!-- Breadcrumbs 
     <div class="breadcrumbs">
         <div class="container">
@@ -37,7 +53,7 @@
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>First Name<span>*</span></label>
-                                            <input type="text" name="first_name" placeholder="" value="{{old('first_name')}}" value="{{old('first_name')}}">
+                                            <input type="text" name="first_name" placeholder="" value="{{ old('first_name', $checkoutPrefillFirstName) }}">
                                             @error('first_name')
                                                 <span class='text-danger'>{{$message}}</span>
                                             @enderror
@@ -46,7 +62,7 @@
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Last Name<span>*</span></label>
-                                            <input type="text" name="last_name" placeholder="" value="{{old('lat_name')}}">
+                                            <input type="text" name="last_name" placeholder="" value="{{ old('last_name', $checkoutPrefillLastName) }}">
                                             @error('last_name')
                                                 <span class='text-danger'>{{$message}}</span>
                                             @enderror
@@ -55,7 +71,7 @@
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Email Address<span>*</span></label>
-                                            <input type="email" name="email" placeholder="" value="{{old('email')}}">
+                                            <input type="email" name="email" placeholder="" value="{{ old('email', $checkoutPrefillEmail) }}">
                                             @error('email')
                                                 <span class='text-danger'>{{$message}}</span>
                                             @enderror
@@ -64,9 +80,18 @@
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Phone Number <span>*</span></label>
-                                            <input type="text" name="phone" id="phone" maxlength="10" pattern="\d{10}" required value="{{old('phone')}}" oninput="this.value=this.value.replace(/[^\d]/g,'').slice(0,10)">
+                                            <input type="text" name="phone" id="phone" maxlength="10" pattern="\d{10}" required value="{{ old('phone', $checkoutPhoneDigits) }}" oninput="this.value=this.value.replace(/[^\d]/g,'').slice(0,10)">
                                             <span id="phone-error" class="text-danger" style="display:none;">Phone number must be exactly 10 digits.</span>
                                             @error('phone')
+                                                <span class='text-danger'>{{$message}}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label>Emergency Contact<span>*</span></label>
+                                            <input type="text" name="emergency_contact" id="emergency_contact" maxlength="10" pattern="\d{10}" required value="{{ old('emergency_contact') }}" oninput="this.value=this.value.replace(/[^\d]/g,'').slice(0,10)">
+                                            @error('emergency_contact')
                                                 <span class='text-danger'>{{$message}}</span>
                                             @enderror
                                         </div>

@@ -87,7 +87,7 @@
 
     Route::get('/cart', function () {
         return view('frontend.pages.cart');
-    })->name('cart');
+    })->name('cart')->middleware('user');
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout')->middleware('user');
     Route::post('cart/order', [OrderController::class, 'store'])->name('cart.order');
     Route::get('order/pdf/{id}', [OrderController::class, 'pdf'])->name('order.pdf');
@@ -127,8 +127,8 @@
 
 // Backend section start
 
-    // Staff-accessible admin area (orders, reports, sms logs, tracking)
-    Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'role:admin,staff,salesman']], function () {
+    // Sales admin area (orders, reports, sms logs, tracking)
+    Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'role:admin,sales_admin']], function () {
         Route::get('/', [AdminController::class, 'index'])->name('admin');
         Route::get('/file-manager', function () {
             return view('backend.layouts.file-manager');
@@ -160,6 +160,15 @@
     Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'admin']], function () {
         // user route
         Route::resource('users', 'UsersController');
+
+        // Sales Admin management (separate tab/pages)
+        Route::get('sales-admins', 'SalesAdminController@index')->name('sales-admins.index');
+        Route::get('sales-admins/create', 'SalesAdminController@create')->name('sales-admins.create');
+        Route::post('sales-admins', 'SalesAdminController@store')->name('sales-admins.store');
+        Route::get('sales-admins/{id}/edit', 'SalesAdminController@edit')->name('sales-admins.edit');
+        Route::patch('sales-admins/{id}', 'SalesAdminController@update')->name('sales-admins.update');
+        Route::delete('sales-admins/{id}', 'SalesAdminController@destroy')->name('sales-admins.destroy');
+
         // Banner
         Route::resource('banner', 'BannerController');
         // Brand

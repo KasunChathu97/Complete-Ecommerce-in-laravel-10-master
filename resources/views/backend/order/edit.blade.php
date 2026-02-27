@@ -10,6 +10,20 @@
       @csrf
       @method('PATCH')
 
+      @if(auth()->check() && auth()->user()->role === 'admin')
+      <div class="form-group">
+        <label for="sales_staff_id">Assign Sales Admin :</label>
+        <select name="sales_staff_id" class="form-control">
+          <option value="">-- Unassigned --</option>
+          @foreach(($salesAdmins ?? []) as $sa)
+            <option value="{{ $sa->id }}" {{ (string)old('sales_staff_id', $order->sales_staff_id) === (string)$sa->id ? 'selected' : '' }}>
+              {{ $sa->name }} ({{ $sa->email }})
+            </option>
+          @endforeach
+        </select>
+      </div>
+      @endif
+
       <div class="form-group">
         <label for="courier_name">Courier Name :</label>
         <input type="text" name="courier_name" class="form-control" value="{{ old('courier_name', $order->courier_name) }}" placeholder="e.g. DHL / FedEx / Local Courier">
@@ -23,7 +37,8 @@
       <div class="form-group">
         <label for="status">Status :</label>
         <select name="status" id="" class="form-control">
-          <option value="new" {{($order->status=='delivered' || $order->status=="process" || $order->status=="cancel") ? 'disabled' : ''}}  {{(($order->status=='new')? 'selected' : '')}}>New</option>
+          <option value="new" {{($order->status!='new') ? 'disabled' : ''}}  {{(($order->status=='new')? 'selected' : '')}}>New</option>
+          <option value="pending" {{(in_array($order->status, ['process','delivered','cancel'], true)) ? 'disabled' : ''}}  {{(($order->status=='pending')? 'selected' : '')}}>Pending</option>
           <option value="process" {{($order->status=='delivered'|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($order->status=='process')? 'selected' : '')}}>process</option>
           <option value="delivered" {{($order->status=="cancel") ? 'disabled' : ''}}  {{(($order->status=='delivered')? 'selected' : '')}}>Delivered</option>
           <option value="cancel" {{($order->status=='delivered') ? 'disabled' : ''}}  {{(($order->status=='cancel')? 'selected' : '')}}>Cancel</option>

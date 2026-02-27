@@ -24,6 +24,14 @@
           @enderror
         </div>
 
+        <div class="form-group">
+            <label for="inputPhone" class="col-form-label">Phone</label>
+          <input id="inputPhone" type="text" name="phone" placeholder="Enter phone (optional)" value="{{$user->phone}}" class="form-control">
+          @error('phone')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
         {{-- <div class="form-group">
             <label for="inputPassword" class="col-form-label">Password</label>
           <input id="inputPassword" type="password" name="password" placeholder="Enter password"  value="{{$user->password}}" class="form-control">
@@ -51,9 +59,10 @@
             <label for="role" class="col-form-label">Role</label>
             <select name="role" class="form-control">
                 <option value="">-----Select Role-----</option>
-            <option value="admin" {{ ($user->role=='admin') ? 'selected' : '' }}>Admin</option>
-            <option value="staff" {{ ($user->role=='staff') ? 'selected' : '' }}>Staff</option>
-            <option value="salesman" {{ ($user->role=='salesman') ? 'selected' : '' }}>Salesman</option>
+            @if(empty($existingAdminId) || (int)$existingAdminId === (int)$user->id)
+              <option value="admin" {{ ($user->role=='admin') ? 'selected' : '' }}>Admin</option>
+            @endif
+            <option value="sales_admin" {{ ($user->role=='sales_admin') ? 'selected' : '' }}>Sales Admin</option>
             <option value="user" {{ ($user->role=='user') ? 'selected' : '' }}>User</option>
             </select>
           @error('role')

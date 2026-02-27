@@ -24,6 +24,14 @@
         </div>
 
         <div class="form-group">
+            <label for="inputPhone" class="col-form-label">Phone</label>
+          <input id="inputPhone" type="text" name="phone" placeholder="Enter phone (optional)" value="{{old('phone')}}" class="form-control">
+          @error('phone')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
+        <div class="form-group">
             <label for="inputPassword" class="col-form-label">Password</label>
           <input id="inputPassword" type="password" name="password" placeholder="Enter password"  value="{{old('password')}}" class="form-control">
           @error('password')
@@ -50,9 +58,10 @@
             <label for="role" class="col-form-label">Role</label>
             <select name="role" class="form-control">
                 <option value="">-----Select Role-----</option>
-            <option value="admin" {{ old('role')=='admin' ? 'selected' : '' }}>Admin</option>
-            <option value="staff" {{ old('role')=='staff' ? 'selected' : '' }}>Staff</option>
-            <option value="salesman" {{ old('role')=='salesman' ? 'selected' : '' }}>Salesman</option>
+            @if(empty($existingAdminId))
+              <option value="admin" {{ old('role')=='admin' ? 'selected' : '' }}>Admin</option>
+            @endif
+            <option value="sales_admin" {{ old('role')=='sales_admin' ? 'selected' : '' }}>Sales Admin</option>
             <option value="user" {{ old('role')=='user' ? 'selected' : '' }}>User</option>
             </select>
           @error('role')

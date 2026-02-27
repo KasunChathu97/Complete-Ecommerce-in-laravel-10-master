@@ -50,8 +50,14 @@ class FrontendController extends Controller
 
     public function productDetail($slug){
         $product_detail= Product::getProductBySlug($slug);
+        if (!$product_detail) {
+            abort(404);
+        }
+
         // dd($product_detail);
-        return view('frontend.pages.product_detail')->with('product_detail',$product_detail);
+        return view('frontend.pages.product_detail', [
+            'product_detail' => $product_detail,
+        ]);
     }
 
     public function productGrids(Request $request){
@@ -405,8 +411,13 @@ class FrontendController extends Controller
     public function registerSubmit(Request $request){
         // return $request->all();
         $this->validate($request,[
-            'name'=>'string|required|min:2',
+            'first_name'=>'string|required|min:2|max:100',
+            'last_name'=>'string|required|min:1|max:100',
             'email'=>'string|required|unique:users,email',
+            'phone'=>'string|required|max:50|regex:/^\+?[0-9\s\-()]+$/',
+            'address1'=>'string|required|max:255',
+            'address2'=>'string|nullable|max:255',
+            'address3'=>'string|nullable|max:255',
             'password'=>'required|min:6|confirmed',
         ]);
         $data=$request->all();
@@ -423,9 +434,16 @@ class FrontendController extends Controller
         }
     }
     public function create(array $data){
+        $fullName = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
         return User::create([
-            'name'=>$data['name'],
+            'name'=>$fullName,
+            'first_name'=>$data['first_name'],
+            'last_name'=>$data['last_name'],
             'email'=>$data['email'],
+            'phone'=>$data['phone'],
+            'address1'=>$data['address1'],
+            'address2'=>$data['address2'] ?? null,
+            'address3'=>$data['address3'] ?? null,
             'password'=>Hash::make($data['password']),
             'status'=>'active'
             ]);

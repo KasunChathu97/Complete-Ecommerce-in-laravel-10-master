@@ -33,6 +33,14 @@
         </div>
 
         <div class="form-group">
+          <label for="youtube_link" class="col-form-label">YouTube Link</label>
+          <input id="youtube_link" type="text" name="youtube_link" placeholder="https://www.youtube.com/watch?v=..." value="{{ old('youtube_link') }}" class="form-control">
+          @error('youtube_link')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
+        <div class="form-group">
           <label for="warranty" class="col-form-label">Warranty</label>
           <textarea class="form-control" id="warranty" name="warranty" placeholder="Enter warranty details">{{old('warranty')}}</textarea>
         </div>
