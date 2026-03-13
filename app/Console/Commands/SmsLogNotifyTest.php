@@ -32,7 +32,8 @@ class SmsLogNotifyTest extends Command
         $this->line('provider: '.($smsLog->provider ?? 'null'));
         $this->line('provider_response: '.($smsLog->provider_response ?? 'null'));
 
-        $this->comment('Tip: Set SMS_ENABLED=true + Twilio env vars to actually send SMS.');
+        $this->comment('Tip: Set SMS_ENABLED=true + SMS_PROVIDER=(twilio|textit|textit.biz) and the matching env vars to actually send SMS.');
+        $this->comment('      Set SMS_EMAIL_ENABLED=true if you also want email alerts.');
 
         return self::SUCCESS;
     }

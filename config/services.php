@@ -50,7 +50,11 @@ return [
         // Set to true to enable sending SMS via API
         'enabled' => env('SMS_ENABLED', false),
 
-        // Currently supported: twilio
+        // Set to true to also send email notifications when SmsLog entries are created
+        'email_enabled' => env('SMS_EMAIL_ENABLED', true),
+
+        // Currently supported: twilio, textit
+        // Note: SmsManager also accepts aliases for Textit: textit.biz, textit_biz
         'provider' => env('SMS_PROVIDER', 'twilio'),
 
         // Optional default country code used to normalize phone numbers when they are stored
@@ -61,6 +65,14 @@ return [
             'account_sid' => env('TWILIO_ACCOUNT_SID'),
             'auth_token' => env('TWILIO_AUTH_TOKEN'),
             'from' => env('TWILIO_FROM'),
+        ],
+
+        'textit' => [
+            'base_url' => env('TEXTIT_BASE_URL', 'https://api.textit.biz/'),
+            'api_version' => env('TEXTIT_API_VERSION', 'v1'),
+            // Expect full header value, e.g. "Basic ABCDEFGHIJKLKMNOPQRSTUV"
+            'authorization' => env('TEXTIT_AUTHORIZATION'),
+            'timeout' => env('TEXTIT_TIMEOUT', 10),
         ],
     ],
 

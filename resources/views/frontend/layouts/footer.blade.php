@@ -217,7 +217,7 @@
 	<!-- Countdown JS -->
 	<script src="{{asset('frontend/js/finalcountdown.min.js')}}"></script>
 	<!-- Nice Select JS -->
-	<script src="{{asset('frontend/js/nicesellect.js')}}"></script>
+	<script src="{{asset('frontend/js/nice-select/js/jquery.nice-select.min.js')}}"></script>
 	<!-- Flex Slider JS -->
 	<script src="{{asset('frontend/js/flex-slider.js')}}"></script>
 	<!-- ScrollUp JS -->

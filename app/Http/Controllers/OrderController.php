@@ -26,13 +26,16 @@ class OrderController extends Controller
             return;
         }
 
+        $status = $status ?? 'queued';
+        $sentAt = $status === 'sent' ? now() : null;
+
         SmsLog::create([
             'order_id' => $order->id,
             'phone' => (string) $order->phone,
             'message' => $message,
             'provider' => $provider ?? config('services.sms.provider'),
-            'status' => $status ?? 'queued',
-            'sent_at' => now(),
+            'status' => $status,
+            'sent_at' => $sentAt,
             'provider_response' => null,
             'created_by' => auth()->id(),
         ]);
@@ -179,7 +182,7 @@ class OrderController extends Controller
 
         $cartBaseQuery = Cart::where('user_id', auth()->user()->id)->where('order_id', null);
         $cartItems = (clone $cartBaseQuery)
-            ->with('product:id,free_shipping,free_shipping_enabled')
+            ->with('product:id,title,free_shipping,free_shipping_enabled')
             ->get();
 
         $cart_has_items = $cartItems->isNotEmpty();
@@ -239,22 +242,50 @@ class OrderController extends Controller
         }
 
         $status = $saved;
-        if($order)
-        // dd($order->id);
-        $users=User::where('role','admin')->first();
-        $details=[
-            'title'=>'New order created',
-            'actionURL'=>route('order.show',$order->id),
-            'fas'=>'fa-file-alt'
-        ];
+        if ($order) {
+            // Notify admin + sales admin users (email + database notification).
+            // If the order is assigned to a sales staff member, notify only that sales admin; otherwise notify all sales admins.
+            $recipients = collect();
 
-        // Email notification on order placed (disabled)
-        // Notification::send($users, new StatusNotification($details));
+            $recipients = $recipients->merge(User::where('role', 'admin')->get());
+
+            if (!empty($order->sales_staff_id)) {
+                $recipients = $recipients->merge(
+                    User::where('id', $order->sales_staff_id)
+                        ->where('role', 'sales_admin')
+                        ->get()
+                );
+            } else {
+                $recipients = $recipients->merge(User::where('role', 'sales_admin')->get());
+            }
+
+            $recipients = $recipients->unique('id')->values();
+
+            $details = [
+                'title' => 'New order created',
+                'actionURL' => route('order.show', $order->id),
+                'fas' => 'fa-file-alt',
+            ];
+
+            if ($recipients->isNotEmpty()) {
+                Notification::send($recipients, new StatusNotification($details));
+            }
+        }
 
         // Log SMS (billing/notification) entry (provider integration can be added later)
+        $itemNames = $cartItems
+            ->map(function ($cart) {
+                return $cart->product->title ?? null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        $itemsText = !empty($itemNames) ? implode(', ', $itemNames) : 'N/A';
+
         $this->logOrderSms(
             $order,
-            'Order placed successfully. Order No: '.$order->order_number.' | Total: '.$order->total_amount.' | Payment: '.$order->payment_method,
+            'Order placed successfully. Name: '.trim($order->first_name.' '.$order->last_name).' | Items: '.$itemsText.' | Order No: '.$order->order_number.' | Total Price: LKR '.$order->total_amount.' | Payment: '.$order->payment_method,
             'queued',
             null
         );
@@ -394,10 +425,14 @@ class OrderController extends Controller
             }
         }
 
+        $originalStatus = (string) ($order->status ?? '');
+        $originalPaymentStatus = (string) ($order->payment_status ?? '');
+
         $this->validate($request,[
             'status'=>'required|in:new,pending,process,delivered,cancel',
             'courier_name' => 'nullable|string|max:100',
             'tracking_number' => 'nullable|string|max:150',
+            'payment_status' => 'nullable|in:paid,unpaid',
             'sales_staff_id' => [
                 'nullable',
                 'integer',
@@ -411,6 +446,7 @@ class OrderController extends Controller
         // Only the main admin can assign/unassign sales admins.
         if (!auth()->check() || auth()->user()->role !== 'admin') {
             unset($data['sales_staff_id']);
+            unset($data['payment_status']);
         }
         // return $request->status;
         if($request->status=='delivered'){
@@ -425,6 +461,17 @@ class OrderController extends Controller
         if($status){
             request()->session()->flash('success','Successfully updated order');
 
+            // If admin marked the order as paid (COD/manual payment), send payment received notification.
+            $newPaymentStatus = (string) ($order->payment_status ?? '');
+            if ($originalPaymentStatus !== 'paid' && $newPaymentStatus === 'paid') {
+                $this->logOrderSms(
+                    $order,
+                    'Payment received. Order No: '.$order->order_number.' | Total: '.$order->total_amount.' | Method: '.strtoupper((string) $order->payment_method),
+                    'queued',
+                    null
+                );
+            }
+
             // Log SMS entry for status/courier updates
             $statusText = $order->status;
             $extra = [];
@@ -436,9 +483,12 @@ class OrderController extends Controller
             }
             $suffix = empty($extra) ? '' : ' | '.implode(' | ', $extra);
 
+            $isDeliveredTransition = ($originalStatus !== (string) $statusText) && ((string) $statusText === 'delivered');
+            $messagePrefix = $isDeliveredTransition ? 'Order delivered.' : 'Order update.';
+
             $this->logOrderSms(
                 $order,
-                'Order update. Order No: '.$order->order_number.' | Status: '.$statusText.$suffix,
+                $messagePrefix.' Order No: '.$order->order_number.' | Status: '.$statusText.$suffix,
                 'queued',
                 null
             );

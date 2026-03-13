@@ -44,6 +44,17 @@
           <option value="cancel" {{($order->status=='delivered') ? 'disabled' : ''}}  {{(($order->status=='cancel')? 'selected' : '')}}>Cancel</option>
         </select>
       </div>
+
+      @if(auth()->check() && auth()->user()->role === 'admin')
+      <div class="form-group">
+        <label for="payment_status">Payment Status :</label>
+        <select name="payment_status" class="form-control">
+          <option value="unpaid" {{ old('payment_status', $order->payment_status) === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+          <option value="paid" {{ old('payment_status', $order->payment_status) === 'paid' ? 'selected' : '' }}>Paid</option>
+        </select>
+        <small class="form-text text-muted">Use this when COD/manual payments are received.</small>
+      </div>
+      @endif
       <button type="submit" class="btn btn-primary">Update</button>
     </form>
   </div>

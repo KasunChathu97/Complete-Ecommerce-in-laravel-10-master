@@ -34,6 +34,23 @@ Version:1.0
 // Service worker disabled (Laravel site; avoids stale cache + unexpected behavior)
 (function($) {
     "use strict";
+	function initOwl($el, options) {
+		if (!$el || $el.length === 0) {
+			return;
+		}
+		if (typeof $.fn.owlCarousel !== 'function') {
+			return;
+		}
+
+		// This OwlCarousel build crashes with loop=true when there is only 1 item.
+		// Disable looping when there are fewer than 2 direct child elements.
+		var itemCount = $el.children().length;
+		if (itemCount < 2) {
+			options = $.extend({}, options, { loop: false });
+		}
+
+		$el.owlCarousel(options);
+	}
      $(document).on('ready', function() {	
 		
 		/*====================================
@@ -85,7 +102,7 @@ Version:1.0
 		/*=======================
 		  Home Slider JS
 		=========================*/ 
-		$('.home-slider').owlCarousel({
+		initOwl($('.home-slider'), {
 			items:1,
 			autoplay:true,
 			autoplayTimeout:5000,
@@ -120,7 +137,7 @@ Version:1.0
 		/*=======================
 		  Popular Slider JS
 		=========================*/ 
-		$('.popular-slider').owlCarousel({
+		initOwl($('.popular-slider'), {
 			items:1,
 			autoplay:true,
 			autoplayTimeout:5000,
@@ -155,7 +172,7 @@ Version:1.0
 		/*===========================
 		  Quick View Slider JS
 		=============================*/ 
-		$('.quickview-slider-active').owlCarousel({
+		initOwl($('.quickview-slider-active'), {
 			items:1,
 			autoplay:true,
 			autoplayTimeout:5000,
@@ -171,7 +188,7 @@ Version:1.0
 		/*===========================
 		  Home Slider 4 JS
 		=============================*/ 
-		$('.home-slider-4').owlCarousel({
+		initOwl($('.home-slider-4'), {
 			items:1,
 			autoplay:true,
 			autoplayTimeout:5000,

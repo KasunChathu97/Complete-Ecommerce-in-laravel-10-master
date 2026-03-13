@@ -26,6 +26,7 @@
                             <th>Order</th>
                             <th>Created By</th>
                             <th>Message</th>
+                            <th>Response</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -45,6 +46,9 @@
                                 </td>
                                 <td>{{ optional($log->creator)->name ?? '-' }}</td>
                                 <td style="max-width: 360px; white-space: normal;">{{ $log->message }}</td>
+                                <td style="max-width: 360px; white-space: normal;">
+                                    {{ $log->provider_response ? \Illuminate\Support\Str::limit($log->provider_response, 200) : '-' }}
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

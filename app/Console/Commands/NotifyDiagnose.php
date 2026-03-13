@@ -26,11 +26,15 @@ class NotifyDiagnose extends Command
         $this->newLine();
         $this->info('--- SMS config ---');
         $this->line('services.sms.enabled: '.(config('services.sms.enabled') ? 'true' : 'false'));
+        $this->line('services.sms.email_enabled: '.(config('services.sms.email_enabled') ? 'true' : 'false'));
         $this->line('services.sms.provider: '.(string) config('services.sms.provider'));
         $this->line('services.sms.default_country_code: '.((string) config('services.sms.default_country_code') ?: 'null'));
         $this->line('TWILIO_ACCOUNT_SID set: '.(((string) config('services.sms.twilio.account_sid')) !== '' ? 'yes' : 'no'));
         $this->line('TWILIO_AUTH_TOKEN set: '.(((string) config('services.sms.twilio.auth_token')) !== '' ? 'yes' : 'no'));
         $this->line('TWILIO_FROM set: '.(((string) config('services.sms.twilio.from')) !== '' ? 'yes' : 'no'));
+        $this->line('TEXTIT_AUTHORIZATION set: '.(((string) config('services.sms.textit.authorization')) !== '' ? 'yes' : 'no'));
+        $this->line('TEXTIT_BASE_URL: '.(((string) config('services.sms.textit.base_url')) ?: 'null'));
+        $this->line('TEXTIT_API_VERSION: '.(((string) config('services.sms.textit.api_version')) ?: 'null'));
         $this->line('settings.email (admin email): '.($settings->email ?? 'null'));
         $this->line('settings.phone (admin phone): '.($settings->phone ?? 'null'));
 

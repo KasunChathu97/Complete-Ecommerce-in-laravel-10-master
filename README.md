@@ -72,10 +72,23 @@ Whenever a new row is inserted into the `sms_logs` table (for example when an or
 To enable SMS sending via Twilio, add to your `.env`:
 ```sh
 SMS_ENABLED=true
+SMS_EMAIL_ENABLED=true
 SMS_PROVIDER=twilio
 TWILIO_ACCOUNT_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
 TWILIO_FROM=+1234567890
+```
+
+To enable SMS sending via Textit.biz, add to your `.env`:
+```sh
+SMS_ENABLED=true
+SMS_EMAIL_ENABLED=true
+SMS_PROVIDER=textit.biz  # (also supports: textit, textit_biz)
+SMS_DEFAULT_COUNTRY_CODE=+94
+TEXTIT_BASE_URL=https://api.textit.biz/
+TEXTIT_API_VERSION=v1
+TEXTIT_AUTHORIZATION="Basic YOUR_TOKEN_HERE"
+TEXTIT_TIMEOUT=10
 ```
 
 Make sure your mail settings (`MAIL_HOST`, `MAIL_USERNAME`, etc.) are configured so email sending works.

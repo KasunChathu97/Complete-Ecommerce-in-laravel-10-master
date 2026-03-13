@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\SmsLog;
 use Illuminate\Http\Request;
 
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
@@ -141,6 +142,20 @@ class PaypalController extends Controller
                         'payment_method' => 'paypal',
                         'payment_status' => 'paid',
                     ]);
+
+                    $order = Order::find($orderId);
+                    if ($order && !empty($order->phone)) {
+                        SmsLog::create([
+                            'order_id' => $order->id,
+                            'phone' => (string) $order->phone,
+                            'message' => 'Payment received. Order No: '.$order->order_number.' | Total: '.$order->total_amount.' | Method: PayPal',
+                            'provider' => config('services.sms.provider'),
+                            'status' => 'queued',
+                            'sent_at' => null,
+                            'provider_response' => null,
+                            'created_by' => null,
+                        ]);
+                    }
                 }
 
                 request()->session()->flash('success', 'You successfully paid with PayPal!');

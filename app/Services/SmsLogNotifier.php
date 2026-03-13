@@ -41,30 +41,32 @@ class SmsLogNotifier
         }
 
         // Email notifications
-        // Email notifications (disabled)
-        // foreach ($adminEmails as $email) {
-        //     try {
-        //         Mail::to($email)->send(new SmsLogAlertMail($smsLog, 'admin'));
-        //     } catch (\Throwable $e) {
-        //         logger()->error('SMS Log admin email send failed', [
-        //             'sms_log_id' => $smsLog->id,
-        //             'email' => $email,
-        //             'error' => $e->getMessage(),
-        //         ]);
-        //     }
-        // }
+        $emailEnabled = (bool) config('services.sms.email_enabled', true);
+        if ($emailEnabled) {
+            foreach ($adminEmails as $email) {
+                try {
+                    Mail::to($email)->send(new SmsLogAlertMail($smsLog, 'admin'));
+                } catch (\Throwable $e) {
+                    logger()->error('SMS Log admin email send failed', [
+                        'sms_log_id' => $smsLog->id,
+                        'email' => $email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
-        // if (!empty($customerEmail)) {
-        //     try {
-        //         Mail::to($customerEmail)->send(new SmsLogAlertMail($smsLog, 'customer'));
-        //     } catch (\Throwable $e) {
-        //         logger()->error('SMS Log customer email send failed', [
-        //             'sms_log_id' => $smsLog->id,
-        //             'email' => $customerEmail,
-        //             'error' => $e->getMessage(),
-        //         ]);
-        //     }
-        // }
+            if (!empty($customerEmail)) {
+                try {
+                    Mail::to($customerEmail)->send(new SmsLogAlertMail($smsLog, 'customer'));
+                } catch (\Throwable $e) {
+                    logger()->error('SMS Log customer email send failed', [
+                        'sms_log_id' => $smsLog->id,
+                        'email' => $customerEmail,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
 
         // SMS notifications (via API)
         $enabled = (bool) config('services.sms.enabled', false);
