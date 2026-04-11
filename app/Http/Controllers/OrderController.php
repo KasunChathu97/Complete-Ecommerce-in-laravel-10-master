@@ -48,7 +48,8 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $allowedStatuses = ['new', 'pending', 'process', 'delivered', 'cancel'];
+        // `pending` is treated as legacy `ship`.
+        $allowedStatuses = ['new', 'pending', 'process', 'ship', 'delivered', 'cancel'];
 
         $validated = $request->validate([
             'date' => 'nullable|date',
@@ -66,14 +67,27 @@ class OrderController extends Controller
             $baseQuery->whereDate('created_at', $validated['date']);
         }
 
+        $requestedStatus = $validated['status'] ?? null;
+        if ($requestedStatus === 'pending') {
+            $requestedStatus = 'ship';
+        }
+
         $statusCounts = [];
-        foreach ($allowedStatuses as $status) {
-            $statusCounts[$status] = (clone $baseQuery)->where('status', $status)->count();
+        foreach (['new', 'process', 'ship', 'delivered', 'cancel'] as $status) {
+            if ($status === 'ship') {
+                $statusCounts[$status] = (clone $baseQuery)->whereIn('status', ['ship', 'pending'])->count();
+            } else {
+                $statusCounts[$status] = (clone $baseQuery)->where('status', $status)->count();
+            }
         }
         $statusCounts['all'] = (clone $baseQuery)->count();
 
-        if (!empty($validated['status'])) {
-            $baseQuery->where('status', $validated['status']);
+        if (!empty($requestedStatus)) {
+            if ($requestedStatus === 'ship') {
+                $baseQuery->whereIn('status', ['ship', 'pending']);
+            } else {
+                $baseQuery->where('status', $requestedStatus);
+            }
         }
 
         if (!empty($validated['date'])) {
@@ -85,7 +99,7 @@ class OrderController extends Controller
         return view('backend.order.index', [
             'orders' => $orders,
             'date' => $validated['date'] ?? null,
-            'status' => $validated['status'] ?? null,
+            'status' => $requestedStatus,
             'statusCounts' => $statusCounts,
         ]);
     }
@@ -115,6 +129,7 @@ class OrderController extends Controller
             'last_name'=>'string|required',
             'address1'=>'string|required',
             'address2'=>'string|nullable',
+            'district' => 'required|string|max:255',
             'coupon'=>'nullable|numeric',
             'phone'=>'string|required|max:50|regex:/^\+?[0-9\s\-()]+$/',
             'emergency_contact'=>[$emergencyContactRule,'string','max:50','regex:/^\+?[0-9\s\-()]+$/'],
@@ -325,14 +340,17 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'date' => 'nullable|date',
-            'status' => 'nullable|in:new,pending,process,delivered,cancel',
+            'status' => 'nullable|in:new,pending,process,ship,delivered,cancel',
         ]);
 
         $date = $validated['date'] ?? null;
         $status = $validated['status'] ?? null;
+        if ($status === 'pending') {
+            $status = 'ship';
+        }
 
         $items = Cart::query()
-            ->with(['product', 'order'])
+            ->with(['product', 'order.shipping'])
             ->whereNotNull('order_id')
             ->whereHas('order', function ($q) use ($date, $status) {
                 if (!empty($date)) {
@@ -340,7 +358,11 @@ class OrderController extends Controller
                 }
 
                 if (!empty($status)) {
-                    $q->where('status', $status);
+                    if ($status === 'ship') {
+                        $q->whereIn('status', ['ship', 'pending']);
+                    } else {
+                        $q->where('status', $status);
+                    }
                 }
 
                 if (auth()->check() && auth()->user()->role === 'sales_admin') {
@@ -369,7 +391,7 @@ class OrderController extends Controller
             }
         }
         $items = Cart::query()
-            ->with(['product', 'order'])
+            ->with(['product', 'order.shipping'])
             ->where('order_id', $order->id)
             ->orderBy('id')
             ->get();
@@ -429,7 +451,7 @@ class OrderController extends Controller
         $originalPaymentStatus = (string) ($order->payment_status ?? '');
 
         $this->validate($request,[
-            'status'=>'required|in:new,pending,process,delivered,cancel',
+            'status'=>'required|in:new,pending,process,ship,delivered,cancel',
             'courier_name' => 'nullable|string|max:100',
             'tracking_number' => 'nullable|string|max:150',
             'payment_status' => 'nullable|in:paid,unpaid',
@@ -442,6 +464,11 @@ class OrderController extends Controller
             ],
         ]);
         $data=$request->all();
+
+        // Normalize legacy status.
+        if (($data['status'] ?? null) === 'pending') {
+            $data['status'] = 'ship';
+        }
 
         // Only the main admin can assign/unassign sales admins.
         if (!auth()->check() || auth()->user()->role !== 'admin') {

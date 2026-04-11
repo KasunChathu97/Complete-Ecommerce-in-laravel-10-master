@@ -311,7 +311,9 @@ Version:1.0
 	/*====================================
 	18. Nice Select JS
 	======================================*/	
-	$('select').niceSelect();
+	// Nice Select conflicts with Select2 and can create duplicate dropdown UIs.
+	// Only apply it to selects that are not handled by Select2.
+	$('select').not('.select2').niceSelect();
 		
 	/*=====================================
 	 Others JS

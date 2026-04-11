@@ -7,7 +7,7 @@ use App\Models\Cart;
 class Product extends Model
 {
     protected $fillable=[
-        'title','slug','summary','description','youtube_link','cat_id','child_cat_id','price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
+        'title','slug','summary','description','youtube_link','cat_id','child_cat_id','price','purchase_price','sale_price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
         'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type',
         'weight',
         'free_shipping',
@@ -18,6 +18,30 @@ class Product extends Model
         'free_shipping' => 'boolean',
         'free_shipping_enabled' => 'boolean',
     ];
+
+    public function getPriceAttribute($value)
+    {
+        // Backwards compatible: treat sale_price as the canonical selling price.
+        // Existing code across the app expects to read `$product->price`.
+        $salePrice = $this->attributes['sale_price'] ?? null;
+        return $salePrice !== null ? $salePrice : $value;
+    }
+
+    public function setSalePriceAttribute($value): void
+    {
+        $this->attributes['sale_price'] = $value;
+        // Keep legacy column in sync (many queries/exports rely on `price`).
+        $this->attributes['price'] = $value;
+    }
+
+    public function setPriceAttribute($value): void
+    {
+        // Legacy writes: if something sets `price`, also set sale_price.
+        $this->attributes['price'] = $value;
+        if (!array_key_exists('sale_price', $this->attributes) || $this->attributes['sale_price'] === null) {
+            $this->attributes['sale_price'] = $value;
+        }
+    }
 
     public function cat_info(){
         return $this->hasOne('App\Models\Category','id','cat_id');

@@ -24,11 +24,11 @@
         <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'new'])) }}" class="btn btn-sm {{ $activeStatus==='new' ? 'btn-primary' : 'btn-outline-primary' }}">
           New ({{ $statusCounts['new'] ?? 0 }})
         </a>
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'pending'])) }}" class="btn btn-sm {{ $activeStatus==='pending' ? 'btn-info' : 'btn-outline-info' }}">
-          Pending ({{ $statusCounts['pending'] ?? 0 }})
-        </a>
         <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'process'])) }}" class="btn btn-sm {{ $activeStatus==='process' ? 'btn-warning' : 'btn-outline-warning' }}">
           Process ({{ $statusCounts['process'] ?? 0 }})
+        </a>
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'ship'])) }}" class="btn btn-sm {{ $activeStatus==='ship' ? 'btn-info' : 'btn-outline-info' }}">
+          ship ({{ $statusCounts['ship'] ?? 0 }})
         </a>
         <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'delivered'])) }}" class="btn btn-sm {{ $activeStatus==='delivered' ? 'btn-success' : 'btn-outline-success' }}">
           Delivered ({{ $statusCounts['delivered'] ?? 0 }})
@@ -111,10 +111,10 @@
                     <td>
                         @if($order->status=='new')
                           <span class="badge badge-primary">{{$order->status}}</span>
-                        @elseif($order->status=='pending')
-                          <span class="badge badge-info">{{$order->status}}</span>
                         @elseif($order->status=='process')
                           <span class="badge badge-warning">{{$order->status}}</span>
+                        @elseif($order->status=='ship' || $order->status=='pending')
+                          <span class="badge badge-info">ship</span>
                         @elseif($order->status=='delivered')
                           <span class="badge badge-success">{{$order->status}}</span>
                         @else

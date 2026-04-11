@@ -7,6 +7,8 @@ use App\Models\PostTag;
 use Illuminate\Support\Str;
 class PostTagController extends Controller
 {
+    private const HOMEPAGE_MARQUEE_SLUG = 'homepage-marquee';
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +17,29 @@ class PostTagController extends Controller
     public function index()
     {
         $postTag=PostTag::orderBy('id','DESC')->paginate(10);
-        return view('backend.posttag.index')->with('postTags',$postTag);
+        $homepageMarquee = PostTag::where('slug', self::HOMEPAGE_MARQUEE_SLUG)->first();
+        return view('backend.posttag.index')
+            ->with('postTags', $postTag)
+            ->with('homepageMarquee', $homepageMarquee);
+    }
+
+    public function updateHomepageMarquee(Request $request)
+    {
+        $validated = $request->validate([
+            'marquee_text' => 'required|string',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        PostTag::updateOrCreate(
+            ['slug' => self::HOMEPAGE_MARQUEE_SLUG],
+            [
+                'title' => $validated['marquee_text'],
+                'status' => $validated['status'],
+            ]
+        );
+
+        request()->session()->flash('success', 'Homepage offer text updated');
+        return redirect()->route('post-tag.index');
     }
 
     /**

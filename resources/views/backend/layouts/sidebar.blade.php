@@ -203,7 +203,7 @@
           </div>
         </li>-->
 
-    <!-- Category -->
+    <!-- Category --> <!--
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#postCategoryCollapse" aria-expanded="true" aria-controls="postCategoryCollapse">
           <i class="fas fa-sitemap fa-folder"></i>
@@ -216,10 +216,10 @@
             <a class="collapse-item" href="{{route('post-category.create')}}">Add Category</a>
           </div>
         </div>
-      </li>
+      </li> -->
 
       <!-- Tags -->
-    <li class="nav-item">
+   <!-- <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#tagCollapse" aria-expanded="true" aria-controls="tagCollapse">
             <i class="fas fa-tags fa-folder"></i>
             <span>Tags</span>
@@ -228,10 +228,19 @@
             <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Tag Options:</h6>
             <a class="collapse-item" href="{{route('post-tag.index')}}">Tag</a>
-            <a class="collapse-item" href="{{route('post-tag.create')}}">Add Tag</a>
+            {{-- Post Tags are managed from the index page only --}}
             </div>
         </div>
-    </li>
+    </li> -->
+
+          <li class="nav-item">
+        <a class="nav-link" href="{{route('post-tag.index')}}">
+            <i class="fas fa-tags fa-folder"></i>
+            <span>Tags</span>
+            {{-- Post Tags are managed from the index page only --}}
+        </a>
+      </li>
+
 
       <!-- Comments -->
       <li class="nav-item">
@@ -251,13 +260,7 @@
       General
     </div>
 
-    @if($isAdminOnly)
-      <li class="nav-item">
-        <a class="nav-link" href="{{route('coupon.index')}}">
-          <i class="fas fa-table"></i>
-          <span>Coupon</span></a>
-      </li>
-    @endif
+
 
     <!-- SMS Logs -->
     <li class="nav-item">
@@ -267,19 +270,35 @@
     </li>
 
     @if($isAdminOnly)
+
+        <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#tagCollapse" aria-expanded="true" aria-controls="tagCollapse">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+        <div id="tagCollapse" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Select Users:</h6>
+            <a class="collapse-item" href="{{route('sales-admins.index')}}">Sales Admin</a>
+            <a class="collapse-item" href="{{route('users.index')}}">Customers</a>
+            {{-- Post Tags are managed from the index page only --}}
+            </div>
+        </div>
+    </li> 
+
       <!-- Users -->
-      <li class="nav-item">
+      <!--<li class="nav-item">
         <a class="nav-link" href="{{route('users.index')}}">
           <i class="fas fa-users"></i>
           <span>Users</span></a>
-      </li>
+      </li>-->
 
       <!-- Sales Admins -->
-      <li class="nav-item">
+      <!--<li class="nav-item">
         <a class="nav-link" href="{{route('sales-admins.index')}}">
           <i class="fas fa-user-tag"></i>
           <span>Sales Admins</span></a>
-      </li>
+      </li> -->
 
       <!-- General settings -->
       <li class="nav-item">

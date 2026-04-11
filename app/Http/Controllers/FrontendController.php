@@ -31,13 +31,23 @@ class FrontendController extends Controller
         // return $banner;
         $products=Product::where('status','active')->orderBy('id','DESC')->get();
         $category=Category::where('status','active')->where('is_parent',1)->orderBy('title','ASC')->get();
+        $homepageMarquee = PostTag::where('slug', 'homepage-marquee')->first();
+
+        if (!$homepageMarquee) {
+            $homepageOfferText = 'අද දින 20% ක වට්ටමක්. ඔබත් ඉක්මනින් ඇණවුම් කරන්න.';
+        } elseif ($homepageMarquee->status === 'active') {
+            $homepageOfferText = $homepageMarquee->title;
+        } else {
+            $homepageOfferText = null;
+        }
         // return $category;
         return view('frontend.index')
                 ->with('featured',$featured)
                 ->with('posts',$posts)
                 ->with('banners',$banners)
                 ->with('product_lists',$products)
-                ->with('category_lists',$category);
+            ->with('category_lists',$category)
+            ->with('homepage_offer_text', $homepageOfferText);
     }   
 
     public function aboutUs(){
@@ -388,7 +398,6 @@ class FrontendController extends Controller
     public function loginSubmit(Request $request){
         $data= $request->all();
         if(Auth::attempt(['email' => $data['email'], 'password' => $data['password'],'status'=>'active'])){
-            Session::put('user',$data['email']);
             request()->session()->flash('success','Successfully login');
             return redirect()->route('home');
         }
@@ -399,10 +408,12 @@ class FrontendController extends Controller
     }
 
     public function logout(){
-        Session::forget('user');
         Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+
         request()->session()->flash('success','Logout successfully');
-        return back();
+        return redirect()->route('login.form');
     }
 
     public function register(){
@@ -423,7 +434,6 @@ class FrontendController extends Controller
         $data=$request->all();
         // dd($data);
         $check=$this->create($data);
-        Session::put('user',$data['email']);
         if($check){
             request()->session()->flash('success','Successfully registered');
             return redirect()->route('home');

@@ -46,6 +46,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        // NOTE: Do not wrap validation in try/catch; let Laravel redirect back with field errors.
         $validatedData = $request->validate([
             'title' => 'required|string',
             'summary' => 'required|string',
@@ -64,7 +65,10 @@ class ProductController extends Controller
             'is_featured' => 'sometimes|in:1',
             'status' => 'required|in:active,inactive',
             'condition' => 'required|in:default,new,hot',
-            'price' => 'required|numeric',
+            // Backwards compatible: old forms may still submit `price`
+            'sale_price' => 'required_without:price|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
             'discount_enabled' => 'sometimes|in:1',
             'discount' => 'nullable|numeric|min:0|max:100',
             'free_shipping' => 'sometimes|in:1',
@@ -75,6 +79,17 @@ class ProductController extends Controller
         ]);
         // Force only percent type for bulk discount
         $validatedData['bulk_discount_amount_type'] = 'percent';
+
+        try {
+
+        if (!isset($validatedData['sale_price']) && isset($validatedData['price'])) {
+            $validatedData['sale_price'] = $validatedData['price'];
+        }
+
+        // Keep legacy `price` in sync (storefront/cart logic relies on it)
+        if (isset($validatedData['sale_price'])) {
+            $validatedData['price'] = $validatedData['sale_price'];
+        }
 
         if (!empty($validatedData['youtube_link'])) {
             $youtube = trim((string) $validatedData['youtube_link']);
@@ -109,6 +124,12 @@ class ProductController extends Controller
         }));
         $validatedData['size'] = empty($sizes) ? '' : implode(',', $sizes);
 
+        // Some DBs/environments have `products.weight` as NOT NULL.
+        // If the field is left empty, Laravel converts it to null, which breaks the insert.
+        if (!isset($validatedData['weight']) || $validatedData['weight'] === null) {
+            $validatedData['weight'] = 0;
+        }
+
         // Handle multiple image upload
         $imagePaths = [];
         if($request->hasFile('photo')) {
@@ -121,16 +142,25 @@ class ProductController extends Controller
         }
         $validatedData['photo'] = implode(',', $imagePaths);
 
-        $product = Product::create($validatedData);
+            $product = Product::create($validatedData);
 
-        $message = $product
-            ? 'Product Successfully added'
-            : 'Please try again!!';
+            if (!$product) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Product not added. Please check the form and try again.');
+            }
 
-        return redirect()->route('product.index')->with(
-            $product ? 'success' : 'error',
-            $message
-        );
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Product Successfully added');
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Product not added. Please check the form and try again.');
+        }
     }
 
     /**
@@ -171,6 +201,7 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        // NOTE: Do not wrap validation in try/catch; let Laravel redirect back with field errors.
         $validatedData = $request->validate([
             'title' => 'required|string',
             'summary' => 'required|string',
@@ -189,7 +220,10 @@ class ProductController extends Controller
             'brand_id' => 'nullable|exists:brands,id',
             'status' => 'required|in:active,inactive',
             'condition' => 'required|in:default,new,hot',
-            'price' => 'required|numeric',
+            // Backwards compatible: old forms may still submit `price`
+            'sale_price' => 'required_without:price|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
             'discount_enabled' => 'sometimes|in:1',
             'discount' => 'nullable|numeric|min:0|max:100',
             'free_shipping' => 'sometimes|in:1',
@@ -199,6 +233,17 @@ class ProductController extends Controller
         ]);
         // Force only percent type for bulk discount
         $validatedData['bulk_discount_amount_type'] = 'percent';
+
+        try {
+
+        if (!isset($validatedData['sale_price']) && isset($validatedData['price'])) {
+            $validatedData['sale_price'] = $validatedData['price'];
+        }
+
+        // Keep legacy `price` in sync (storefront/cart logic relies on it)
+        if (isset($validatedData['sale_price'])) {
+            $validatedData['price'] = $validatedData['sale_price'];
+        }
 
         if (!empty($validatedData['youtube_link'])) {
             $youtube = trim((string) $validatedData['youtube_link']);
@@ -231,6 +276,11 @@ class ProductController extends Controller
         }));
         $validatedData['size'] = empty($sizes) ? '' : implode(',', $sizes);
 
+        // Some DBs/environments have `products.weight` as NOT NULL.
+        if (!isset($validatedData['weight']) || $validatedData['weight'] === null) {
+            $validatedData['weight'] = 0;
+        }
+
         // Handle new image uploads and merge with existing
         $existingImages = $product->photo ? explode(',', $product->photo) : [];
         $newImages = [];
@@ -245,16 +295,25 @@ class ProductController extends Controller
         $allImages = array_merge($existingImages, $newImages);
         $validatedData['photo'] = implode(',', array_filter($allImages));
 
-        $status = $product->update($validatedData);
+            $status = $product->update($validatedData);
 
-        $message = $status
-            ? 'Product Successfully updated'
-            : 'Please try again!!';
+            if (!$status) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Product not updated. Please try again.');
+            }
 
-        return redirect()->route('product.index')->with(
-            $status ? 'success' : 'error',
-            $message
-        );
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Product Successfully updated');
+        } catch (\Throwable $e) {
+            report($e);
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Product not updated. Please check the form and try again.');
+        }
     }
 
     /**

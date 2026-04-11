@@ -36,6 +36,8 @@
                   <span class="badge badge-primary">{{$order->status}}</span>
                 @elseif($order->status=='process')
                   <span class="badge badge-warning">{{$order->status}}</span>
+                @elseif($order->status=='ship' || $order->status=='pending')
+                  <span class="badge badge-info">ship</span>
                 @elseif($order->status=='delivered')
                   <span class="badge badge-success">{{$order->status}}</span>
                 @else
@@ -76,7 +78,7 @@
                     </tr>
                     <tr>
                         <td>Order Status</td>
-                        <td> : {{$order->status}}</td>
+                      <td> : {{ ($order->status==='pending') ? 'ship' : $order->status }}</td>
                     </tr>
                     <tr>
                       <td>Courier</td>

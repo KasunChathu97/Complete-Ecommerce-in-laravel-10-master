@@ -24,20 +24,38 @@
         <thead>
             <tr>
                 <th>Product</th>
+                <th class="right">Purchase Price</th>
+                <th class="right">Sales Price</th>
                 <th class="right">Total Qty</th>
-                <th class="right">Total Revenue</th>
+                <th class="right">Total Price</th>
+                <th class="right">Profit</th>
             </tr>
         </thead>
         <tbody>
             @forelse($rows as $row)
                 <tr>
                     <td>{{ $row->product }}</td>
+                    <td class="right">
+                        @if($row->purchase_price === null)
+                            -
+                        @else
+                            ${{ number_format((float) $row->purchase_price, 2) }}
+                        @endif
+                    </td>
+                    <td class="right">${{ number_format((float) $row->sale_price, 2) }}</td>
                     <td class="right">{{ (int) $row->total_qty }}</td>
-                    <td class="right">${{ number_format((float) $row->total_revenue, 2) }}</td>
+                    <td class="right">${{ number_format((float) $row->total_price, 2) }}</td>
+                    <td class="right">
+                        @if($row->profit === null)
+                            -
+                        @else
+                            ${{ number_format((float) $row->profit, 2) }}
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3">No data found.</td>
+                    <td colspan="6">No data found.</td>
                 </tr>
             @endforelse
         </tbody>

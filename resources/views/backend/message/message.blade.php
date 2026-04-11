@@ -56,8 +56,11 @@
 @push('scripts')
 <script type="text/javascript">
   $(document).ready(function() {
+    if (typeof window.Echo === 'undefined') {
+      return;
+    }
 
-    Echo.channel('message')
+    window.Echo.channel('message')
       .listen('MessageSent', (e) => {
 
       const message_container = $('#message-items');

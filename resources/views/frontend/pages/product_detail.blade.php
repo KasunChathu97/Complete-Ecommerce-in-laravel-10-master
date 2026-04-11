@@ -139,6 +139,9 @@
 											@if(!empty($product_detail->warranty))
 												<span class="badge badge-warning ml-2" style="font-size:0.95rem;"><i class="fa fa-shield mr-1"></i>Warranty</span>
 											@endif
+											@if(!empty($product_detail->free_shipping) || !empty($product_detail->free_shipping_enabled))
+												<span class="badge badge-success ml-2" style="font-size:0.95rem;">Free Shipping</span>
+											@endif
 										</div>
 										<div class="rating-main mb-2">
 											<ul class="rating">

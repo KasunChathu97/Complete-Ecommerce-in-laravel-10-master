@@ -10,6 +10,7 @@ class Order extends Model
         'user_id','sales_staff_id','order_number','offline_receipt_no',
         'sub_total','quantity','delivery_charge','status','order_source',
         'total_amount','first_name','last_name','country','post_code','address1','address2','phone','email',
+        'district',
         'payment_method','payment_gateway','payment_reference','payment_status',
         'shipping_id','courier_name','tracking_number','shipped_at','delivered_at',
         'social_platform','social_order_ref',

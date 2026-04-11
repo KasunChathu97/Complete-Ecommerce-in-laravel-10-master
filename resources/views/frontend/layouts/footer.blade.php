@@ -232,6 +232,37 @@
 	<!-- Active JS -->
 	<script src="{{asset('frontend/js/active.js')}}"></script>
 
+	<script>
+		(function () {
+			function shouldReloadOnPageShow(event) {
+				if (event && event.persisted) {
+					return true;
+				}
+
+				try {
+					if (window.performance && typeof window.performance.getEntriesByType === 'function') {
+						var navEntries = window.performance.getEntriesByType('navigation');
+						if (navEntries && navEntries[0] && navEntries[0].type === 'back_forward') {
+							return true;
+						}
+					}
+				} catch (e) {
+					// ignore
+				}
+
+				return false;
+			}
+
+			window.addEventListener('pageshow', function (event) {
+				// If a page is restored from BFCache (Back/Forward), force a reload
+				// so logout/auth middleware can run and block cached dashboards.
+				if (shouldReloadOnPageShow(event)) {
+					window.location.reload();
+				}
+			});
+		})();
+	</script>
+
 	
 	@stack('scripts')
 	<script>

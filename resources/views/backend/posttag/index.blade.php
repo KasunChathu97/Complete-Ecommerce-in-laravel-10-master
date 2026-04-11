@@ -10,9 +10,38 @@
      </div>
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary float-left">Post Tag Lists</h6>
-      <a href="{{route('post-tag.create')}}" class="btn btn-primary btn-sm float-right" data-toggle="tooltip" data-placement="bottom" title="Add User"><i class="fas fa-plus"></i> Add Post Tag</a>
     </div>
     <div class="card-body">
+      <div class="mb-4">
+        <h6 class="font-weight-bold text-primary">Homepage Offer Text</h6>
+        <form method="POST" action="{{ route('post-tag.homepage-marquee.update') }}">
+          @csrf
+          <div class="form-group">
+            <label for="marquee_text" class="col-form-label">Marquee Text</label>
+            <textarea id="marquee_text" name="marquee_text" class="form-control" rows="2" placeholder="Today is 20% off. Order soon">{{ old('marquee_text', $homepageMarquee->title ?? 'අද දින 20% ක වට්ටමක්. ඔබත් ඉක්මනින් ඇණවුම් කරන්න.') }}</textarea>
+            @error('marquee_text')
+              <span class="text-danger">{{ $message }}</span>
+            @enderror
+          </div>
+
+          <div class="form-group">
+            <label for="marquee_status" class="col-form-label">Status</label>
+            <select id="marquee_status" name="status" class="form-control">
+              @php
+                $marqueeStatus = old('status', $homepageMarquee->status ?? 'active');
+              @endphp
+              <option value="active" {{ $marqueeStatus == 'active' ? 'selected' : '' }}>Active</option>
+              <option value="inactive" {{ $marqueeStatus == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+            @error('status')
+              <span class="text-danger">{{ $message }}</span>
+            @enderror
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Save</button>
+        </form>
+        <hr>
+      </div>
+
       <div class="table-responsive">
         @if(count($postTags)>0)
         <table class="table table-bordered" id="post-category-dataTable" width="100%" cellspacing="0">
@@ -22,7 +51,6 @@
               <th>Title</th>
               <th>Slug</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tfoot>
@@ -31,7 +59,6 @@
               <th>Title</th>
               <th>Slug</th>
               <th>Status</th>
-              <th>Action</th>
               </tr>
           </tfoot>
           <tbody>
@@ -46,14 +73,6 @@
                         @else
                             <span class="badge badge-warning">{{$data->status}}</span>
                         @endif
-                    </td>
-                    <td>
-                        <a href="{{route('post-tag.edit',$data->id)}}" class="btn btn-primary btn-sm float-left mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="edit" data-placement="bottom"><i class="fas fa-edit"></i></a>
-                    <form method="POST" action="{{route('post-tag.destroy',[$data->id])}}">
-                      @csrf 
-                      @method('delete')
-                          <button class="btn btn-danger btn-sm dltBtn" data-id={{$data->id}} style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" data-placement="bottom" title="Delete"><i class="fas fa-trash-alt"></i></button>
-                        </form>
                     </td>
                 </tr>  
             @endforeach
@@ -93,7 +112,7 @@
             "columnDefs":[
                 {
                     "orderable":false,
-                    "targets":[3,4]
+            "targets":[3]
                 }
             ]
         } );
@@ -103,34 +122,5 @@
         function deleteData(id){
             
         }
-  </script>
-  <script>
-      $(document).ready(function(){
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-          $('.dltBtn').click(function(e){
-            var form=$(this).closest('form');
-              var dataID=$(this).data('id');
-              // alert(dataID);
-              e.preventDefault();
-              swal({
-                    title: "Are you sure?",
-                    text: "Once deleted, you will not be able to recover this data!",
-                    icon: "warning",
-                    buttons: true,
-                    dangerMode: true,
-                })
-                .then((willDelete) => {
-                    if (willDelete) {
-                       form.submit();
-                    } else {
-                        swal("Your data is safe!");
-                    }
-                });
-          })
-      })
   </script>
 @endpush

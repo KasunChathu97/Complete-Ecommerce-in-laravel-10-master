@@ -253,6 +253,9 @@
 																@endif
 															</div>
 															<h3 class="title"><a href="{{route('product-detail',$product->slug)}}">{{$product->title}}</a></h3>
+															@if(!empty($product->free_shipping) || !empty($product->free_shipping_enabled))
+																<span class="badge badge-success">Free Shipping</span>
+															@endif
 														{{-- <p>{!! html_entity_decode($product->summary) !!}</p> --}}
 														</div>
 														<p class="des pt-2">{!! html_entity_decode($product->summary) !!}</p>

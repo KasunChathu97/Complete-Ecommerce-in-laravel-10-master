@@ -22,7 +22,7 @@
               <th>Title</th>
               <th>Category</th>
               <th>Is Featured</th>
-              <th>Price</th>
+              <th>Sale Price</th>
               <th>Discount</th>
               <th>Warranty & Returns</th>
               <th>Bulk Discount Type</th>
@@ -43,9 +43,9 @@
                     <td>{{$product->id}}</td>
                     <td>{{$product->title}}</td>
                     <td>
-                      {{ $product->cat_info->title ?? '' }}
-                      @if(!empty($product->sub_cat_info->title))
-                        <small class="text-muted d-block">{{ $product->sub_cat_info->title }}</small>
+                      {{ optional($product->cat_info)->title ?? '' }}
+                      @if(!empty(optional($product->sub_cat_info)->title))
+                        <small class="text-muted d-block">{{ optional($product->sub_cat_info)->title }}</small>
                       @endif
                     </td>
                     <td>
@@ -76,7 +76,7 @@
                     </td>
                     <td>{{$product->condition}}</td>
                     <td>
-                      {{ $product->brand->title ?? '-' }}
+                      {{ optional($product->brand)->title ?? '-' }}
                     </td>
                     <td>
                       @if($product->stock>0)

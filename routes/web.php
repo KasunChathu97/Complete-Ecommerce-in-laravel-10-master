@@ -128,7 +128,7 @@
 // Backend section start
 
     // Sales admin area (orders, reports, sms logs, tracking)
-    Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'role:admin,sales_admin']], function () {
+    Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'role:admin,sales_admin', 'prevent-back-history']], function () {
         Route::get('/', [AdminController::class, 'index'])->name('admin');
         Route::get('/file-manager', function () {
             return view('backend.layouts.file-manager');
@@ -162,7 +162,7 @@
     });
 
     // Admin-only routes
-    Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'admin']], function () {
+    Route::group(['prefix' => '/admin', 'middleware' => ['auth', 'admin', 'prevent-back-history']], function () {
         // user route
         Route::resource('users', 'UsersController');
 
@@ -190,7 +190,8 @@
         // POST category
         Route::resource('/post-category', 'PostCategoryController');
         // Post tag
-        Route::resource('/post-tag', 'PostTagController');
+        Route::resource('/post-tag', 'PostTagController')->only(['index']);
+        Route::post('/post-tag/homepage-marquee', 'PostTagController@updateHomepageMarquee')->name('post-tag.homepage-marquee.update');
         // Post
         Route::resource('/post', 'PostController');
         // Message
@@ -216,7 +217,7 @@
 
 
 // User section start
-    Route::group(['prefix' => '/user', 'middleware' => ['user']], function () {
+    Route::group(['prefix' => '/user', 'middleware' => ['user', 'prevent-back-history']], function () {
         Route::get('/', [HomeController::class, 'index'])->name('user');
         // Profile
         Route::get('/profile', [HomeController::class, 'profile'])->name('user-profile');

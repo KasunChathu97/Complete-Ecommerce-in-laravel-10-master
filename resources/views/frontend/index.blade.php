@@ -39,13 +39,15 @@
 <!--/ End Slider Area -->
 
 <!-- Cream Horizontal Bar with Navigation and Marquee -->
-<div style="width: 100%; background:linear-gradient(90deg,#afc9f3 60%,#fffbe7 100%);min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); font-size: 1.1em; font-weight: 500; position: relative; overflow: hidden;">
-    <div style="width: 100%; overflow: hidden; height: 32px; margin-bottom: 4px;">
-        <div id="marquee-offer" style="white-space: nowrap; display: inline-block; font-size: 2.15em; color: rgb(238, 0, 0); font-weight: bold; animation: marquee-move 12s linear infinite;">
-            අද දින 20% ක වට්ටමක්. ඔබත් ඉක්මනින් ඇණවුම් කරන්න.
+@if(!empty($homepage_offer_text))
+    <div style="width: 100%; background:linear-gradient(90deg,#afc9f3 60%,#fffbe7 100%);min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); font-size: 1.1em; font-weight: 500; position: relative; overflow: hidden;">
+        <div style="width: 100%; overflow: hidden; height: 32px; margin-bottom: 4px;">
+            <div id="marquee-offer" style="white-space: nowrap; display: inline-block; font-size: 2.15em; color: rgb(238, 0, 0); font-weight: bold; animation: marquee-move 12s linear infinite;">
+                {{ $homepage_offer_text }}
+            </div>
         </div>
     </div>
-</div>
+@endif
 
 @push('styles')
         <style>
@@ -176,6 +178,10 @@
                                                             <i class="fas fa-times-circle"></i>
                                                             Out of Stock
                                                         </span>
+                                                    @endif
+
+                                                    @if(!empty($product->free_shipping) || !empty($product->free_shipping_enabled))
+                                                        <span class="badge badge-success ml-auto">Free Shipping</span>
                                                     @endif
                                                 </div>
                                                 
@@ -314,6 +320,10 @@
                                             $after_discount=($product->price-($product->price*$product->discount)/100);
                                         @endphp
                                         <p class="price with-discount">{{Helper::formatCurrency($after_discount)}}</p>
+
+                                        @if(!empty($product->free_shipping) || !empty($product->free_shipping_enabled))
+                                            <span class="badge badge-success">Free Shipping</span>
+                                        @endif
                                     </div>
                                 </div>
                                 </div>

@@ -42,10 +42,14 @@ class OrderItemsExport implements FromCollection, WithHeadings, WithMapping, Wit
             'Order No',
             'Customer',
             'Email',
+            'Phone',
+            'Emergency Phone',
+            'Address (District)',
             'Product',
             'Qty',
             'Unit Price',
-            'Line Total',
+            'Courier Price',
+            'Total Price',
             'Status',
             'Order Date',
         ];
@@ -62,6 +66,25 @@ class OrderItemsExport implements FromCollection, WithHeadings, WithMapping, Wit
         $order = $cart->order;
         $product = $cart->product;
 
+        $qty = (int) ($cart->quantity ?? 0);
+        $unitPrice = (float) ($cart->price ?? 0);
+
+        $shippingPrice = (float) (optional($order?->shipping)->price ?? 0);
+        $deliveryCharge = (float) ($order?->delivery_charge ?? 0);
+        $courierPrice = $shippingPrice + $deliveryCharge;
+        $totalPrice = ($unitPrice * $qty) + $courierPrice;
+
+        $district = trim((string) ($order?->district ?? ''));
+        if ($district === '') {
+            // Backward compatible fallback (older orders may not have a district stored)
+            $district = (string) (optional($order?->shipping)->type ?? '');
+        }
+        $address = $this->formatAddressWithDistrict(
+            (string) ($order?->address1 ?? ''),
+            (string) ($order?->address2 ?? ''),
+            $district
+        );
+
         $this->imagePathByRow[$row] = $this->resolveLocalImagePath($product?->photo);
 
         return [
@@ -69,10 +92,14 @@ class OrderItemsExport implements FromCollection, WithHeadings, WithMapping, Wit
             $order?->order_number,
             trim(($order?->first_name ?? '') . ' ' . ($order?->last_name ?? '')),
             $order?->email,
+            $order?->phone,
+            $order?->emergency_contact,
+            $address,
             $product?->title,
-            (int) ($cart->quantity ?? 0),
-            (float) ($cart->price ?? 0),
-            (float) ($cart->amount ?? 0),
+            $qty,
+            $unitPrice,
+            $courierPrice,
+            $totalPrice,
             $order?->status,
             optional($order?->created_at)->format('Y-m-d'),
         ];
@@ -107,7 +134,7 @@ class OrderItemsExport implements FromCollection, WithHeadings, WithMapping, Wit
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 // Header styling
-                $event->sheet->getDelegate()->getStyle('A1:J1')->getFont()->setBold(true);
+                $event->sheet->getDelegate()->getStyle('A1:N1')->getFont()->setBold(true);
 
                 // Make image column a bit wider
                 $event->sheet->getDelegate()->getColumnDimension('A')->setWidth(14);
@@ -118,9 +145,33 @@ class OrderItemsExport implements FromCollection, WithHeadings, WithMapping, Wit
                 }
 
                 // Align cells vertically
-                $event->sheet->getDelegate()->getStyle('A:J')->getAlignment()->setVertical('center');
+                $event->sheet->getDelegate()->getStyle('A:N')->getAlignment()->setVertical('center');
             },
         ];
+    }
+
+    private function formatAddressWithDistrict(string $address1, string $address2, string $district): string
+    {
+        $parts = [];
+        foreach ([$address1, $address2] as $part) {
+            $value = trim($part);
+            if ($value !== '') {
+                $parts[] = $value;
+            }
+        }
+
+        $base = implode(', ', $parts);
+        $district = trim($district);
+
+        if ($district === '') {
+            return $base;
+        }
+
+        if ($base === '') {
+            return $district;
+        }
+
+        return $base . ' (' . $district . ')';
     }
 
     private function resolveLocalImagePath(?string $photo): string

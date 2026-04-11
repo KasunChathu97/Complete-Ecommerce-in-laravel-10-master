@@ -107,32 +107,41 @@ class ReportController extends Controller
 
     private function productSalesRows(?string $from, ?string $to)
     {
-        $query = DB::table('carts')
-            ->join('orders', 'carts.order_id', '=', 'orders.id')
-            ->join('products', 'carts.product_id', '=', 'products.id')
-            ->whereNotNull('carts.order_id')
-            ->where('orders.status', 'delivered');
+        $purchasePriceExpr = 'COALESCE(products.purchase_price, products.wholesale_price, 0)';
+        $salePriceExpr = 'COALESCE(products.sale_price, products.price, 0)';
+        $totalQtyExpr = 'COALESCE(SUM(CASE WHEN orders.id IS NOT NULL THEN carts.quantity ELSE 0 END), 0)';
+        $totalPriceExpr = '(' . $salePriceExpr . ' * ' . $totalQtyExpr . ')';
 
-        if (auth()->check() && auth()->user()->role === 'sales_admin') {
-            $query->where('orders.sales_staff_id', auth()->id());
-        }
+        $query = DB::table('products')
+            ->leftJoin('carts', 'carts.product_id', '=', 'products.id')
+            ->leftJoin('orders', function ($join) use ($from, $to) {
+                $join->on('orders.id', '=', 'carts.order_id')
+                    ->where('orders.status', '=', 'delivered');
 
-        if ($from) {
-            $query->whereDate('orders.created_at', '>=', $from);
-        }
-        if ($to) {
-            $query->whereDate('orders.created_at', '<=', $to);
-        }
+                if (auth()->check() && auth()->user()->role === 'sales_admin') {
+                    $join->where('orders.sales_staff_id', '=', auth()->id());
+                }
+
+                if ($from) {
+                    $join->whereDate('orders.created_at', '>=', $from);
+                }
+                if ($to) {
+                    $join->whereDate('orders.created_at', '<=', $to);
+                }
+            });
 
         return $query
             ->select(
                 'products.id as product_id',
                 'products.title as product',
-                DB::raw('SUM(carts.quantity) as total_qty'),
-                DB::raw('SUM(carts.amount) as total_revenue')
+                DB::raw($purchasePriceExpr . ' as purchase_price'),
+                DB::raw($salePriceExpr . ' as sale_price'),
+                DB::raw($totalQtyExpr . ' as total_qty'),
+                DB::raw($totalPriceExpr . ' as total_price'),
+                DB::raw('(' . $totalPriceExpr . ' - (' . $purchasePriceExpr . ' * ' . $totalQtyExpr . ')) as profit')
             )
-            ->groupBy('products.id', 'products.title')
-            ->orderByDesc('total_revenue')
+                ->groupBy('products.id', 'products.title', 'products.purchase_price', 'products.wholesale_price', 'products.sale_price', 'products.price')
+            ->orderByDesc('total_price')
             ->get();
     }
 

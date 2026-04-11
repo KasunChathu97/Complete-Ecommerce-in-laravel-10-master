@@ -36,12 +36,18 @@
 
       <div class="form-group">
         <label for="status">Status :</label>
+        @php
+          $currentStatus = old('status', $order->status);
+          if ($currentStatus === 'pending') {
+            $currentStatus = 'ship';
+          }
+        @endphp
         <select name="status" id="" class="form-control">
-          <option value="new" {{($order->status!='new') ? 'disabled' : ''}}  {{(($order->status=='new')? 'selected' : '')}}>New</option>
-          <option value="pending" {{(in_array($order->status, ['process','delivered','cancel'], true)) ? 'disabled' : ''}}  {{(($order->status=='pending')? 'selected' : '')}}>Pending</option>
-          <option value="process" {{($order->status=='delivered'|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($order->status=='process')? 'selected' : '')}}>process</option>
-          <option value="delivered" {{($order->status=="cancel") ? 'disabled' : ''}}  {{(($order->status=='delivered')? 'selected' : '')}}>Delivered</option>
-          <option value="cancel" {{($order->status=='delivered') ? 'disabled' : ''}}  {{(($order->status=='cancel')? 'selected' : '')}}>Cancel</option>
+          <option value="new" {{($order->status!='new') ? 'disabled' : ''}}  {{(($currentStatus=='new')? 'selected' : '')}}>New</option>
+          <option value="process" {{($order->status=='delivered'|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='process')? 'selected' : '')}}>process</option>
+          <option value="ship" {{($order->status=="delivered"|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='ship')? 'selected' : '')}}>ship</option>
+          <option value="delivered" {{($order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='delivered')? 'selected' : '')}}>Delivered</option>
+          <option value="cancel" {{($order->status=='delivered') ? 'disabled' : ''}}  {{(($currentStatus=='cancel')? 'selected' : '')}}>Cancel</option>
         </select>
       </div>
 

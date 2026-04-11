@@ -5,6 +5,13 @@
 <div class="card">
     <h5 class="card-header">Edit Product</h5>
     <div class="card-body">
+      @include('backend.layouts.notification')
+      @if($errors->any() && !session('error'))
+        <div class="alert alert-danger alert-dismissable fade show">
+            <button class="close" data-dismiss="alert" aria-label="Close">×</button>
+            Product not updated. Please check the form and try again.
+        </div>
+      @endif
       <form method="post" action="{{route('product.update',$product->id)}}" enctype="multipart/form-data">
         @csrf 
         @method('PATCH')
@@ -67,9 +74,12 @@
           <select name="cat_id" id="cat_id" class="form-control">
               <option value="">--Select any category--</option>
               @foreach($categories as $key=>$cat_data)
-                  <option value='{{$cat_data->id}}' {{(($product->cat_id==$cat_data->id)? 'selected' : '')}}>{{$cat_data->title}}</option>
+                  <option value='{{$cat_data->id}}' {{ (string)old('cat_id', $product->cat_id) === (string)$cat_data->id ? 'selected' : '' }}>{{$cat_data->title}}</option>
               @endforeach
           </select>
+          @error('cat_id')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
         </div>
         @php 
           $sub_cat_info=DB::table('categories')->select('title')->where('id',$product->child_cat_id)->get();
@@ -86,9 +96,17 @@
         </div>
 
         <div class="form-group">
-          <label for="price" class="col-form-label">Price(NRS) <span class="text-danger">*</span></label>
-          <input id="price" type="number" name="price" placeholder="Enter price"  value="{{$product->price}}" class="form-control">
-          @error('price')
+          <label for="purchase_price" class="col-form-label">Purchase Price(NRS)</label>
+          <input id="purchase_price" type="number" step="0.01" name="purchase_price" placeholder="Enter purchase price" value="{{ old('purchase_price', $product->purchase_price ?? null) }}" class="form-control">
+          @error('purchase_price')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
+        <div class="form-group">
+          <label for="sale_price" class="col-form-label">Sale Price(NRS) <span class="text-danger">*</span></label>
+          <input id="sale_price" type="number" step="0.01" name="sale_price" placeholder="Enter sale price" value="{{ old('sale_price', $product->sale_price ?? $product->price) }}" class="form-control">
+          @error('sale_price')
           <span class="text-danger">{{$message}}</span>
           @enderror
         </div>
@@ -142,10 +160,13 @@
           <label for="condition">Condition</label>
           <select name="condition" class="form-control">
               <option value="">--Select Condition--</option>
-              <option value="default" {{(($product->condition=='default')? 'selected':'')}}>Default</option>
-              <option value="new" {{(($product->condition=='new')? 'selected':'')}}>New</option>
-              <option value="hot" {{(($product->condition=='hot')? 'selected':'')}}>Hot</option>
+              <option value="default" {{ old('condition', $product->condition)==='default' ? 'selected' : '' }}>Default</option>
+              <option value="new" {{ old('condition', $product->condition)==='new' ? 'selected' : '' }}>New</option>
+              <option value="hot" {{ old('condition', $product->condition)==='hot' ? 'selected' : '' }}>Hot</option>
           </select>
+          @error('condition')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
         </div>
 
         <div class="form-group">
@@ -176,9 +197,9 @@
             <label class="custom-file-label" for="inputPhoto">Choose New Photos (optional)</label>
           </div>
           <small class="form-text text-muted">Existing images are shown above. You can add more by selecting files. All images will be combined on save.</small>
-          @error('photo')
-          <span class="text-danger">{{$message}}</span>
-          @enderror
+          @if($errors->has('photo') || $errors->has('photo.*'))
+          <span class="text-danger">{{ $errors->first('photo') ?: $errors->first('photo.*') }}</span>
+          @endif
         </div>
         
         <div class="form-group">

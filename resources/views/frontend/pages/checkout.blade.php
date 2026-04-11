@@ -384,6 +384,51 @@
                                             @enderror
                                         </div>
                                     </div>
+                                    <div class="col-lg-6 col-md-6 col-12">
+                                        <div class="form-group">
+                                            <label>District<span>*</span></label>
+                                            @php
+                                                $districtOptions = [
+                                                    'Ampara',
+                                                    'Anuradhapura',
+                                                    'Badulla',
+                                                    'Batticaloa',
+                                                    'Colombo',
+                                                    'Galle',
+                                                    'Gampaha',
+                                                    'Hambantota',
+                                                    'Jaffna',
+                                                    'Kalutara',
+                                                    'Kandy',
+                                                    'Kegalle',
+                                                    'Kilinochchi',
+                                                    'Kurunegala',
+                                                    'Mannar',
+                                                    'Matale',
+                                                    'Matara',
+                                                    'Monaragala',
+                                                    'Mullaitivu',
+                                                    'Nuwara Eliya',
+                                                    'Polonnaruwa',
+                                                    'Puttalam',
+                                                    'Ratnapura',
+                                                    'Trincomalee',
+                                                    'Vavuniya',
+                                                ];
+                                            @endphp
+                                            <select name="district" class="form-control select2">
+                                                <option value="">Select District</option>
+                                                @foreach ($districtOptions as $district)
+                                                    <option value="{{ $district }}" {{ old('district') === $district ? 'selected' : '' }}>
+                                                        {{ $district }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('district')
+                                                <span class='text-danger'>{{$message}}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                     <!--<div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-group">
                                             <label>Postal Code</label>
@@ -459,7 +504,7 @@
                                             {{-- <label class="checkbox-inline" for="1"><input name="updates" id="1" type="checkbox"> Check Payments</label> --}}
                                             <form-group>
                                                 <input name="payment_method"  type="radio" value="cod"> <label> Cash On Delivery</label><br>
-                                                <input name="payment_method"  type="radio" value="paypal"> <label> PayPal</label> 
+                                                <!--<input name="payment_method"  type="radio" value="paypal"> <label> PayPal</label> -->
                                             </form-group>
                                             
                                         </div>
@@ -559,7 +604,28 @@
  End Shop Newsletter -->
 @endsection
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('frontend/js/select2/css/select2.min.css') }}">
 	<style>
+        /* Keep Select2 (District) aligned with other checkout inputs */
+        .select2-container{
+            width: 100% !important;
+        }
+        .select2-container--default .select2-selection--single{
+            height: 45px;
+            background: #F6F7FB;
+            border: 0;
+            border-radius: 0;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered{
+            line-height: 45px;
+            padding-left: 20px;
+            padding-right: 20px;
+            color: #333;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow{
+            height: 45px;
+        }
+
 		li.shipping{
 			display: inline-flex;
 			width: 100%;
@@ -605,7 +671,11 @@
 	<script src="{{asset('frontend/js/nice-select/js/jquery.nice-select.min.js')}}"></script>
 	<script src="{{ asset('frontend/js/select2/js/select2.min.js') }}"></script>
 	<script>
-		$(document).ready(function() { $("select.select2").select2(); });
+        $(document).ready(function() {
+            $("select.select2").select2({
+                width: '100%'
+            });
+        });
   		$('select.nice-select').niceSelect();
 	</script>
 	<script>
