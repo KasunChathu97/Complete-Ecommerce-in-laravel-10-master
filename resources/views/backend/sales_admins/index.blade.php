@@ -60,6 +60,7 @@
                     </td>
                     <td>
                         <a href="{{route('sales-admins.edit',$user->id)}}" class="btn btn-primary btn-sm float-left mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="edit" data-placement="bottom"><i class="fas fa-edit"></i></a>
+                      <a href="{{ route('reports.sales-admin-activities', ['sales_admin_id' => $user->id]) }}" class="btn btn-info btn-sm float-left mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="Activities" data-placement="bottom"><i class="fas fa-chart-bar"></i></a>
                         <form method="POST" action="{{route('sales-admins.destroy',[$user->id])}}">
                           @csrf
                           @method('delete')

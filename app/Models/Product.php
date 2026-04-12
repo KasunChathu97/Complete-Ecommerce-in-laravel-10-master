@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Cart;
+use App\Models\SalesAdminProductStock;
 class Product extends Model
 {
+    protected $appends = ['product_number'];
+
     protected $fillable=[
         'title','slug','summary','description','youtube_link','cat_id','child_cat_id','price','purchase_price','sale_price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
         'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type',
@@ -43,6 +46,15 @@ class Product extends Model
         }
     }
 
+    public function getProductNumberAttribute(): string
+    {
+        $id = (string) ($this->attributes['id'] ?? '');
+        if ($id === '') {
+            return '';
+        }
+        return 'PRD-' . str_pad($id, 6, '0', STR_PAD_LEFT);
+    }
+
     public function cat_info(){
         return $this->hasOne('App\Models\Category','id','cat_id');
     }
@@ -76,6 +88,11 @@ class Product extends Model
 
     public function brand(){
         return $this->hasOne(Brand::class,'id','brand_id');
+    }
+
+    public function salesAdminStocks()
+    {
+        return $this->hasMany(SalesAdminProductStock::class, 'product_id');
     }
 
 }

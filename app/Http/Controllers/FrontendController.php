@@ -396,15 +396,44 @@ class FrontendController extends Controller
         return view('frontend.pages.login');
     }
     public function loginSubmit(Request $request){
-        $data= $request->all();
-        if(Auth::attempt(['email' => $data['email'], 'password' => $data['password'],'status'=>'active'])){
-            request()->session()->flash('success','Successfully login');
+        $validated = $request->validate([
+            'login' => 'required|string|max:255',
+            'password' => 'required|string',
+        ]);
+
+        $loginInput = trim($validated['login']);
+        $password = $validated['password'];
+        $remember = (bool) $request->input('news');
+
+        $query = User::query()->where('status', 'active');
+
+        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+            $query->where('email', $loginInput);
+        } else {
+            $digits = preg_replace('/\D+/', '', $loginInput);
+
+            $query->where(function ($q) use ($loginInput, $digits) {
+                $q->where('phone', $loginInput);
+
+                if ($digits !== '') {
+                    $q->orWhereRaw(
+                        "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone,' ',''),'-',''),'(',''),')',''),'+','') = ?",
+                        [$digits]
+                    );
+                }
+            });
+        }
+
+        $user = $query->first();
+
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user, $remember);
+            request()->session()->flash('success', 'Successfully login');
             return redirect()->route('home');
         }
-        else{
-            request()->session()->flash('error','Invalid email and password pleas try again!');
-            return redirect()->back();
-        }
+
+        request()->session()->flash('error', 'Invalid email/phone or password. Please try again!');
+        return redirect()->back()->withInput($request->only('login'));
     }
 
     public function logout(){

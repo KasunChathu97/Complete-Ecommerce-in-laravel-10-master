@@ -6,12 +6,41 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Models\SalesAdminProductStock;
+use App\Models\SalesAdminStockTransfer;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use App\User;
+use App\Notifications\StatusNotification;
 
 class ProductController extends Controller
 {
+
+    public function adminStockInfo($id)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $product = Product::findOrFail($id);
+        $allocatedTotal = (int) SalesAdminProductStock::query()
+            ->where('product_id', $product->id)
+            ->sum('quantity');
+
+        $mainStock = (int) ($product->stock ?? 0);
+        $adminStock = max(0, $mainStock - $allocatedTotal);
+
+        return response()->json([
+            'product_id' => (int) $product->id,
+            'main_stock' => $mainStock,
+            'allocated_stock' => $allocatedTotal,
+            'admin_stock' => $adminStock,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -21,6 +50,7 @@ class ProductController extends Controller
     {
         // Load all products so DataTables can handle paging/search/length (e.g. "Show 100 entries").
         $products = Product::with(['cat_info', 'sub_cat_info', 'brand'])
+            ->withSum('salesAdminStocks as allocated_stock', 'quantity')
             ->orderByDesc('id')
             ->get();
         return view('backend.product.index', compact('products'));
@@ -190,6 +220,76 @@ class ProductController extends Controller
         return view('backend.product.edit', compact('product', 'brands', 'categories', 'items'));
     }
 
+    public function transferStock(Request $request, $id)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'sales_admin_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where(function ($q) {
+                    $q->where('role', 'sales_admin');
+                }),
+            ],
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $allocatedTotal = (int) SalesAdminProductStock::query()
+            ->where('product_id', $product->id)
+            ->sum('quantity');
+
+        $adminStock = (int) $product->stock - $allocatedTotal;
+        $qty = (int) $validated['quantity'];
+
+        if ($qty > $adminStock) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Not enough Admin Stock. Available: ' . max(0, $adminStock));
+        }
+
+        DB::transaction(function () use ($product, $validated, $qty) {
+            $stockRow = SalesAdminProductStock::query()->firstOrNew([
+                'sales_admin_id' => $validated['sales_admin_id'],
+                'product_id' => $product->id,
+            ]);
+
+            $stockRow->quantity = (int) ($stockRow->quantity ?? 0) + $qty;
+            $stockRow->save();
+
+            SalesAdminStockTransfer::create([
+                'sales_admin_id' => $validated['sales_admin_id'],
+                'product_id' => $product->id,
+                'quantity' => $qty,
+                'created_by' => auth()->id(),
+            ]);
+        });
+
+        $salesAdmin = User::find($validated['sales_admin_id']);
+        if ($salesAdmin) {
+            $details = [
+                'title' => 'Stock received: ' . $product->title . ' x' . $qty,
+                'actionURL' => route('admin'),
+                'fas' => 'fa-box',
+            ];
+            $salesAdmin->notify(new StatusNotification($details));
+
+            $adminDetails = [
+                'title' => 'Stock transferred to ' . $salesAdmin->name . ': ' . $product->title . ' x' . $qty,
+                'actionURL' => route('admin'),
+                'fas' => 'fa-box',
+            ];
+            auth()->user()->notify(new StatusNotification($adminDetails));
+        }
+
+        return redirect()->back()->with('success', 'Stock transferred successfully.');
+    }
+
     /**
      * Update the specified resource in storage.
      *
@@ -233,6 +333,17 @@ class ProductController extends Controller
         ]);
         // Force only percent type for bulk discount
         $validatedData['bulk_discount_amount_type'] = 'percent';
+
+        $allocatedTotal = (int) SalesAdminProductStock::query()
+            ->where('product_id', $product->id)
+            ->sum('quantity');
+
+        if ((int) ($validatedData['stock'] ?? 0) < $allocatedTotal) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Main Stock cannot be less than allocated stock (' . $allocatedTotal . ').');
+        }
 
         try {
 

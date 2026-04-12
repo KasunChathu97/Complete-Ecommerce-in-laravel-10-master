@@ -24,5 +24,7 @@ class Settings extends Model
         'youtube',
         'twitter',
         'whatsapp',
+        'shipping_cost_upto_1kg',
+        'shipping_cost_over_1kg_extra',
     ];
 }

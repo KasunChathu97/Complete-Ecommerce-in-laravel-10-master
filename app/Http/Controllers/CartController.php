@@ -5,6 +5,7 @@ use Auth;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Cart;
+use App\Models\Settings;
 use Illuminate\Support\Str;
 use Helper;
 
@@ -23,6 +24,87 @@ class CartController extends Controller
         return $this->singleAddToCart($request);
     }
     protected $product=null;
+    protected ?Settings $settingsCache = null;
+
+    protected function settings(): Settings
+    {
+        if ($this->settingsCache instanceof Settings) {
+            return $this->settingsCache;
+        }
+
+        $this->settingsCache = Settings::first() ?? new Settings();
+        return $this->settingsCache;
+    }
+
+    protected function weightBasedShippingRates(): array
+    {
+        $settings = $this->settings();
+
+        $base = (int) data_get($settings, 'shipping_cost_upto_1kg', 350);
+        $extra = (int) data_get($settings, 'shipping_cost_over_1kg_extra', 80);
+
+        return [
+            'base' => max(0, $base),
+            'extra' => max(0, $extra),
+        ];
+    }
+
+    protected function calculateShippingCost(Product $product, int $qty): int
+    {
+        if ($qty < 1) {
+            return 0;
+        }
+
+        if (!empty($product->free_shipping) || !empty($product->free_shipping_enabled)) {
+            return 0;
+        }
+
+        if (empty($product->weight)) {
+            return 0;
+        }
+
+        $rates = $this->weightBasedShippingRates();
+
+        // Existing behavior: decide shipping cost per cart line by (weight * quantity).
+        // Weight is stored in kg; convert to grams.
+        $total_weight_grams = $product->weight * $qty * 1000;
+
+        if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
+            return $rates['base'];
+        }
+
+        if ($total_weight_grams > 1000) {
+            return $rates['base'] + $rates['extra'];
+        }
+
+        return 0;
+    }
+
+    protected function refreshCartLineShipping(Cart $cart): void
+    {
+        if (!$cart->relationLoaded('product')) {
+            $cart->load('product');
+        }
+
+        if (!$cart->product) {
+            return;
+        }
+
+        $newShipping = $this->calculateShippingCost($cart->product, (int) $cart->quantity);
+        $oldShipping = (int) ($cart->shipping_cost ?? 0);
+
+        if ($newShipping === $oldShipping) {
+            return;
+        }
+
+        $cart->shipping_cost = $newShipping;
+
+        if ($cart->amount !== null) {
+            $cart->amount = max(0, ((float) $cart->amount - $oldShipping) + $newShipping);
+        }
+
+        $cart->save();
+    }
     public function __construct(Product $product){
         $this->product=$product;
     }
@@ -33,20 +115,7 @@ class CartController extends Controller
             'quant'      =>  'required',
         ]);
         $product = Product::where('slug', $request->slug)->first();
-        // Calculate shipping cost based on total weight (weight * quantity)
-        $shipping_cost = 0;
-        $qty = $request->quant[1];
-        if (!empty($product->weight)) {
-            $total_weight_grams = $product->weight * $qty * 1000;
-            if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
-                $shipping_cost = 350;
-            } elseif ($total_weight_grams > 1000) {
-                $shipping_cost = 350 + 80;
-            }
-        }
-        if (!empty($product->free_shipping) || !empty($product->free_shipping_enabled)) {
-            $shipping_cost = 0;
-        }
+        $shipping_cost = $this->calculateShippingCost($product, (int) $request->quant[1]);
         if($product->stock < $request->quant[1]){
             return back()->with('error','Out of stock, You can add other products.');
         }
@@ -121,20 +190,7 @@ class CartController extends Controller
 
         $already_cart = Cart::where('user_id', auth()->user()->id)->where('order_id',null)->where('product_id', $product->id)->first();
 
-        // Calculate shipping cost based on total weight (weight * quantity)
-        $shipping_cost = 0;
-        $qty = $request->quant[1];
-        if (!empty($product->weight)) {
-            $total_weight_grams = $product->weight * $qty * 1000;
-            if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
-                $shipping_cost = 350;
-            } elseif ($total_weight_grams > 1000) {
-                $shipping_cost = 350 + 80;
-            }
-        }
-        if (!empty($product->free_shipping) || !empty($product->free_shipping_enabled)) {
-            $shipping_cost = 0;
-        }
+        $shipping_cost = $this->calculateShippingCost($product, (int) $request->quant[1]);
 
         if($already_cart) {
             $already_cart->quantity = $already_cart->quantity + $request->quant[1];
@@ -215,19 +271,7 @@ class CartController extends Controller
                     $cart->quantity = ($cart->product->stock > $quant) ? $quant  : $cart->product->stock;
                     if ($cart->product->stock <=0) continue;
                     $after_price=($cart->product->price-($cart->product->price*$cart->product->discount)/100);
-                    // Calculate shipping cost based on total weight (weight * quantity)
-                    $shipping_cost = 0;
-                    if (!empty($cart->product->weight)) {
-                        $total_weight_grams = $cart->product->weight * $quant * 1000;
-                        if ($total_weight_grams > 0 && $total_weight_grams <= 1000) {
-                            $shipping_cost = 350;
-                        } elseif ($total_weight_grams > 1000) {
-                            $shipping_cost = 350 + 80;
-                        }
-                    }
-                    if (!empty($cart->product->free_shipping) || !empty($cart->product->free_shipping_enabled)) {
-                        $shipping_cost = 0;
-                    }
+                    $shipping_cost = $this->calculateShippingCost($cart->product, (int) $quant);
                     $cart->shipping_cost = $shipping_cost;
                     $cart->amount = $after_price * $quant + $shipping_cost;
                     $cart->save();
@@ -343,6 +387,17 @@ class CartController extends Controller
         //     $cart->fill($data);
         //     $cart->save();
         // }
+        if (Auth::check()) {
+            $carts = Cart::with('product')
+                ->where('user_id', auth()->id())
+                ->whereNull('order_id')
+                ->get();
+
+            foreach ($carts as $cart) {
+                $this->refreshCartLineShipping($cart);
+            }
+        }
+
         return view('frontend.pages.checkout');
     }
 }

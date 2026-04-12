@@ -33,13 +33,18 @@ class SalesAdminController extends Controller
             'phone' => 'nullable|string|max:50',
             'password' => 'string|required|min:6',
             'status' => 'required|in:active,inactive',
-            'photo' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:4096',
         ]);
 
-        $data = $request->only(['name', 'email', 'phone', 'status', 'photo']);
+        $data = $request->only(['name', 'email', 'phone', 'status']);
         $data['role'] = 'sales_admin';
         $data['is_sales_staff'] = 1;
         $data['password'] = Hash::make($request->password);
+
+        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
+            $path = $request->file('photo')->store('profiles', 'public');
+            $data['photo'] = '/storage/' . $path;
+        }
 
         // Some DBs have users.phone as NOT NULL with no default.
         if (!array_key_exists('phone', $data) || $data['phone'] === null) {
@@ -74,13 +79,18 @@ class SalesAdminController extends Controller
             'email' => 'string|required|email|unique:users,email,' . $salesAdmin->id,
             'phone' => 'nullable|string|max:50',
             'status' => 'required|in:active,inactive',
-            'photo' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:4096',
             'password' => 'nullable|string|min:6',
         ]);
 
-        $data = $request->only(['name', 'email', 'phone', 'status', 'photo']);
+        $data = $request->only(['name', 'email', 'phone', 'status']);
         $data['role'] = 'sales_admin';
         $data['is_sales_staff'] = 1;
+
+        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
+            $path = $request->file('photo')->store('profiles', 'public');
+            $data['photo'] = '/storage/' . $path;
+        }
 
         if (!array_key_exists('phone', $data) || $data['phone'] === null) {
             $data['phone'] = '';

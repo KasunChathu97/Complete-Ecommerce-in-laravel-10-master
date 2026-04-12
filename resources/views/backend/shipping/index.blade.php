@@ -10,9 +10,52 @@
      </div>
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary float-left">Shipping List</h6>
-      <a href="{{route('shipping.create')}}" class="btn btn-primary btn-sm float-right" data-toggle="tooltip" data-placement="bottom" title="Add User"><i class="fas fa-plus"></i> Add Shipping</a>
     </div>
     <div class="card-body">
+      <div class="mb-4">
+        <h6 class="font-weight-bold text-primary">Weight-Based Shipping Cost</h6>
+        <form method="POST" action="{{ route('shipping.weight-rates.update') }}">
+          @csrf
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="shipping_cost_upto_1kg">Shipping Cost (Up to 1kg)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="form-control"
+                id="shipping_cost_upto_1kg"
+                name="shipping_cost_upto_1kg"
+                value="{{ old('shipping_cost_upto_1kg', data_get($settings,'shipping_cost_upto_1kg',350)) }}"
+                required
+              >
+              @error('shipping_cost_upto_1kg')
+              <span class="text-danger">{{ $message }}</span>
+              @enderror
+            </div>
+
+            <div class="form-group col-md-6">
+              <label for="shipping_cost_over_1kg_extra">Additional Shipping Cost (Over 1kg)</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="form-control"
+                id="shipping_cost_over_1kg_extra"
+                name="shipping_cost_over_1kg_extra"
+                value="{{ old('shipping_cost_over_1kg_extra', data_get($settings,'shipping_cost_over_1kg_extra',80)) }}"
+                required
+              >
+              @error('shipping_cost_over_1kg_extra')
+              <span class="text-danger">{{ $message }}</span>
+              @enderror
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">Update Weight Shipping Cost</button>
+        </form>
+      </div>
+
       <div class="table-responsive">
         @if(count($shippings)>0)
         <table class="table table-bordered" id="banner-dataTable" width="100%" cellspacing="0">
@@ -81,7 +124,7 @@
         </table>
         <span style="float:right">{{$shippings->links()}}</span>
         @else
-          <h6 class="text-center">No shippings found!!! Please create shipping</h6>
+          <h6 class="text-center">No shippings found!!!</h6>
         @endif
       </div>
     </div>

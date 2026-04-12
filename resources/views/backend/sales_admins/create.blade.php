@@ -5,7 +5,7 @@
 <div class="card">
     <h5 class="card-header">Add Sales Admin</h5>
     <div class="card-body">
-      <form method="post" action="{{route('sales-admins.store')}}">
+      <form method="post" action="{{route('sales-admins.store')}}" enctype="multipart/form-data">
         {{csrf_field()}}
         <div class="form-group">
           <label for="inputTitle" class="col-form-label">Name</label>
@@ -41,15 +41,10 @@
 
         <div class="form-group">
           <label for="inputPhoto" class="col-form-label">Photo</label>
-          <div class="input-group">
-              <span class="input-group-btn">
-                  <a id="lfm" data-input="thumbnail" data-preview="holder" class="btn btn-primary">
-                  <i class="fa fa-picture-o"></i> Choose
-                  </a>
-              </span>
-              <input id="thumbnail" class="form-control" type="text" name="photo" value="{{old('photo')}}">
+          <div class="custom-file">
+            <input id="inputPhoto" type="file" name="photo" class="custom-file-input" accept="image/*">
+            <label class="custom-file-label" for="inputPhoto">Choose file</label>
           </div>
-          <img id="holder" style="margin-top:15px;max-height:100px;">
           @error('photo')
             <span class="text-danger">{{$message}}</span>
           @enderror
@@ -77,8 +72,23 @@
 @endsection
 
 @push('scripts')
-<script src="/vendor/laravel-filemanager/js/stand-alone-button.js"></script>
 <script>
-    $('#lfm').filemanager('image');
+  (function () {
+    var input = document.getElementById('inputPhoto');
+    if (!input) return;
+
+    input.addEventListener('change', function () {
+      var fileName = '';
+      if (input.files && input.files.length > 0) {
+        fileName = input.files[0].name;
+      } else {
+        fileName = (input.value || '').split('\\').pop();
+      }
+      var label = input.parentElement ? input.parentElement.querySelector('.custom-file-label') : null;
+      if (label && fileName) {
+        label.textContent = fileName;
+      }
+    });
+  })();
 </script>
 @endpush

@@ -16,6 +16,7 @@
     use App\Http\Controllers\NotificationController;
     use App\Http\Controllers\HomeController;
     use App\Http\Controllers\ReportController;
+    use App\Http\Controllers\ShippingController;
     use App\Http\Controllers\WholesaleRequestController;
     use App\Http\Controllers\WholesaleRequestAdminController;
     use \UniSharp\LaravelFilemanager\Lfm;
@@ -166,6 +167,10 @@
         // user route
         Route::resource('users', 'UsersController');
 
+        // Reports (admin-only)
+        Route::get('/reports/sales-admin-activities', [ReportController::class, 'salesAdminActivities'])->name('reports.sales-admin-activities');
+        Route::post('/reports/sales-admin-activities/transfer-stock', [ReportController::class, 'transferStockToSalesAdmin'])->name('reports.sales-admin-activities.transfer-stock');
+
         // Sales Admin management (separate tab/pages)
         Route::get('sales-admins', 'SalesAdminController@index')->name('sales-admins.index');
         Route::get('sales-admins/create', 'SalesAdminController@create')->name('sales-admins.create');
@@ -185,6 +190,8 @@
         Route::resource('/category', 'CategoryController');
         // Product
         Route::resource('/product', 'ProductController');
+        Route::post('/product/{id}/transfer-stock', 'ProductController@transferStock')->name('product.transfer-stock');
+        Route::get('/product/{id}/admin-stock', 'ProductController@adminStockInfo')->name('product.admin-stock');
         // Ajax for sub category
         Route::post('/category/{id}/child', 'CategoryController@getChildByParent');
         // POST category
@@ -198,7 +205,8 @@
         Route::resource('/message', 'MessageController');
         Route::get('/message/five', [MessageController::class, 'messageFive'])->name('messages.five');
         // Shipping
-        Route::resource('/shipping', 'ShippingController');
+        Route::resource('/shipping', 'ShippingController')->except(['create', 'store']);
+        Route::post('/shipping/weight-rates', [ShippingController::class, 'updateWeightRates'])->name('shipping.weight-rates.update');
         // Coupon
         Route::resource('/coupon', 'CouponController');
         // Settings

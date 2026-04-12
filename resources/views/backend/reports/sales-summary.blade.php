@@ -48,13 +48,19 @@
                             <th>Year</th>
                             <th>Month</th>
                             <th>Total Orders</th>
-                            <th>Total Revenue</th>
+                            <th>Total Qty</th>
+                            <th>Purchase Total</th>
+                            <th>Total Price</th>
+                            <th>Profit</th>
                         </tr>
                     @else
                         <tr>
                             <th>Day</th>
                             <th>Total Orders</th>
-                            <th>Total Revenue</th>
+                            <th>Total Qty</th>
+                            <th>Purchase Total</th>
+                            <th>Total Price</th>
+                            <th>Profit</th>
                         </tr>
                     @endif
                 </thead>
@@ -65,18 +71,24 @@
                                 <td>{{ $row->year }}</td>
                                 <td>{{ $row->month }}</td>
                                 <td>{{ (int) $row->total_orders }}</td>
-                                <td>${{ number_format((float) $row->total_revenue, 2) }}</td>
+                                <td>{{ (int) ($row->total_qty ?? 0) }}</td>
+                                <td>${{ number_format((float) ($row->purchase_total ?? 0), 2) }}</td>
+                                <td>${{ number_format((float) ($row->total_price ?? 0), 2) }}</td>
+                                <td>${{ number_format((float) ($row->profit ?? 0), 2) }}</td>
                             </tr>
                         @else
                             <tr>
                                 <td>{{ $row->day }}</td>
                                 <td>{{ (int) $row->total_orders }}</td>
-                                <td>${{ number_format((float) $row->total_revenue, 2) }}</td>
+                                <td>{{ (int) ($row->total_qty ?? 0) }}</td>
+                                <td>${{ number_format((float) ($row->purchase_total ?? 0), 2) }}</td>
+                                <td>${{ number_format((float) ($row->total_price ?? 0), 2) }}</td>
+                                <td>${{ number_format((float) ($row->profit ?? 0), 2) }}</td>
                             </tr>
                         @endif
                     @empty
                         <tr>
-                            <td colspan="4">No data found.</td>
+                            <td colspan="7">No data found.</td>
                         </tr>
                     @endforelse
                 </tbody>

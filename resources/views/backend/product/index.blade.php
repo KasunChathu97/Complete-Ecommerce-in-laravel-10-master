@@ -19,6 +19,7 @@
           <thead>
             <tr>
               <th>S.N.</th>
+              <th>Product No</th>
               <th>Title</th>
               <th>Category</th>
               <th>Is Featured</th>
@@ -30,7 +31,8 @@
               <th>Bulk Discount Amount</th>
               <th>Condition</th>
               <th>Brand</th>
-              <th>Stock</th>
+              <th>Main Stock</th>
+              <th>Admin Stock</th>
               <th>Photo</th>
               <th>Status</th>
               <th>Action</th>
@@ -41,6 +43,7 @@
             @foreach($products as $product)
                 <tr>
                     <td>{{$product->id}}</td>
+                    <td>{{ $product->product_number }}</td>
                     <td>{{$product->title}}</td>
                     <td>
                       {{ optional($product->cat_info)->title ?? '' }}
@@ -80,9 +83,20 @@
                     </td>
                     <td>
                       @if($product->stock>0)
-                      <span class="badge badge-primary">{{$product->stock}}</span>
+                        <span class="badge badge-primary">{{$product->stock}}</span>
                       @else
-                      <span class="badge badge-danger">{{$product->stock}}</span>
+                        <span class="badge badge-danger">{{$product->stock}}</span>
+                      @endif
+                    </td>
+                    <td>
+                      @php
+                        $allocated = (int) ($product->allocated_stock ?? 0);
+                        $adminStock = max(0, (int) $product->stock - $allocated);
+                      @endphp
+                      @if($adminStock>0)
+                        <span class="badge badge-primary">{{$adminStock}}</span>
+                      @else
+                        <span class="badge badge-danger">{{$adminStock}}</span>
                       @endif
                     </td>
                     <td>
@@ -167,7 +181,7 @@
         "columnDefs": [
           {
             "orderable": false,
-            "targets": [10, 11, 12]
+            "targets": [15, 17]
           }
         ]
       });

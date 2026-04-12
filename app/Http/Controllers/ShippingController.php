@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Shipping;
 use App\Models\Coupon;
+use App\Models\Settings;
 
 class ShippingController extends Controller
 {
@@ -16,7 +17,39 @@ class ShippingController extends Controller
     public function index()
     {
         $shipping=Shipping::orderBy('id','DESC')->paginate(10);
-        return view('backend.shipping.index')->with('shippings',$shipping);
+        $settings = Settings::first();
+
+        return view('backend.shipping.index')->with([
+            'shippings' => $shipping,
+            'settings' => $settings,
+        ]);
+    }
+
+    public function updateWeightRates(Request $request)
+    {
+        $this->validate($request, [
+            'shipping_cost_upto_1kg' => 'required|integer|min:0',
+            'shipping_cost_over_1kg_extra' => 'required|integer|min:0',
+        ]);
+
+        $settings = Settings::first();
+        if (!$settings) {
+            request()->session()->flash('error', 'Settings not found. Please save Site Settings first.');
+            return redirect()->route('settings');
+        }
+
+        $settings->shipping_cost_upto_1kg = (int) $request->input('shipping_cost_upto_1kg');
+        $settings->shipping_cost_over_1kg_extra = (int) $request->input('shipping_cost_over_1kg_extra');
+
+        $status = $settings->save();
+
+        if ($status) {
+            request()->session()->flash('success', 'Weight-based shipping rates updated');
+        } else {
+            request()->session()->flash('error', 'Error, Please try again');
+        }
+
+        return redirect()->route('shipping.index');
     }
 
     /**

@@ -5,7 +5,7 @@
 <div class="card">
     <h5 class="card-header">Edit Sales Admin</h5>
     <div class="card-body">
-      <form method="post" action="{{route('sales-admins.update',$salesAdmin->id)}}">
+      <form method="post" action="{{route('sales-admins.update',$salesAdmin->id)}}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -43,15 +43,15 @@
 
         <div class="form-group">
           <label for="inputPhoto" class="col-form-label">Photo</label>
-          <div class="input-group">
-              <span class="input-group-btn">
-                  <a id="lfm" data-input="thumbnail" data-preview="holder" class="btn btn-primary">
-                  <i class="fa fa-picture-o"></i> Choose
-                  </a>
-              </span>
-              <input id="thumbnail" class="form-control" type="text" name="photo" value="{{$salesAdmin->photo}}">
+          <div class="custom-file">
+            <input id="inputPhoto" type="file" name="photo" class="custom-file-input" accept="image/*">
+            <label class="custom-file-label" for="inputPhoto">Choose file</label>
           </div>
-          <img id="holder" style="margin-top:15px;max-height:100px;">
+          @if(!empty($salesAdmin->photo))
+            <div class="mt-2">
+              <img src="{{ $salesAdmin->photo }}" alt="{{ $salesAdmin->name }}" style="max-height:100px;">
+            </div>
+          @endif
           @error('photo')
             <span class="text-danger">{{$message}}</span>
           @enderror
@@ -78,8 +78,23 @@
 @endsection
 
 @push('scripts')
-<script src="/vendor/laravel-filemanager/js/stand-alone-button.js"></script>
 <script>
-    $('#lfm').filemanager('image');
+  (function () {
+    var input = document.getElementById('inputPhoto');
+    if (!input) return;
+
+    input.addEventListener('change', function (e) {
+      var fileName = '';
+      if (input.files && input.files.length > 0) {
+        fileName = input.files[0].name;
+      } else {
+        fileName = (input.value || '').split('\\').pop();
+      }
+      var label = input.parentElement ? input.parentElement.querySelector('.custom-file-label') : null;
+      if (label && fileName) {
+        label.textContent = fileName;
+      }
+    });
+  })();
 </script>
 @endpush

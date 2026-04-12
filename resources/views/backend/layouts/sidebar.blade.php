@@ -122,7 +122,6 @@
           <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Shipping Options:</h6>
             <a class="collapse-item" href="{{route('shipping.index')}}">Shipping</a>
-            <a class="collapse-item" href="{{route('shipping.create')}}">Add Shipping</a>
           </div>
         </div>
     </li>
@@ -165,6 +164,9 @@
             <h6 class="collapse-header">Report Options:</h6>
             <a class="collapse-item" href="{{ route('reports.product-sales') }}">Product Sales</a>
             <a class="collapse-item" href="{{ route('reports.sales-summary') }}">Sales Summary</a>
+            @if($isAdminOnly)
+              <a class="collapse-item" href="{{ route('reports.sales-admin-activities') }}">Sales Admin Activities</a>
+            @endif
           </div>
         </div>
     </li>

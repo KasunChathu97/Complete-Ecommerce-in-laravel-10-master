@@ -13,6 +13,8 @@ use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use App\Models\SalesAdminProductStock;
 class AdminController extends Controller
 {
     public function index(){
@@ -38,9 +40,17 @@ class AdminController extends Controller
                 ->limit(10)
                 ->get();
 
+            $allocatedStocks = SalesAdminProductStock::query()
+                ->with(['product'])
+                ->where('sales_admin_id', $salesAdminId)
+                ->where('quantity', '>', 0)
+                ->orderByDesc('quantity')
+                ->get();
+
             return view('backend.sales_admins.dashboard', [
                 'metrics' => $metrics,
                 'recentOrders' => $recentOrders,
+                'allocatedStocks' => $allocatedStocks,
             ]);
         }
 
@@ -54,8 +64,18 @@ class AdminController extends Controller
      {
        $array[++$key] = [$value->day_name, $value->count];
      }
-    //  return $data;
-     return view('backend.index')->with('users', json_encode($array));
+     // Stock summary for admin dashboard
+      $totalMainStock = (int) DB::table('products')->sum('stock');
+      $totalAllocatedStock = (int) DB::table('sales_admin_product_stocks')->sum('quantity');
+      $totalAdminStock = max(0, $totalMainStock - $totalAllocatedStock);
+
+     //  return $data;
+      return view('backend.index')->with([
+          'users' => json_encode($array),
+          'totalMainStock' => $totalMainStock,
+          'totalAllocatedStock' => $totalAllocatedStock,
+          'totalAdminStock' => $totalAdminStock,
+      ]);
     }
 
     public function profile(){

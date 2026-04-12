@@ -17,6 +17,8 @@ use App\Notifications\StatusNotification;
 use App\Exports\OrderItemsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\QueryException;
+use App\Models\SalesAdminProductStock;
+use App\Models\Settings;
 
 class OrderController extends Controller
 {
@@ -197,8 +199,41 @@ class OrderController extends Controller
 
         $cartBaseQuery = Cart::where('user_id', auth()->user()->id)->where('order_id', null);
         $cartItems = (clone $cartBaseQuery)
-            ->with('product:id,title,free_shipping,free_shipping_enabled')
+            ->with('product:id,title,weight,free_shipping,free_shipping_enabled')
             ->get();
+
+        // Refresh weight-based shipping costs using current admin settings.
+        $settings = Settings::first() ?? new Settings();
+        $baseShipping = max(0, (int) data_get($settings, 'shipping_cost_upto_1kg', 350));
+        $extraShipping = max(0, (int) data_get($settings, 'shipping_cost_over_1kg_extra', 80));
+
+        foreach ($cartItems as $cartItem) {
+            if (empty($cartItem->product)) {
+                continue;
+            }
+
+            $newShipping = 0;
+
+            if (!empty($cartItem->product->free_shipping) || !empty($cartItem->product->free_shipping_enabled)) {
+                $newShipping = 0;
+            } elseif (!empty($cartItem->product->weight) && (int) $cartItem->quantity > 0) {
+                $totalWeightGrams = $cartItem->product->weight * (int) $cartItem->quantity * 1000;
+                if ($totalWeightGrams > 0 && $totalWeightGrams <= 1000) {
+                    $newShipping = $baseShipping;
+                } elseif ($totalWeightGrams > 1000) {
+                    $newShipping = $baseShipping + $extraShipping;
+                }
+            }
+
+            $oldShipping = (int) ($cartItem->shipping_cost ?? 0);
+            if ($newShipping !== $oldShipping) {
+                $cartItem->shipping_cost = $newShipping;
+                if ($cartItem->amount !== null) {
+                    $cartItem->amount = max(0, ((float) $cartItem->amount - $oldShipping) + $newShipping);
+                }
+                $cartItem->save();
+            }
+        }
 
         $cart_has_items = $cartItems->isNotEmpty();
         $all_free_shipping = $cart_has_items && $cartItems->every(function ($cart) {
@@ -475,18 +510,34 @@ class OrderController extends Controller
             unset($data['sales_staff_id']);
             unset($data['payment_status']);
         }
-        // return $request->status;
-        if($request->status=='delivered'){
-            foreach($order->cart as $cart){
-                $product=$cart->product;
-                // return $product;
-                $product->stock -=$cart->quantity;
-                $product->save();
-            }
-        }
         $status=$order->fill($data)->save();
         if($status){
             request()->session()->flash('success','Successfully updated order');
+
+            // Decrement product stock only once when transitioning to delivered.
+            $statusText = $order->status;
+            $isDeliveredTransition = ($originalStatus !== (string) $statusText) && ((string) $statusText === 'delivered');
+            if ($isDeliveredTransition) {
+                foreach ($order->cart as $cart) {
+                    $product = $cart->product;
+                    if ($product) {
+                        $product->stock = max(0, (int) $product->stock - (int) $cart->quantity);
+                        $product->save();
+                    }
+
+                    // If this order is assigned to a sales admin, reduce their allocated stock too.
+                    if (!empty($order->sales_staff_id) && !empty($cart->product_id)) {
+                        $alloc = SalesAdminProductStock::query()->where([
+                            'sales_admin_id' => $order->sales_staff_id,
+                            'product_id' => $cart->product_id,
+                        ])->first();
+                        if ($alloc) {
+                            $alloc->quantity = max(0, (int) $alloc->quantity - (int) $cart->quantity);
+                            $alloc->save();
+                        }
+                    }
+                }
+            }
 
             // If admin marked the order as paid (COD/manual payment), send payment received notification.
             $newPaymentStatus = (string) ($order->payment_status ?? '');
@@ -500,7 +551,6 @@ class OrderController extends Controller
             }
 
             // Log SMS entry for status/courier updates
-            $statusText = $order->status;
             $extra = [];
             if (!empty($order->courier_name)) {
                 $extra[] = 'Courier: '.$order->courier_name;
@@ -509,8 +559,6 @@ class OrderController extends Controller
                 $extra[] = 'Tracking: '.$order->tracking_number;
             }
             $suffix = empty($extra) ? '' : ' | '.implode(' | ', $extra);
-
-            $isDeliveredTransition = ($originalStatus !== (string) $statusText) && ((string) $statusText === 'delivered');
             $messagePrefix = $isDeliveredTransition ? 'Order delivered.' : 'Order update.';
 
             $this->logOrderSms(

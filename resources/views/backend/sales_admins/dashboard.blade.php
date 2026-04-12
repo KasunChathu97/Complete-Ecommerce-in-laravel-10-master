@@ -100,9 +100,38 @@
           </div>
           <div class="card-body">
             <a href="{{ route('order.index') }}" class="btn btn-primary btn-sm mr-2">My Orders</a>
-            <a href="{{ route('reports.product-sales') }}" class="btn btn-outline-primary btn-sm mr-2">Reports</a>
             <a href="{{ route('sms-logs.index') }}" class="btn btn-outline-secondary btn-sm">SMS Logs</a>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">My Stock</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered" width="100%" cellspacing="0">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="width:140px;">Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse(($allocatedStocks ?? []) as $row)
+                <tr>
+                  <td>{{ optional($row->product)->title ?? 'Product not found' }}</td>
+                  <td><span class="badge badge-primary">{{ (int) $row->quantity }}</span></td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="2">No stock allocated yet.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

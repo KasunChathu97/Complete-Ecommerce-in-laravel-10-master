@@ -16,14 +16,34 @@
 <body>
     <h2>Product-wise Sales Report</h2>
     <div class="meta">
-        <div><strong>From:</strong> {{ $from ?? '-' }} &nbsp;&nbsp; <strong>To:</strong> {{ $to ?? '-' }}</div>
-        <div><strong>Only Delivered Orders</strong></div>
+        @php
+            $filters = $filters ?? [];
+        @endphp
+        <div>
+            <strong>Date:</strong> {{ $filters['date'] ?? '-' }}
+            @if(!empty($filters['product']))
+                &nbsp;&nbsp; <strong>Product:</strong> {{ $filters['product'] }}
+            @endif
+            @if(!empty($filters['category_id']))
+                &nbsp;&nbsp; <strong>Category ID:</strong> {{ $filters['category_id'] }}
+            @endif
+            @if(!empty($filters['status']))
+                &nbsp;&nbsp; <strong>Status:</strong>
+                {{ $filters['status'] === 'in_process' ? 'In Process' : 'Delivered' }}
+            @endif
+        </div>
+        <div>
+            <strong>
+                {{ ($filters['status'] ?? 'delivered') === 'in_process' ? 'Only In Process Orders' : 'Only Delivered Orders' }}
+            </strong>
+        </div>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th>Product</th>
+                <th>Sold Date</th>
                 <th class="right">Purchase Price</th>
                 <th class="right">Sales Price</th>
                 <th class="right">Total Qty</th>
@@ -35,6 +55,7 @@
             @forelse($rows as $row)
                 <tr>
                     <td>{{ $row->product }}</td>
+                    <td>{{ $row->sold_date ?? '-' }}</td>
                     <td class="right">
                         @if($row->purchase_price === null)
                             -
@@ -55,7 +76,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">No data found.</td>
+                    <td colspan="7">No data found.</td>
                 </tr>
             @endforelse
         </tbody>
