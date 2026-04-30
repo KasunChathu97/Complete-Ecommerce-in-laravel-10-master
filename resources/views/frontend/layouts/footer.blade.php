@@ -181,7 +181,7 @@
 					<div class="row">
 						<div class="col-lg-6 col-12">
 							<div class="left">
-								<p>Copyright © {{date('Y')}} <a href="https://nmdskandy.lk/" target="_blank">nmdskandy</a>  -  All Rights Reserved.</p>
+								<p>Copyright © 2026 <a href="https://nmdskandy.lk/" target="_blank">nmdskandy</a> - All Rights Reserved.</p>
 							</div>
 						</div>
 						<div class="col-lg-6 col-12">
