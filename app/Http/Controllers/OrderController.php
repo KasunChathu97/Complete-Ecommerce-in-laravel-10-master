@@ -56,6 +56,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'date' => 'nullable|date',
             'status' => ['nullable', 'string', Rule::in($allowedStatuses)],
+            'track' => 'nullable|string|max:150',
         ]);
 
         $baseQuery = Order::query()->with('salesStaff:id,name')->orderBy('id', 'DESC');
@@ -67,6 +68,14 @@ class OrderController extends Controller
 
         if (!empty($validated['date'])) {
             $baseQuery->whereDate('created_at', $validated['date']);
+        }
+
+        $track = trim((string) ($validated['track'] ?? ''));
+        if ($track !== '') {
+            $baseQuery->where(function ($q) use ($track) {
+                $q->where('order_number', 'like', '%'.$track.'%')
+                    ->orWhere('courier_tracking_number', 'like', '%'.$track.'%');
+            });
         }
 
         $requestedStatus = $validated['status'] ?? null;
@@ -104,6 +113,69 @@ class OrderController extends Controller
             'status' => $requestedStatus,
             'statusCounts' => $statusCounts,
         ]);
+    }
+
+    /**
+     * Autocomplete suggestions for admin order search.
+     * Returns matching order numbers or courier tracking numbers.
+     */
+    public function suggest(Request $request)
+    {
+        $validated = $request->validate([
+            'q' => 'nullable|string|max:150',
+        ]);
+
+        $q = trim((string) ($validated['q'] ?? ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $baseQuery = Order::query();
+
+        // Sales admins can only see suggestions for orders assigned to them.
+        if (auth()->check() && auth()->user()->role === 'sales_admin') {
+            $baseQuery->where('sales_staff_id', auth()->id());
+        }
+
+        $orders = (clone $baseQuery)
+            ->select(['order_number', 'courier_tracking_number'])
+            ->where(function ($query) use ($q) {
+                $query->where('order_number', 'like', '%'.$q.'%')
+                    ->orWhere('courier_tracking_number', 'like', '%'.$q.'%');
+            })
+            ->orderBy('id', 'desc')
+            ->limit(10)
+            ->get();
+
+        $suggestions = [];
+        foreach ($orders as $order) {
+            if (!empty($order->order_number)) {
+                $suggestions[] = [
+                    'value' => (string) $order->order_number,
+                    'type' => 'order_number',
+                ];
+            }
+            if (!empty($order->courier_tracking_number)) {
+                $suggestions[] = [
+                    'value' => (string) $order->courier_tracking_number,
+                    'type' => 'courier_tracking_number',
+                ];
+            }
+        }
+
+        // De-duplicate while preserving order.
+        $unique = [];
+        $seen = [];
+        foreach ($suggestions as $s) {
+            $key = $s['type'].':'.$s['value'];
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $unique[] = $s;
+        }
+
+        return response()->json($unique);
     }
 
     /**
@@ -181,7 +253,7 @@ class OrderController extends Controller
             $order_data['country'] = 'Sri Lanka';
         }
 
-        // Generate sequential order + tracking numbers.
+        // Generate sequential order number.
         // If collisions occur under concurrency, retry a few times.
         $maxAttempts = 5;
         $attempt = 0;
@@ -190,7 +262,7 @@ class OrderController extends Controller
         while (!$saved && $attempt < $maxAttempts) {
             $attempt++;
             $order_data['order_number'] = Order::nextOrderNumber();
-            $order_data['tracking_number'] = $order_data['tracking_number'] ?? Order::nextTrackingNumber();
+            // Courier tracking number is added manually when the order is delivered.
         $order_data['user_id']=$request->user()->id;
         $order_data['shipping_id']=$request->shipping;
         $shipping=Shipping::where('id',$order_data['shipping_id'])->pluck('price');
@@ -333,9 +405,22 @@ class OrderController extends Controller
 
         $itemsText = !empty($itemNames) ? implode(', ', $itemNames) : 'N/A';
 
+        $greetingName = trim((string) ($order->first_name ?? ''));
+        if ($greetingName === '') {
+            $greetingName = trim((string) ($order->first_name ?? '').' '.(string) ($order->last_name ?? ''));
+        }
+        if ($greetingName === '') {
+            $greetingName = 'Customer';
+        }
+
+        $paymentStatusText = strtoupper((string) ($order->payment_status ?? ''));
+        if ($paymentStatusText === '') {
+            $paymentStatusText = 'N/A';
+        }
+
         $this->logOrderSms(
             $order,
-            'Order placed successfully. Name: '.trim($order->first_name.' '.$order->last_name).' | Items: '.$itemsText.' | Order No: '.$order->order_number.' | Total Price: LKR '.$order->total_amount.' | Payment: '.$order->payment_method,
+            'Dear '.$greetingName.', your order placed successfully. Items: '.$itemsText.' | Order No: '.$order->order_number.' | Status: '.(string) $order->status.' | Payment Status: '.$paymentStatusText.' | Total Price: LKR '.$order->total_amount.' | Payment Method: '.$order->payment_method,
             'queued',
             null
         );
@@ -488,7 +573,7 @@ class OrderController extends Controller
         $this->validate($request,[
             'status'=>'required|in:new,pending,process,ship,delivered,cancel',
             'courier_name' => 'nullable|string|max:100',
-            'tracking_number' => 'nullable|string|max:150',
+            'courier_tracking_number' => 'nullable|string|max:150',
             'payment_status' => 'nullable|in:paid,unpaid',
             'sales_staff_id' => [
                 'nullable',
@@ -498,11 +583,18 @@ class OrderController extends Controller
                 }),
             ],
         ]);
+
         $data=$request->all();
 
         // Normalize legacy status.
         if (($data['status'] ?? null) === 'pending') {
             $data['status'] = 'ship';
+        }
+
+        // Only store courier tracking details when the order is delivered.
+        if (($data['status'] ?? null) !== 'delivered') {
+            // Explicitly clear so any legacy/TRN value does not persist.
+            $data['courier_tracking_number'] = null;
         }
 
         // Only the main admin can assign/unassign sales admins.
@@ -542,9 +634,32 @@ class OrderController extends Controller
             // If admin marked the order as paid (COD/manual payment), send payment received notification.
             $newPaymentStatus = (string) ($order->payment_status ?? '');
             if ($originalPaymentStatus !== 'paid' && $newPaymentStatus === 'paid') {
+                $greetingName = trim((string) ($order->first_name ?? ''));
+                if ($greetingName === '') {
+                    $greetingName = trim((string) ($order->first_name ?? '').' '.(string) ($order->last_name ?? ''));
+                }
+                if ($greetingName === '') {
+                    $greetingName = 'Customer';
+                }
+
+                $itemNames = $order->cart()
+                    ->with('product:id,title')
+                    ->get()
+                    ->map(function ($cart) {
+                        return $cart->product->title ?? null;
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+                $itemsText = !empty($itemNames) ? implode(', ', $itemNames) : 'N/A';
+
+                $paymentStatusText = strtoupper((string) ($order->payment_status ?? ''));
+                if ($paymentStatusText === '') {
+                    $paymentStatusText = 'N/A';
+                }
                 $this->logOrderSms(
                     $order,
-                    'Payment received. Order No: '.$order->order_number.' | Total: '.$order->total_amount.' | Method: '.strtoupper((string) $order->payment_method),
+                    'Dear '.$greetingName.', payment received for your order. Items: '.$itemsText.' | Order No: '.$order->order_number.' | Payment Status: '.$paymentStatusText.' | Total: '.$order->total_amount.' | Method: '.strtoupper((string) $order->payment_method),
                     'queued',
                     null
                 );
@@ -555,15 +670,39 @@ class OrderController extends Controller
             if (!empty($order->courier_name)) {
                 $extra[] = 'Courier: '.$order->courier_name;
             }
-            if (!empty($order->tracking_number)) {
-                $extra[] = 'Tracking: '.$order->tracking_number;
+            if (!empty($order->courier_tracking_number)) {
+                $extra[] = 'Courier Tracking: '.$order->courier_tracking_number;
             }
             $suffix = empty($extra) ? '' : ' | '.implode(' | ', $extra);
             $messagePrefix = $isDeliveredTransition ? 'Order delivered.' : 'Order update.';
 
+            $greetingName = trim((string) ($order->first_name ?? ''));
+            if ($greetingName === '') {
+                $greetingName = trim((string) ($order->first_name ?? '').' '.(string) ($order->last_name ?? ''));
+            }
+            if ($greetingName === '') {
+                $greetingName = 'Customer';
+            }
+
+            $itemNames = $order->cart()
+                ->with('product:id,title')
+                ->get()
+                ->map(function ($cart) {
+                    return $cart->product->title ?? null;
+                })
+                ->filter()
+                ->values()
+                ->all();
+            $itemsText = !empty($itemNames) ? implode(', ', $itemNames) : 'N/A';
+
+            $paymentStatusText = strtoupper((string) ($order->payment_status ?? ''));
+            if ($paymentStatusText === '') {
+                $paymentStatusText = 'N/A';
+            }
+
             $this->logOrderSms(
                 $order,
-                $messagePrefix.' Order No: '.$order->order_number.' | Status: '.$statusText.$suffix,
+                'Dear '.$greetingName.', '.$messagePrefix.' Items: '.$itemsText.' | Order No: '.$order->order_number.' | Status: '.$statusText.' | Payment Status: '.$paymentStatusText.$suffix,
                 'queued',
                 null
             );

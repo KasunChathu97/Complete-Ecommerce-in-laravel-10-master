@@ -30,6 +30,21 @@
     <!-- Divider -->
     <hr class="sidebar-divider">
 
+    @if($authRole === 'sales_admin')
+      <div class="sidebar-heading">
+        Orders
+      </div>
+
+      <li class="nav-item">
+        <a class="nav-link" href="{{route('order.index')}}">
+          <i class="fas fa-hammer fa-chart-area"></i>
+          <span>My Orders</span>
+        </a>
+      </li>
+
+      <hr class="sidebar-divider">
+    @endif
+
     @if($isAdminOnly)
         <!-- Heading 
         <div class="sidebar-heading">

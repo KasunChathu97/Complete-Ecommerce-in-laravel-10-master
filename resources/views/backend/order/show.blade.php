@@ -84,10 +84,12 @@
                       <td>Courier</td>
                       <td> : {{ $order->courier_name ?? '-' }}</td>
                     </tr>
+                    @if($order->status === 'delivered')
                     <tr>
-                      <td>Tracking Number</td>
-                      <td> : {{ $order->tracking_number ?? '-' }}</td>
+                      <td>Courier Tracking Number</td>
+                      <td> : {{ $order->courier_tracking_number ?? '-' }}</td>
                     </tr>
+                    @endif
                     <tr>
                       <td>Assigned Sales Admin</td>
                       <td> : {{ optional($order->salesStaff)->name ?? '-' }}</td>

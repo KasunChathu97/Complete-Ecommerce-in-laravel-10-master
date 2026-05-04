@@ -99,7 +99,7 @@
 								<li><a href="#">Money-back</a></li>
 								<li><a href="{{ url('returns') }}">Returns</a></li>
 								<li><a href="#">Shipping</a></li>
-								<li><a href="#">Privacy Policy</a></li>
+								<li><a href="{{ url('terms') }}">Privacy Policy</a></li>
 							</ul>
 						</div>
 						<!-- End Single Widget -->

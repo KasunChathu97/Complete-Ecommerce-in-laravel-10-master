@@ -15,25 +15,26 @@
       @php
         $activeStatus = request('status', $status ?? null);
         $dateParam = request('date', $date ?? null);
+        $trackParam = request('track');
       @endphp
 
       <div class="d-flex flex-wrap mb-3" style="gap:10px;">
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam])) }}" class="btn btn-sm {{ empty($activeStatus) ? 'btn-primary' : 'btn-outline-primary' }}">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'track' => $trackParam])) }}" class="btn btn-sm {{ empty($activeStatus) ? 'btn-primary' : 'btn-outline-primary' }}">
           All ({{ $statusCounts['all'] ?? 0 }})
         </a>
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'new'])) }}" class="btn btn-sm {{ $activeStatus==='new' ? 'btn-primary' : 'btn-outline-primary' }}">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'track' => $trackParam, 'status' => 'new'])) }}" class="btn btn-sm {{ $activeStatus==='new' ? 'btn-primary' : 'btn-outline-primary' }}">
           New ({{ $statusCounts['new'] ?? 0 }})
         </a>
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'process'])) }}" class="btn btn-sm {{ $activeStatus==='process' ? 'btn-warning' : 'btn-outline-warning' }}">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'track' => $trackParam, 'status' => 'process'])) }}" class="btn btn-sm {{ $activeStatus==='process' ? 'btn-warning' : 'btn-outline-warning' }}">
           Process ({{ $statusCounts['process'] ?? 0 }})
         </a>
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'ship'])) }}" class="btn btn-sm {{ $activeStatus==='ship' ? 'btn-info' : 'btn-outline-info' }}">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'track' => $trackParam, 'status' => 'ship'])) }}" class="btn btn-sm {{ $activeStatus==='ship' ? 'btn-info' : 'btn-outline-info' }}">
           ship ({{ $statusCounts['ship'] ?? 0 }})
         </a>
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'delivered'])) }}" class="btn btn-sm {{ $activeStatus==='delivered' ? 'btn-success' : 'btn-outline-success' }}">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'track' => $trackParam, 'status' => 'delivered'])) }}" class="btn btn-sm {{ $activeStatus==='delivered' ? 'btn-success' : 'btn-outline-success' }}">
           Delivered ({{ $statusCounts['delivered'] ?? 0 }})
         </a>
-        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'status' => 'cancel'])) }}" class="btn btn-sm {{ $activeStatus==='cancel' ? 'btn-danger' : 'btn-outline-danger' }}">
+        <a href="{{ route('order.index', array_filter(['date' => $dateParam, 'track' => $trackParam, 'status' => 'cancel'])) }}" class="btn btn-sm {{ $activeStatus==='cancel' ? 'btn-danger' : 'btn-outline-danger' }}">
           Cancel ({{ $statusCounts['cancel'] ?? 0 }})
         </a>
       </div>
@@ -44,6 +45,11 @@
           <div>
             <label for="order_date" class="mb-1"><small>Order date</small></label>
             <input type="date" id="order_date" name="date" value="{{ request('date', $date ?? '') }}" class="form-control" style="min-width: 180px;" />
+          </div>
+          <div>
+            <label for="order_track" class="mb-1"><small>Courier Tracking Number / Order No</small></label>
+            <input type="text" id="order_track" name="track" value="{{ request('track', '') }}" class="form-control" style="min-width: 260px;" placeholder="Search..." list="order_track_suggestions" autocomplete="off" />
+            <datalist id="order_track_suggestions"></datalist>
           </div>
           <div class="d-flex" style="gap: 8px;">
             <button type="submit" class="btn btn-primary">Filter</button>
@@ -136,7 +142,7 @@
           </tbody>
         </table>
         @if(is_object($orders) && method_exists($orders, 'links'))
-          <span style="float:right">{{$orders->links()}}</span>
+          <span style="float:right">{{$orders->appends(request()->query())->links()}}</span>
         @endif
         @else
           <h6 class="text-center">No orders found!!! Please order some products</h6>
@@ -210,5 +216,71 @@
                 });
           })
       })
+  </script>
+
+  <script>
+    (function () {
+      var input = document.getElementById('order_track');
+      var list = document.getElementById('order_track_suggestions');
+      if (!input || !list) {
+        return;
+      }
+
+      var timer = null;
+      var lastQuery = '';
+
+      function clearOptions() {
+        while (list.firstChild) {
+          list.removeChild(list.firstChild);
+        }
+      }
+
+      function renderOptions(items) {
+        clearOptions();
+        for (var i = 0; i < items.length; i++) {
+          var opt = document.createElement('option');
+          opt.value = items[i].value;
+          list.appendChild(opt);
+        }
+      }
+
+      function fetchSuggestions(query) {
+        fetch("{{ route('orders.suggest') }}" + "?q=" + encodeURIComponent(query), {
+          headers: { 'Accept': 'application/json' }
+        })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (data) {
+            if (!Array.isArray(data)) {
+              renderOptions([]);
+              return;
+            }
+            renderOptions(data);
+          })
+          .catch(function () {
+            renderOptions([]);
+          });
+      }
+
+      input.addEventListener('input', function () {
+        var q = (input.value || '').trim();
+        if (q === lastQuery) {
+          return;
+        }
+        lastQuery = q;
+
+        if (timer) {
+          clearTimeout(timer);
+        }
+
+        if (q.length < 2) {
+          clearOptions();
+          return;
+        }
+
+        timer = setTimeout(function () {
+          fetchSuggestions(q);
+        }, 250);
+      });
+    })();
   </script>
 @endpush

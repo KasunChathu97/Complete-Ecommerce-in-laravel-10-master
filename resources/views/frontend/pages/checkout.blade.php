@@ -544,7 +544,7 @@
                     <div class="single-service">
                         <i class="ti-rocket"></i>
                         <h4>Free shiping</h4>
-                        <p>Orders over {{Helper::formatCurrency(100)}}</p>
+                        <p>Orders over {{Helper::formatCurrency(10000)}}</p>
                     </div>
                     <!-- End Single Service -->
                 </div>
@@ -553,7 +553,7 @@
                     <div class="single-service">
                         <i class="ti-reload"></i>
                         <h4>Free Return</h4>
-                        <p>Within 30 days returns</p>
+                        <p>Within 14 days returns</p>
                     </div>
                     <!-- End Single Service -->
                 </div>

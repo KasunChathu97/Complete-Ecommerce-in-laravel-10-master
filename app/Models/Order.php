@@ -12,7 +12,7 @@ class Order extends Model
         'total_amount','first_name','last_name','country','post_code','address1','address2','phone','email',
         'district',
         'payment_method','payment_gateway','payment_reference','payment_status',
-        'shipping_id','courier_name','tracking_number','shipped_at','delivered_at',
+        'shipping_id','courier_name','courier_tracking_number','shipped_at','delivered_at',
         'social_platform','social_order_ref',
         'coupon','notes',
         'emergency_contact'
@@ -21,11 +21,6 @@ class Order extends Model
     public static function nextOrderNumber(): string
     {
         return static::nextAlphaNumericSequence('order_number', 'ORD');
-    }
-
-    public static function nextTrackingNumber(): string
-    {
-        return static::nextAlphaNumericSequence('tracking_number', 'TRN');
     }
 
     /**

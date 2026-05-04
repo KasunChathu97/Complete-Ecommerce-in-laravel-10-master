@@ -24,14 +24,40 @@
       </div>
       @endif
 
+      @php
+        $orderedItemNames = $order->cart
+          ->map(function ($cart) {
+            return optional($cart->product)->title;
+          })
+          ->filter();
+        $orderedItemsText = $orderedItemNames->isNotEmpty() ? $orderedItemNames->implode(', ') : '-';
+      @endphp
+
+      <div class="form-group">
+        <label>Order Items :</label>
+        <input type="text" class="form-control" value="{{ $orderedItemsText }}" readonly>
+      </div>
+
+      <div class="form-group">
+        <label>Order Number :</label>
+        <input type="text" class="form-control" value="{{ $order->order_number }}" readonly>
+      </div>
+
       <div class="form-group">
         <label for="courier_name">Courier Name :</label>
         <input type="text" name="courier_name" class="form-control" value="{{ old('courier_name', $order->courier_name) }}" placeholder="e.g. DHL / FedEx / Local Courier">
       </div>
 
-      <div class="form-group">
-        <label for="tracking_number">Tracking Number :</label>
-        <input type="text" name="tracking_number" class="form-control" value="{{ old('tracking_number', $order->tracking_number) }}" placeholder="Enter tracking number">
+      <div id="courier-tracking-fields">
+        <div class="form-group">
+          <label for="courier_tracking_number">Courier Tracking Number :</label>
+          <input
+            type="text"
+            name="courier_tracking_number"
+            class="form-control"
+            value="{{ old('courier_tracking_number', $order->status === 'delivered' ? $order->courier_tracking_number : '') }}"
+            placeholder="Enter courier tracking number">
+        </div>
       </div>
 
       <div class="form-group">
@@ -42,7 +68,7 @@
             $currentStatus = 'ship';
           }
         @endphp
-        <select name="status" id="" class="form-control">
+        <select name="status" id="order_status" class="form-control">
           <option value="new" {{($order->status!='new') ? 'disabled' : ''}}  {{(($currentStatus=='new')? 'selected' : '')}}>New</option>
           <option value="process" {{($order->status=='delivered'|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='process')? 'selected' : '')}}>process</option>
           <option value="ship" {{($order->status=="delivered"|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='ship')? 'selected' : '')}}>ship</option>
@@ -78,4 +104,29 @@
     }
 
 </style>
+@endpush
+
+@push('scripts')
+<script>
+  (function () {
+    var statusSelect = document.getElementById('order_status');
+    var container = document.getElementById('courier-tracking-fields');
+    if (!statusSelect || !container) {
+      return;
+    }
+
+    function toggleCourierFields() {
+      var isDelivered = (statusSelect.value === 'delivered');
+      container.style.display = isDelivered ? '' : 'none';
+
+      var inputs = container.querySelectorAll('input, textarea, select');
+      for (var i = 0; i < inputs.length; i++) {
+        inputs[i].disabled = !isDelivered;
+      }
+    }
+
+    statusSelect.addEventListener('change', toggleCourierFields);
+    toggleCourierFields();
+  })();
+</script>
 @endpush

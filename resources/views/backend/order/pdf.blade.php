@@ -122,13 +122,13 @@
           <div class="muted" style="margin-top: 2px;">Delivery Charge: <strong>{{ Helper::formatCurrency($deliveryCharge) }}</strong></div>
           <div class="muted" style="margin-top: 2px;">Shipping Fee: <strong>{{ Helper::formatCurrency($shippingFee) }}</strong></div>
         @endif
-        @if(!empty($order->courier_name) || !empty($order->tracking_number))
+        @if(!empty($order->courier_name) || (!empty($order->courier_tracking_number) && $order->status === 'delivered'))
           <div style="margin-top: 6px;">
             @if(!empty($order->courier_name))
               <div class="muted">Courier: <strong>{{ $order->courier_name }}</strong></div>
             @endif
-            @if(!empty($order->tracking_number))
-              <div class="muted">Tracking #: <strong>{{ $order->tracking_number }}</strong></div>
+            @if($order->status === 'delivered' && !empty($order->courier_tracking_number))
+              <div class="muted">Courier Tracking #: <strong>{{ $order->courier_tracking_number }}</strong></div>
             @endif
           </div>
         @endif
