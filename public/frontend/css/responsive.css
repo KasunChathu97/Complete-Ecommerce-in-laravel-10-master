@@ -189,7 +189,6 @@ Version:1.0
 }
 .hero-area3 .small-content.secound {
 	width: 49%;
-	display: inline-block;
 	float: right;
 }
 .hero-area4 .big-content {
@@ -855,7 +854,6 @@ Version:1.0
 }
 .shopping-cart .table td {
 	padding: .75rem;
-	vertical-align: top;
 	border-top: 1px solid #e9ecef;
 	display: block;
 	height: auto;
@@ -1454,7 +1452,7 @@ Version:1.0
 }
 .shop .nice-select {
 	width: 100%;
-	display: ;
+	display: block;
 	margin-top: 4px;
 }
 .shop .view-mode {
@@ -1465,15 +1463,8 @@ Version:1.0
 }
 .shop .view-mode li {
 	display: inline-block;
-	margin-right: 5px;
-	display: inline-block;
-	margin: 0;
-	mar0-t: mar;
+	margin: 0 5px 10px 0;
 	margin-top: 4px;
-	width: 100%;
-	display: block;
-	display: inline-block;
-	display: ;
 }
 .shop .view-mode li a {
 	width: 80px;
