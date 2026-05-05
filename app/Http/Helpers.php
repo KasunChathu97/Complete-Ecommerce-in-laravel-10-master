@@ -15,8 +15,8 @@ class Helper
 {
     public static function currencySymbol(): string
     {
-        // Sri Lanka Rupees
-        return 'Rs.';
+        // Sri Lanka Rupees (ISO code)
+        return 'LKR';
     }
 
     public static function formatCurrency($amount, int $decimals = 2): string

@@ -112,7 +112,7 @@
                     <td>{{$order->email}}</td>
                     <td>{{ optional($order->salesStaff)->name ?? '-' }}</td>
                     <td>{{$order->quantity}}</td>
-                    <td>${{number_format($order->total_amount,2)}}</td>
+                    <td>{{ Helper::formatCurrency($order->total_amount, 2) }}</td>
                     <td>{{ optional($order->created_at)->format('Y-m-d') }}</td>
                     <td>
                         @if($order->status=='new')

@@ -72,18 +72,18 @@
                                 <td>{{ $row->month }}</td>
                                 <td>{{ (int) $row->total_orders }}</td>
                                 <td>{{ (int) ($row->total_qty ?? 0) }}</td>
-                                <td>${{ number_format((float) ($row->purchase_total ?? 0), 2) }}</td>
-                                <td>${{ number_format((float) ($row->total_price ?? 0), 2) }}</td>
-                                <td>${{ number_format((float) ($row->profit ?? 0), 2) }}</td>
+                                <td>{{ Helper::formatCurrency((float) ($row->purchase_total ?? 0), 2) }}</td>
+                                <td>{{ Helper::formatCurrency((float) ($row->total_price ?? 0), 2) }}</td>
+                                <td>{{ Helper::formatCurrency((float) ($row->profit ?? 0), 2) }}</td>
                             </tr>
                         @else
                             <tr>
                                 <td>{{ $row->day }}</td>
                                 <td>{{ (int) $row->total_orders }}</td>
                                 <td>{{ (int) ($row->total_qty ?? 0) }}</td>
-                                <td>${{ number_format((float) ($row->purchase_total ?? 0), 2) }}</td>
-                                <td>${{ number_format((float) ($row->total_price ?? 0), 2) }}</td>
-                                <td>${{ number_format((float) ($row->profit ?? 0), 2) }}</td>
+                                <td>{{ Helper::formatCurrency((float) ($row->purchase_total ?? 0), 2) }}</td>
+                                <td>{{ Helper::formatCurrency((float) ($row->total_price ?? 0), 2) }}</td>
+                                <td>{{ Helper::formatCurrency((float) ($row->profit ?? 0), 2) }}</td>
                             </tr>
                         @endif
                     @empty

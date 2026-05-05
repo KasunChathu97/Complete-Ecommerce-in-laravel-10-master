@@ -156,13 +156,12 @@
                                                 <div class="product-price">
                                                     @php
                                                         $after_discount = ($product->price - ($product->price * $product->discount / 100));
-                                                        $currency = 'Rs.';
                                                     @endphp
                                                     @if($product->discount)
-                                                        <span class="current-price">{{$currency}}{{number_format($after_discount,2)}}</span>
-                                                        <span class="old-price">{{$currency}}{{number_format($product->price,2)}}</span>
+                                                        <span class="current-price">{{ Helper::formatCurrency($after_discount, 2) }}</span>
+                                                        <span class="old-price">{{ Helper::formatCurrency($product->price, 2) }}</span>
                                                     @else
-                                                        <span class="current-price">{{$currency}}{{number_format($product->price,2)}}</span>
+                                                        <span class="current-price">{{ Helper::formatCurrency($product->price, 2) }}</span>
                                                     @endif
                                                 </div>
                                                 

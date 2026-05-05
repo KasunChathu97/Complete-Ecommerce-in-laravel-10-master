@@ -88,17 +88,17 @@
                                 @if($row->purchase_price === null)
                                     -
                                 @else
-                                    ${{ number_format((float) $row->purchase_price, 2) }}
+                                    {{ Helper::formatCurrency((float) $row->purchase_price, 2) }}
                                 @endif
                             </td>
-                            <td>${{ number_format((float) $row->sale_price, 2) }}</td>
+                            <td>{{ Helper::formatCurrency((float) $row->sale_price, 2) }}</td>
                             <td>{{ (int) $row->total_qty }}</td>
-                            <td>${{ number_format((float) $row->total_price, 2) }}</td>
+                            <td>{{ Helper::formatCurrency((float) $row->total_price, 2) }}</td>
                             <td>
                                 @if($row->profit === null)
                                     -
                                 @else
-                                    ${{ number_format((float) $row->profit, 2) }}
+                                    {{ Helper::formatCurrency((float) $row->profit, 2) }}
                                 @endif
                             </td>
                         </tr>

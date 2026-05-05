@@ -64,10 +64,10 @@
             <div class="row no-gutters align-items-center">
               <div class="col mr-2">
                 <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Delivered Revenue</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format((float)($metrics['delivered_revenue'] ?? 0), 2) }}</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ Helper::formatCurrency((float)($metrics['delivered_revenue'] ?? 0), 2) }}</div>
               </div>
               <div class="col-auto">
-                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
               </div>
             </div>
           </div>
@@ -159,7 +159,7 @@
                 <tr>
                   <td>{{ $order->order_number }}</td>
                   <td>{{ $order->first_name }} {{ $order->last_name }}</td>
-                  <td>${{ number_format((float)$order->total_amount, 2) }}</td>
+                  <td>{{ Helper::formatCurrency((float)$order->total_amount, 2) }}</td>
                   <td>
                     @if($order->status=='new')
                       <span class="badge badge-primary">{{ $order->status }}</span>

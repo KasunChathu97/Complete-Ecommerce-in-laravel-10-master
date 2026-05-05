@@ -117,7 +117,6 @@
                                         @php
                                             $photo=explode(',',$product->photo);
                                             $after_discount = $product->price - ($product->price * $product->discount / 100);
-                                            $currency = 'Rs.';
                                         @endphp
                                         <div class="single-post first">
                                             <div class="image">
@@ -129,9 +128,9 @@
                                                     <div class="discount-below-image" style="margin-top:4px;text-align:left;">
                                                         <span class="badge badge-warning" style="font-size:0.95rem;padding:4px 12px;background:#F7941D;color:#fff;">{{$product->discount}}% Off</span>
                                                     </div>
-                                                    <p class="price mb-0"><span style="color:#e74c3c;font-weight:600;">{{$currency}}{{number_format($after_discount,2)}}</span> <del class="text-muted" style="padding-left:4%">{{$currency}}{{number_format($product->price,2)}}</del></p>
+                                                    <p class="price mb-0"><span style="color:#e74c3c;font-weight:600;">{{ Helper::formatCurrency($after_discount, 2) }}</span> <del class="text-muted" style="padding-left:4%">{{ Helper::formatCurrency($product->price, 2) }}</del></p>
                                                 @else
-                                                    <p class="price mb-0"><span style="color:#222;font-weight:600;">{{$currency}}{{number_format($product->price,2)}}</span></p>
+                                                    <p class="price mb-0"><span style="color:#222;font-weight:600;">{{ Helper::formatCurrency($product->price, 2) }}</span></p>
                                                 @endif
                                             </div>
                                         </div>
@@ -250,13 +249,12 @@
                                                 <div class="product-price">
                                                     @php
                                                         $after_discount = ($product->price - ($product->price * $product->discount / 100));
-                                                        $currency = 'Rs.';
                                                     @endphp
                                                     @if($product->discount)
-                                                        <span class="current-price">{{$currency}}{{number_format($after_discount,2)}}</span>
-                                                        <span class="old-price">{{$currency}}{{number_format($product->price,2)}}</span>
+                                                        <span class="current-price">{{ Helper::formatCurrency($after_discount, 2) }}</span>
+                                                        <span class="old-price">{{ Helper::formatCurrency($product->price, 2) }}</span>
                                                     @else
-                                                        <span class="current-price">{{$currency}}{{number_format($product->price,2)}}</span>
+                                                        <span class="current-price">{{ Helper::formatCurrency($product->price, 2) }}</span>
                                                     @endif
                                                 </div>
                                                 
@@ -415,11 +413,11 @@
                                         @endphp
                                         <div class="product-price mb-4">
                                             @if($product->discount)
-                                                <span class="current-price h3">Rs.{{number_format($after_discount,2)}}</span>
-                                                <span class="old-price text-muted">Rs.{{number_format($product->price,2)}}</span>
+                                                <span class="current-price h3">{{ Helper::formatCurrency($after_discount, 2) }}</span>
+                                                <span class="old-price text-muted">{{ Helper::formatCurrency($product->price, 2) }}</span>
                                                 <span class="discount-badge">Save {{$product->discount}}%</span>
                                             @else
-                                                <span class="current-price h3">Rs.{{number_format($product->price,2)}}</span>
+                                                <span class="current-price h3">{{ Helper::formatCurrency($product->price, 2) }}</span>
                                             @endif
                                         </div>
                                         

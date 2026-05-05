@@ -29,8 +29,8 @@
             <td>{{$order->first_name}} {{$order->last_name}}</td>
             <td>{{$order->email}}</td>
             <td>{{$order->quantity}}</td>
-            <td>${{ optional($order->shipping)->price ?? 0 }}</td>
-            <td>${{number_format($order->total_amount,2)}}</td>
+            <td>{{ Helper::formatCurrency(optional($order->shipping)->price ?? 0, 2) }}</td>
+            <td>{{ Helper::formatCurrency($order->total_amount, 2) }}</td>
             <td>
                 @if($order->status=='new')
                   <span class="badge badge-primary">{{$order->status}}</span>
@@ -96,15 +96,15 @@
                     </tr>
                     <tr>
                         <td>Shipping Charge</td>
-                      <td> : $ {{ optional($order->shipping)->price ?? 0 }}</td>
+                      <td> : {{ Helper::formatCurrency(optional($order->shipping)->price ?? 0, 2) }}</td>
                     </tr>
                     <tr>
                       <td>Coupon</td>
-                      <td> : $ {{number_format($order->coupon,2)}}</td>
+                      <td> : {{ Helper::formatCurrency($order->coupon, 2) }}</td>
                     </tr>
                     <tr>
                         <td>Total Amount</td>
-                        <td> : $ {{number_format($order->total_amount,2)}}</td>
+                        <td> : {{ Helper::formatCurrency($order->total_amount, 2) }}</td>
                     </tr>
                     <tr>
                         <td>Payment Method</td>

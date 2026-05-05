@@ -143,7 +143,7 @@
               @endforeach
             </span></td>
           <td>x{{$cart->quantity}}</td>
-          <td><span>${{number_format($cart->price,2)}}</span></td>
+          <td><span>{{ Helper::formatCurrency($cart->price, 2) }}</span></td>
         </tr>
       @endforeach
       </tbody>
@@ -151,7 +151,7 @@
         <tr>
           <th scope="col" class="empty"></th>
           <th scope="col" class="text-right">Subtotal:</th>
-          <th scope="col"> <span>${{number_format($order->sub_total,2)}}</span></th>
+          <th scope="col"> <span>{{ Helper::formatCurrency($order->sub_total, 2) }}</span></th>
         </tr>
       {{-- @if(!empty($order->coupon))
         <tr>
@@ -163,14 +163,14 @@
         <tr>
           <th scope="col" class="empty"></th>
           <th scope="col" class="text-right ">Shipping:</th>
-          <th><span>${{number_format($order->delivery_charge,2)}}</span></th>
+          <th><span>{{ Helper::formatCurrency($order->delivery_charge, 2) }}</span></th>
         </tr>
         <tr>
           <th scope="col" class="empty"></th>
           <th scope="col" class="text-right">Total:</th>
           <th>
             <span>
-                ${{number_format($order->total_amount,2)}}
+                {{ Helper::formatCurrency($order->total_amount, 2) }}
             </span>
           </th>
         </tr>

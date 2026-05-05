@@ -58,7 +58,7 @@
                         <span class="badge badge-secondary">No</span>
                       @endif
                     </td>
-                    <td>Rs. {{$product->price}} /-</td>
+                    <td>{{ Helper::formatCurrency($product->price, 2) }}</td>
                     <td>  {{$product->discount}}% OFF</td>
                     <td>
                       @if($product->warranty)
