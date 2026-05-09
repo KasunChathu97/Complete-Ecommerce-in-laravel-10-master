@@ -450,7 +450,7 @@
                                     <h2>CART  TOTALS</h2>
                                     <div class="content">
                                         <ul>
-                                            <li class="order_subtotal" data-price="{{Helper::totalCartPrice()}}">Cart Subtotal<span>{{Helper::formatCurrency(Helper::totalCartPrice())}}</span></li>
+                                            <li class="order_subtotal" data-price="{{Helper::cartSubTotal()}}">Cart Subtotal<span>{{Helper::formatCurrency(Helper::cartSubTotal())}}</span></li>
                                             <li class="shipping">
                                                 Shipping Cost
                                                 @php
@@ -458,7 +458,9 @@
                                                     $cart_has_items = (clone $cartBaseQuery)->exists();
                                                     $has_non_free_shipping_product = (clone $cartBaseQuery)
                                                         ->whereHas('product', function ($q) {
-                                                            $q->where('free_shipping', 0);
+                                                            $q->where(function ($sub) {
+                                                                $sub->where('free_shipping', 0)->where('free_shipping_enabled', 0);
+                                                            });
                                                         })
                                                         ->exists();
                                                     $all_free_shipping = $cart_has_items && !$has_non_free_shipping_product;
@@ -466,7 +468,7 @@
                                                 @endphp
                                                 <span>{{ $all_free_shipping ? 'Free' : Helper::formatCurrency($cart_shipping_cost) }}</span>
                                                 <br>
-                                                <small style="color:#888;">{{ $all_free_shipping ? 'Free shipping applied to all items' : 'Calculated by product weight' }}</small>
+                                                <small style="color:#888;">{{ $all_free_shipping ? 'Free shipping applied to all items' : 'Calculated by total weight (unit weight x quantity)' }}</small>
                                             </li>
                                             
                                             @if(session('coupon'))
@@ -477,12 +479,14 @@
                                                 $cart_has_items = (clone $cartBaseQuery)->exists();
                                                 $has_non_free_shipping_product = (clone $cartBaseQuery)
                                                     ->whereHas('product', function ($q) {
-                                                        $q->where('free_shipping', 0);
+                                                        $q->where(function ($sub) {
+                                                            $sub->where('free_shipping', 0)->where('free_shipping_enabled', 0);
+                                                        });
                                                     })
                                                     ->exists();
                                                 $all_free_shipping = $cart_has_items && !$has_non_free_shipping_product;
                                                 $cart_shipping_cost = $all_free_shipping ? 0 : (clone $cartBaseQuery)->sum('shipping_cost');
-                                                $total_amount=Helper::totalCartPrice() + $cart_shipping_cost;
+                                                $total_amount=Helper::cartSubTotal() + $cart_shipping_cost;
                                                 if(session('coupon')){
                                                     $total_amount=$total_amount-session('coupon')['value'];
                                                 }

@@ -154,16 +154,26 @@ class ReportController extends Controller
             ->orderBy('title')
             ->get(['id', 'title']);
 
-        // Orders summary (assigned orders + sold qty from delivered)
-        $ordersAgg = DB::table('orders')
-            ->leftJoin('carts', 'carts.order_id', '=', 'orders.id')
+        // Orders summary (assigned orders + delivered revenue) and sold qty (from delivered carts)
+        $ordersBaseAgg = DB::table('orders')
             ->select(
                 'orders.sales_staff_id as sales_admin_id',
-                DB::raw('COUNT(DISTINCT orders.id) as total_orders'),
-                DB::raw('COALESCE(SUM(orders.total_amount), 0) as total_revenue'),
-                DB::raw("COALESCE(SUM(CASE WHEN orders.status = 'delivered' THEN carts.quantity ELSE 0 END), 0) as sold_qty")
+                DB::raw('COUNT(orders.id) as total_orders'),
+                DB::raw("COALESCE(SUM(CASE WHEN orders.status = 'delivered' THEN orders.total_amount ELSE 0 END), 0) as total_revenue")
             )
             ->whereNotNull('orders.sales_staff_id')
+            ->when($date, fn($q) => $q->whereDate('orders.created_at', '=', $date))
+            ->when($salesAdminId, fn($q) => $q->where('orders.sales_staff_id', '=', $salesAdminId))
+            ->groupBy('orders.sales_staff_id');
+
+        $soldQtyAgg = DB::table('orders')
+            ->join('carts', 'carts.order_id', '=', 'orders.id')
+            ->select(
+                'orders.sales_staff_id as sales_admin_id',
+                DB::raw('COALESCE(SUM(carts.quantity), 0) as sold_qty')
+            )
+            ->whereNotNull('orders.sales_staff_id')
+            ->where('orders.status', '=', 'delivered')
             ->when($date, fn($q) => $q->whereDate('orders.created_at', '=', $date))
             ->when($salesAdminId, fn($q) => $q->where('orders.sales_staff_id', '=', $salesAdminId))
             ->groupBy('orders.sales_staff_id');
@@ -179,8 +189,11 @@ class ReportController extends Controller
             ->groupBy('sales_admin_id');
 
         $rows = DB::table('users')
-            ->leftJoinSub($ordersAgg, 'o', function ($join) {
+            ->leftJoinSub($ordersBaseAgg, 'o', function ($join) {
                 $join->on('users.id', '=', 'o.sales_admin_id');
+            })
+            ->leftJoinSub($soldQtyAgg, 's', function ($join) {
+                $join->on('users.id', '=', 's.sales_admin_id');
             })
             ->leftJoinSub($givenAgg, 'g', function ($join) {
                 $join->on('users.id', '=', 'g.sales_admin_id');
@@ -194,7 +207,7 @@ class ReportController extends Controller
                 'users.phone as sales_admin_phone',
                 DB::raw('COALESCE(o.total_orders, 0) as total_orders'),
                 DB::raw('COALESCE(g.given_qty, 0) as given_qty'),
-                DB::raw('COALESCE(o.sold_qty, 0) as sold_qty'),
+                DB::raw('COALESCE(s.sold_qty, 0) as sold_qty'),
                 DB::raw('COALESCE(o.total_revenue, 0) as total_revenue')
             )
             ->orderByDesc('total_revenue')

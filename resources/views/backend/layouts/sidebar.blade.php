@@ -149,6 +149,14 @@
         </a>
     </li>
 
+    <!-- Returned Items -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ route('returned-items.index') }}">
+        <i class="fas fa-undo-alt"></i>
+        <span>Returned Items</span>
+      </a>
+    </li>
+
     <!-- Divider -->
     <hr class="sidebar-divider">
 

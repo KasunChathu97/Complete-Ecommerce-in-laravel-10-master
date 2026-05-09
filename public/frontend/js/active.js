@@ -49,7 +49,19 @@ Version:1.0
 			options = $.extend({}, options, { loop: false });
 		}
 
-		$el.owlCarousel(options);
+		try {
+			$el.owlCarousel(options);
+		} catch (error) {
+			// Fallback: prevent carousel init failures from breaking all remaining scripts.
+			// This is especially important on auth pages where JS errors can block form flow.
+			try {
+				$el.owlCarousel($.extend({}, options, { loop: false, items: 1 }));
+			} catch (retryError) {
+				if (window.console && typeof window.console.warn === 'function') {
+					window.console.warn('Owl init skipped for element due to invalid state', retryError);
+				}
+			}
+		}
 	}
      $(document).on('ready', function() {	
 		
@@ -245,6 +257,143 @@ Version:1.0
 				}
 			}
 			$button.parent().find("input").val(newVal);
+		});
+
+		/*====================================
+		  Cart page Quantity Counter (.btn-number)
+		======================================*/
+		function clampNumber(val, min, max) {
+			if (isNaN(val)) return min;
+			if (!isNaN(min) && val < min) return min;
+			if (!isNaN(max) && val > max) return max;
+			return val;
+		}
+
+		function refreshCartQtyButtons($group) {
+			var $input = $group.find('input.input-number').first();
+			if ($input.length === 0) return;
+
+			var min = parseInt($input.attr('data-min'), 10);
+			var max = parseInt($input.attr('data-max'), 10);
+			var value = parseInt($input.val(), 10);
+			if (isNaN(value)) value = min || 1;
+
+			var $minus = $group.find(".btn-number[data-type='minus']");
+			var $plus = $group.find(".btn-number[data-type='plus']");
+
+			if ($minus.length) {
+				$minus.prop('disabled', (!isNaN(min) ? value <= min : value <= 1));
+			}
+			if ($plus.length && !isNaN(max)) {
+				$plus.prop('disabled', value >= max);
+			}
+		}
+
+		$(document).on('click', '.btn-number', function (e) {
+			e.preventDefault();
+
+			var $btn = $(this);
+			var type = $btn.attr('data-type');
+			var field = $btn.attr('data-field');
+			var $group = $btn.closest('.input-group');
+			var $input = $group.find("input[name='" + field + "']");
+			if ($input.length === 0) {
+				$input = $group.find('input.input-number').first();
+			}
+			if ($input.length === 0) return;
+
+			var min = parseInt($input.attr('data-min'), 10);
+			var max = parseInt($input.attr('data-max'), 10);
+			var oldValue = parseInt($input.val(), 10);
+			if (isNaN(oldValue)) {
+				oldValue = !isNaN(min) ? min : 1;
+			}
+
+			var newValue = oldValue;
+			if (type === 'plus') {
+				newValue = oldValue + 1;
+			} else if (type === 'minus') {
+				newValue = oldValue - 1;
+			}
+
+			newValue = clampNumber(newValue, min || 1, max);
+			$input.val(newValue).trigger('change');
+			refreshCartQtyButtons($group);
+		});
+
+		$(document).on('change', 'input.input-number', function () {
+			var $input = $(this);
+			var $group = $input.closest('.input-group');
+			var min = parseInt($input.attr('data-min'), 10);
+			var max = parseInt($input.attr('data-max'), 10);
+			var value = parseInt($input.val(), 10);
+			value = clampNumber(value, min || 1, max);
+			$input.val(value);
+			refreshCartQtyButtons($group);
+
+			// Live price update (Cart page only)
+			try {
+				if ($input.closest('.shopping-cart').length === 0) return;
+				var cartId = $input.attr('data-cart-id');
+				if (!cartId) return;
+				if (!window.cartLineUpdateUrl) return;
+
+				window.__cartLineUpdateTimers = window.__cartLineUpdateTimers || {};
+				if (window.__cartLineUpdateTimers[cartId]) {
+					clearTimeout(window.__cartLineUpdateTimers[cartId]);
+				}
+
+				window.__cartLineUpdateTimers[cartId] = setTimeout(function () {
+					var csrf = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').first().val();
+					if (!csrf) return;
+
+					fetch(window.cartLineUpdateUrl, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'Accept': 'application/json',
+							'X-CSRF-TOKEN': csrf,
+						},
+						body: JSON.stringify({
+							_token: csrf,
+							cart_id: cartId,
+							quantity: parseInt($input.val(), 10) || 1,
+						}),
+					})
+						.then(function (r) { return r.json(); })
+						.then(function (data) {
+							if (!data || data.ok !== true) {
+								if (data && data.message) {
+									alert(data.message);
+								}
+								return;
+							}
+
+							if (data.quantity && parseInt($input.val(), 10) !== parseInt(data.quantity, 10)) {
+								$input.val(parseInt(data.quantity, 10));
+								refreshCartQtyButtons($group);
+							}
+
+							var $row = $input.closest('tr');
+							$row.find('.cart_single_price .money').text(data.line_subtotal_formatted || '');
+
+							$('.order_subtotal span').text(data.cart_subtotal_formatted || '');
+							$('.order_subtotal').attr('data-price', data.cart_subtotal);
+							$('.order_subtotal').data('price', data.cart_subtotal);
+
+							$('.shipping span').text(data.cart_shipping_formatted || '');
+
+							$('#order_total_price span').text(data.you_pay_formatted || '');
+						})
+						.catch(function () {
+							// Silent fail; totals will still be correct on full update/refresh
+						});
+				}, 150);
+			} catch (e) {}
+		});
+
+		$('.shopping-cart .input-group').each(function () {
+			refreshCartQtyButtons($(this));
 		});
 		
 		/*=======================

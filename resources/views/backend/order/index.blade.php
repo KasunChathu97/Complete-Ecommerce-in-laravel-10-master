@@ -123,6 +123,8 @@
                           <span class="badge badge-info">ship</span>
                         @elseif($order->status=='delivered')
                           <span class="badge badge-success">{{$order->status}}</span>
+                        @elseif($order->status=='returned')
+                          <span class="badge badge-secondary">{{$order->status}}</span>
                         @else
                           <span class="badge badge-danger">{{$order->status}}</span>
                         @endif

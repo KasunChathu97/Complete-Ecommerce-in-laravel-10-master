@@ -43,6 +43,9 @@
 								@if(Helper::getAllProductFromCart())
 									@foreach(Helper::getAllProductFromCart() as $key=>$cart)
 										<tr>
+													@php
+														$line_total = max(0, (float) $cart->amount - (float) ($cart->shipping_cost ?? 0));
+													@endphp
 											@php
 											$photo=explode(',',$cart->product['photo']);
 											@endphp
@@ -77,11 +80,11 @@
 											<td class="qty" data-title="Qty"><!-- Input Order -->
 												<div class="input-group">
 													<div class="button minus">
-														<button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[{{$key}}]">
+														<button type="button" class="btn btn-primary btn-number" {{ (int)$cart->quantity <= 1 ? 'disabled' : '' }} data-type="minus" data-field="quant[{{$key}}]">
 															<i class="ti-minus"></i>
 														</button>
 													</div>
-													<input type="text" name="quant[{{$key}}]" class="input-number"  data-min="1" data-max="100" value="{{$cart->quantity}}">
+													<input type="text" name="quant[{{$key}}]" class="input-number" data-cart-id="{{$cart->id}}" data-min="1" data-max="100" value="{{$cart->quantity}}">
 													<input type="hidden" name="qty_id[]" value="{{$cart->id}}">
 													<div class="button plus">
 														<button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[{{$key}}]">
@@ -91,7 +94,7 @@
 												</div>
 												<!--/ End Input Order -->
 											</td>
-											<td class="total-amount cart_single_price" data-title="Total"><span class="money">{{Helper::formatCurrency($cart['amount'])}}</span></td>
+												<td class="total-amount cart_single_price" data-title="Total"><span class="money">{{Helper::formatCurrency($line_total)}}</span></td>
 
 											<td class="action" data-title="Remove"><a href="{{route('cart-delete',$cart->id)}}"><i class="ti-trash remove-icon"></i></a></td>
 										</tr>
@@ -146,13 +149,15 @@
 							<div class="col-lg-4 col-md-7 col-12">
 								<div class="right">
 									<ul>
-										<li class="order_subtotal" data-price="{{Helper::totalCartPrice()}}">Cart Subtotal<span>{{Helper::formatCurrency(Helper::totalCartPrice())}}</span></li>
+											<li class="order_subtotal" data-price="{{Helper::cartSubTotal()}}">Cart Subtotal<span>{{Helper::formatCurrency(Helper::cartSubTotal())}}</span></li>
 										@php
 											$cartBaseQuery = \App\Models\Cart::where('user_id', auth()->user()->id)->where('order_id', null);
 											$cart_has_items = (clone $cartBaseQuery)->exists();
 											$has_non_free_shipping_product = (clone $cartBaseQuery)
 												->whereHas('product', function ($q) {
-													$q->where('free_shipping', 0);
+													$q->where(function ($sub) {
+														$sub->where('free_shipping', 0)->where('free_shipping_enabled', 0);
+													});
 												})
 												->exists();
 											$all_free_shipping = $cart_has_items && !$has_non_free_shipping_product;
@@ -164,16 +169,12 @@
 										<li class="coupon_price" data-price="{{Session::get('coupon')['value']}}">You Save<span>{{Helper::formatCurrency(Session::get('coupon')['value'])}}</span></li>
 										@endif
 										@php
-											$total_amount=Helper::totalCartPrice();
+												$total_amount=Helper::cartSubTotal();
 											if(session()->has('coupon')){
 												$total_amount=$total_amount-Session::get('coupon')['value'];
 											}
 										@endphp
-										@if(session()->has('coupon'))
-											<li class="last" id="order_total_price">You Pay<span>{{Helper::formatCurrency($total_amount)}}</span></li>
-										@else
-											<li class="last" id="order_total_price">You Pay<span>{{Helper::formatCurrency($total_amount)}}</span></li>
-										@endif
+												<li class="last" id="order_total_price">You Pay<span>{{Helper::formatCurrency($total_amount + $cart_shipping_cost)}}</span></li>
 									</ul>
 									<div class="button5">
 										<a href="{{route('checkout')}}" class="btn cta-checkout">Checkout</a>
@@ -286,6 +287,9 @@
 @push('scripts')
 	<script src="{{asset('frontend/js/nice-select/js/jquery.nice-select.min.js')}}"></script>
 	<script src="{{ asset('frontend/js/select2/js/select2.min.js') }}"></script>
+	<script>
+		window.cartLineUpdateUrl = "{{ route('cart.line-update') }}";
+	</script>
 	<script>
 		$(document).ready(function() { $("select.select2").select2(); });
   		$('select.nice-select').niceSelect();

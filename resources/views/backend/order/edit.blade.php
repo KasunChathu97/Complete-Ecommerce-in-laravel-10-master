@@ -73,8 +73,47 @@
           <option value="process" {{($order->status=='delivered'|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='process')? 'selected' : '')}}>process</option>
           <option value="ship" {{($order->status=="delivered"|| $order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='ship')? 'selected' : '')}}>ship</option>
           <option value="delivered" {{($order->status=="cancel") ? 'disabled' : ''}}  {{(($currentStatus=='delivered')? 'selected' : '')}}>Delivered</option>
-          <option value="cancel" {{($order->status=='delivered') ? 'disabled' : ''}}  {{(($currentStatus=='cancel')? 'selected' : '')}}>Cancel</option>
+          <option value="returned" {{($order->status!="delivered" && $order->status!="returned") ? 'disabled' : ''}}  {{(($currentStatus=='returned')? 'selected' : '')}}>Returned</option>
+          <option value="cancel" {{($order->status=='delivered' || $order->status=='returned') ? 'disabled' : ''}}  {{(($currentStatus=='cancel')? 'selected' : '')}}>Cancel</option>
         </select>
+      </div>
+
+      <div id="return-reason-fields">
+        <div class="form-group">
+          @php
+            $returnReasonOptions = [
+              'Damaged product',
+              'Wrong item delivered',
+              'Size/Color issue',
+              'Customer changed mind',
+              'Late delivery',
+            ];
+            $existingReason = (string) old('return_reason_custom', $order->return_reason);
+            $existingOption = (string) old('return_reason_option', in_array($existingReason, $returnReasonOptions, true) ? $existingReason : 'other');
+          @endphp
+
+          <label for="return_reason_option">Return reason :</label>
+          <select name="return_reason_option" id="return_reason_option" class="form-control">
+            <option value="" {{ $existingOption === '' ? 'selected' : '' }}>-- Select reason --</option>
+            @foreach($returnReasonOptions as $opt)
+              <option value="{{ $opt }}" {{ $existingOption === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+            @endforeach
+            <option value="other" {{ $existingOption === 'other' ? 'selected' : '' }}>Other</option>
+          </select>
+          @error('return_reason_option')
+            <span class="text-danger">{{ $message }}</span>
+          @enderror
+
+          <div id="return-reason-custom" style="margin-top:10px;">
+            <label for="return_reason_custom" class="mb-1">Custom reason :</label>
+            <textarea name="return_reason_custom" id="return_reason_custom" class="form-control" rows="3" placeholder="Enter custom reason...">{{ old('return_reason_custom', in_array($existingReason, $returnReasonOptions, true) ? '' : $existingReason) }}</textarea>
+            @error('return_reason_custom')
+              <span class="text-danger">{{ $message }}</span>
+            @enderror
+          </div>
+
+          <small class="form-text text-muted">Required when marking an order as returned. Choose a reason or select Other.</small>
+        </div>
       </div>
 
       @if(auth()->check() && auth()->user()->role === 'admin')
@@ -111,6 +150,9 @@
   (function () {
     var statusSelect = document.getElementById('order_status');
     var container = document.getElementById('courier-tracking-fields');
+    var returnContainer = document.getElementById('return-reason-fields');
+    var reasonSelect = document.getElementById('return_reason_option');
+    var reasonCustom = document.getElementById('return-reason-custom');
     if (!statusSelect || !container) {
       return;
     }
@@ -125,8 +167,47 @@
       }
     }
 
-    statusSelect.addEventListener('change', toggleCourierFields);
+    function toggleReturnFields() {
+      if (!returnContainer) {
+        return;
+      }
+
+      var isReturned = (statusSelect.value === 'returned');
+      returnContainer.style.display = isReturned ? '' : 'none';
+
+      var inputs = returnContainer.querySelectorAll('input, textarea, select');
+      for (var i = 0; i < inputs.length; i++) {
+        inputs[i].disabled = !isReturned;
+      }
+    }
+
+    function toggleReturnCustomReason() {
+      if (!reasonSelect || !reasonCustom) {
+        return;
+      }
+
+      var isOther = (reasonSelect.value === 'other');
+      reasonCustom.style.display = isOther ? '' : 'none';
+
+      var inputs = reasonCustom.querySelectorAll('input, textarea, select');
+      for (var i = 0; i < inputs.length; i++) {
+        inputs[i].disabled = !isOther;
+      }
+    }
+
+    statusSelect.addEventListener('change', function () {
+      toggleCourierFields();
+      toggleReturnFields();
+      toggleReturnCustomReason();
+    });
+
+    if (reasonSelect) {
+      reasonSelect.addEventListener('change', toggleReturnCustomReason);
+    }
+
     toggleCourierFields();
+    toggleReturnFields();
+    toggleReturnCustomReason();
   })();
 </script>
 @endpush

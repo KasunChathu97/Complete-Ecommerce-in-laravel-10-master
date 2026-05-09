@@ -139,7 +139,12 @@
             var a, b, c = this._clones,
                 d = this._items,
                 e = this.settings.loop ? c.length - Math.max(2 * this.settings.items, 4) : 0;
-            for (a = 0, b = Math.abs(e / 2); b > a; a++) e > 0 ? (this.$stage.children().eq(d.length + c.length - 1).remove(), c.pop(), this.$stage.children().eq(0).remove(), c.pop()) : (c.push(c.length / 2), this.$stage.append(d[c[c.length - 1]].clone().addClass("cloned")), c.push(d.length - 1 - (c.length - 1) / 2), this.$stage.prepend(d[c[c.length - 1]].clone().addClass("cloned")))
+            for (a = 0, b = Math.abs(e / 2); b > a; a++)
+                if (e > 0) this.$stage.children().eq(d.length + c.length - 1).remove(), c.pop(), this.$stage.children().eq(0).remove(), c.pop();
+                else {
+                    var f, g;
+                    c.push(c.length / 2), f = d[c[c.length - 1]], f && f.clone && this.$stage.append(f.clone().addClass("cloned")), c.push(d.length - 1 - (c.length - 1) / 2), g = d[c[c.length - 1]], g && g.clone && this.$stage.prepend(g.clone().addClass("cloned"))
+                }
         }
     }, {
         filter: ["width", "items", "settings"],

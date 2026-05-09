@@ -94,17 +94,28 @@
                       <td>Assigned Sales Admin</td>
                       <td> : {{ optional($order->salesStaff)->name ?? '-' }}</td>
                     </tr>
+                    @php
+                        $displayShippingCharge = (float) ($order->delivery_charge ?? 0);
+                        if ($displayShippingCharge <= 0) {
+                            $displayShippingCharge = (float) ($order->cart_info ? $order->cart_info->sum('shipping_cost') : 0);
+                        }
+
+                        $displayCoupon = (float) ($order->coupon ?? 0);
+                        $displayTotalAmount = (float) ($order->sub_total ?? 0) + $displayShippingCharge - $displayCoupon;
+                    @endphp
                     <tr>
                         <td>Shipping Charge</td>
-                      <td> : {{ Helper::formatCurrency(optional($order->shipping)->price ?? 0, 2) }}</td>
+                      <td> : {{ Helper::formatCurrency($displayShippingCharge, 2) }}</td>
                     </tr>
+                    @if(!empty($order->coupon) && (float) $order->coupon > 0)
                     <tr>
                       <td>Coupon</td>
                       <td> : {{ Helper::formatCurrency($order->coupon, 2) }}</td>
                     </tr>
+                    @endif
                     <tr>
                         <td>Total Amount</td>
-                        <td> : {{ Helper::formatCurrency($order->total_amount, 2) }}</td>
+                        <td> : {{ Helper::formatCurrency($displayTotalAmount, 2) }}</td>
                     </tr>
                     <tr>
                         <td>Payment Method</td>

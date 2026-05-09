@@ -74,7 +74,11 @@ class CartController extends Controller
         }
 
         if ($total_weight_grams > 1000) {
-            return $rates['base'] + $rates['extra'];
+            // For every additional 1kg (or fraction) above the first 1kg,
+            // add one extra unit of the `extra` rate.
+            $over = $total_weight_grams - 1000;
+            $extraUnits = (int) ceil($over / 1000);
+            return $rates['base'] + ($rates['extra'] * $extraUnits);
         }
 
         return 0;
@@ -284,6 +288,79 @@ class CartController extends Controller
         }else{
             return back()->with('Cart Invalid!');
         }    
+    }
+
+    public function cartLineUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'cart_id' => 'required|integer',
+            'quantity' => 'required|integer|min:1|max:100',
+        ]);
+
+        $cart = Cart::query()
+            ->with('product')
+            ->where('id', '=', $validated['cart_id'])
+            ->where('user_id', '=', auth()->id())
+            ->whereNull('order_id')
+            ->first();
+
+        if (!$cart || !$cart->product) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Cart item not found.',
+            ], 404);
+        }
+
+        $requestedQty = (int) $validated['quantity'];
+        $stock = (int) ($cart->product->stock ?? 0);
+        if ($stock <= 0) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Out of stock.',
+            ], 422);
+        }
+
+        $qty = min($requestedQty, $stock);
+        $after_price = ($cart->product->price - ($cart->product->price * $cart->product->discount) / 100);
+        $shipping_cost = $this->calculateShippingCost($cart->product, $qty);
+
+        $line_subtotal = $after_price * $qty;
+
+        $cart->quantity = $qty;
+        $cart->shipping_cost = $shipping_cost;
+        $cart->amount = $line_subtotal + $shipping_cost;
+        $cart->save();
+
+        $cartBaseQuery = Cart::query()->where('user_id', auth()->id())->whereNull('order_id');
+        $cart_has_items = (clone $cartBaseQuery)->exists();
+        $has_non_free_shipping_product = (clone $cartBaseQuery)
+            ->whereHas('product', function ($q) {
+                $q->where(function ($sub) {
+                    $sub->where('free_shipping', 0)->where('free_shipping_enabled', 0);
+                });
+            })
+            ->exists();
+        $all_free_shipping = $cart_has_items && !$has_non_free_shipping_product;
+        $cart_shipping_cost = $all_free_shipping ? 0 : (clone $cartBaseQuery)->sum('shipping_cost');
+
+        $cart_subtotal = Helper::cartSubTotal();
+        $coupon_value = (float) (session()->get('coupon.value') ?? 0);
+        $you_pay = max(0, $cart_subtotal - $coupon_value);
+
+        return response()->json([
+            'ok' => true,
+            'cart_id' => $cart->id,
+            'quantity' => $qty,
+            'line_subtotal' => (float) $line_subtotal,
+            'line_subtotal_formatted' => Helper::formatCurrency($line_subtotal, 2),
+            'cart_subtotal' => (float) $cart_subtotal,
+            'cart_subtotal_formatted' => Helper::formatCurrency($cart_subtotal, 2),
+            'all_free_shipping' => (bool) $all_free_shipping,
+            'cart_shipping_cost' => (float) $cart_shipping_cost,
+            'cart_shipping_formatted' => $all_free_shipping ? 'Free' : Helper::formatCurrency($cart_shipping_cost, 2),
+            'you_pay' => (float) ($you_pay + $cart_shipping_cost),
+            'you_pay_formatted' => Helper::formatCurrency($you_pay + $cart_shipping_cost, 2),
+        ]);
     }
 
     // public function addToCart(Request $request){

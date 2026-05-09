@@ -28,6 +28,16 @@
                     <div class="login-form">
                         <h2>Register</h2>
                         <p>Please register in order to checkout more quickly</p>
+                        @if ($errors->any())
+                            <div class="alert alert-danger" role="alert" style="margin-bottom: 18px;">
+                                <strong>Please fix the following:</strong>
+                                <ul style="margin: 8px 0 0 18px; padding: 0;">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <!-- Form -->
                         <form class="form" method="post" action="{{route('register.submit')}}">
                             @csrf
@@ -62,7 +72,8 @@
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label>Phone Number<span>*</span></label>
-                                        <input type="text" name="phone" id="phone" placeholder="Enter Phone Number" maxlength="10" pattern="\d{10}" required="required" value="{{old('phone')}}" oninput="this.value=this.value.replace(/[^\d]/g,'').slice(0,10)">
+                                        <input type="tel" name="phone" id="phone" placeholder="Enter Phone Number" required="required" value="{{old('phone')}}" inputmode="tel" autocomplete="tel">
+                                        <small style="display:block;color:#6b7280;margin-top:4px;">Examples: 0771234567, +94771234567</small>
                                         @error('phone')
                                             <span class="text-danger">{{$message}}</span>
                                         @enderror

@@ -209,7 +209,7 @@
 	<!-- Slicknav JS -->
 	<script src="{{asset('frontend/js/slicknav.min.js')}}"></script>
 	<!-- Owl Carousel JS -->
-	<script src="{{asset('frontend/js/owl-carousel.js')}}"></script>
+	<script src="{{ asset('frontend/js/owl-carousel.js') }}?v={{ @filemtime(public_path('frontend/js/owl-carousel.js')) }}"></script>
 	<!-- Magnific Popup JS -->
 	<script src="{{asset('frontend/js/magnific-popup.js')}}"></script>
 	<!-- Waypoints JS -->
@@ -230,7 +230,7 @@
 	<script src="{{asset('frontend/js/easing.js')}}"></script>
 
 	<!-- Active JS -->
-	<script src="{{asset('frontend/js/active.js')}}"></script>
+	<script src="{{ asset('frontend/js/active.js') }}?v={{ @filemtime(public_path('frontend/js/active.js')) }}"></script>
 
 	<script>
 		(function () {

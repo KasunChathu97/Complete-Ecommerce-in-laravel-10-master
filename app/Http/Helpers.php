@@ -136,6 +136,21 @@ class Helper
             return 0;
         }
     }
+    // Total product amount in cart without shipping
+    public static function cartSubTotal($user_id = '')
+    {
+        if (Auth::check()) {
+            if ($user_id == "") $user_id = auth()->user()->id;
+            return Cart::where('user_id', $user_id)
+                ->where('order_id', null)
+                ->get()
+                ->sum(function ($cart) {
+                    return max(0, (float) $cart->amount - (float) ($cart->shipping_cost ?? 0));
+                });
+        } else {
+            return 0;
+        }
+    }
     // Wishlist Count
     public static function wishlistCount($user_id = '')
     {

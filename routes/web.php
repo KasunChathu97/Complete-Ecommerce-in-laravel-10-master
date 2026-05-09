@@ -85,6 +85,7 @@
     Route::post('/buy-now', [CartController::class, 'buyNow'])->name('buy-now')->middleware('user');
     Route::get('cart-delete/{id}', [CartController::class, 'cartDelete'])->name('cart-delete');
     Route::post('cart-update', [CartController::class, 'cartUpdate'])->name('cart.update');
+    Route::post('cart-line-update', [CartController::class, 'cartLineUpdate'])->name('cart.line-update')->middleware('user');
 
     Route::get('/cart', function () {
         return view('frontend.pages.cart');
@@ -145,6 +146,9 @@
         Route::get('/orders/{order}/export/excel', 'OrderController@exportSingleExcel')->name('orders.export.single.excel');
         Route::get('/orders/suggest', 'OrderController@suggest')->name('orders.suggest');
         Route::resource('/order', 'OrderController');
+
+        // Returned items
+        Route::get('/returned-items', [\App\Http\Controllers\ReturnedItemController::class, 'index'])->name('returned-items.index');
 
         // Shipment Tracking (per order)
         Route::post('/order/{order}/tracking', 'ShipmentTrackingController@store')->name('order.tracking.store');

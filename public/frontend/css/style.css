@@ -3204,6 +3204,12 @@ Version:1.0
 	color: #333;
 	margin-bottom: 12px;
 }
+.shopping-cart .total-amount .right ul li.shipping {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
 .shopping-cart .total-amount .right ul li.last {
 	padding-top: 12px;
 	border-top: 1px solid #c8c8c8;
@@ -3214,6 +3220,10 @@ Version:1.0
 .shopping-cart .total-amount .right ul li span{
 	display:inline-block;
 	float:right;
+}
+.shopping-cart .total-amount .right ul li.shipping span{
+	float: none;
+	margin-left: auto;
 }
 .shopping-cart .total-amount .right .button5 .btn {
 	text-align: center;

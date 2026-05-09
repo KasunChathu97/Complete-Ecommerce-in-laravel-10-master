@@ -59,7 +59,10 @@ class OrderController extends Controller
             'track' => 'nullable|string|max:150',
         ]);
 
-        $baseQuery = Order::query()->with('salesStaff:id,name')->orderBy('id', 'DESC');
+        $baseQuery = Order::query()
+            ->with('salesStaff:id,name')
+            ->where('status', '!=', 'returned')
+            ->orderBy('id', 'DESC');
 
         // Sales admins can only view orders assigned to them.
         if (auth()->check() && auth()->user()->role === 'sales_admin') {
@@ -266,7 +269,7 @@ class OrderController extends Controller
         $order_data['user_id']=$request->user()->id;
         $order_data['shipping_id']=$request->shipping;
         $shipping=Shipping::where('id',$order_data['shipping_id'])->pluck('price');
-        $order_data['sub_total']=Helper::totalCartPrice();
+        $order_data['sub_total']=Helper::cartSubTotal();
         $order_data['quantity']=Helper::cartCount();
 
         $cartBaseQuery = Cart::where('user_id', auth()->user()->id)->where('order_id', null);
@@ -293,7 +296,9 @@ class OrderController extends Controller
                 if ($totalWeightGrams > 0 && $totalWeightGrams <= 1000) {
                     $newShipping = $baseShipping;
                 } elseif ($totalWeightGrams > 1000) {
-                    $newShipping = $baseShipping + $extraShipping;
+                    $over = $totalWeightGrams - 1000;
+                    $extraUnits = (int) ceil($over / 1000);
+                    $newShipping = $baseShipping + ($extraShipping * $extraUnits);
                 }
             }
 
@@ -316,6 +321,7 @@ class OrderController extends Controller
         // Sum shipping_cost from cart items for this user (weight-based shipping)
         $cart_shipping_cost = $all_free_shipping ? 0 : (clone $cartBaseQuery)->sum('shipping_cost');
         $shipping_price = ($all_free_shipping || empty($request->shipping)) ? 0 : (float) ($shipping[0] ?? 0);
+        $cart_subtotal = Helper::cartSubTotal();
 
         $order_data['delivery_charge'] = $all_free_shipping ? 0 : $cart_shipping_cost;
         if(session('coupon')){
@@ -323,18 +329,18 @@ class OrderController extends Controller
         }
         if($request->shipping){
             if(session('coupon')){
-                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping_price-session('coupon')['value'];
+                $order_data['total_amount']=$cart_subtotal+$cart_shipping_cost+$shipping_price-session('coupon')['value'];
             }
             else{
-                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost+$shipping_price;
+                $order_data['total_amount']=$cart_subtotal+$cart_shipping_cost+$shipping_price;
             }
         }
         else{
             if(session('coupon')){
-                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost-session('coupon')['value'];
+                $order_data['total_amount']=$cart_subtotal+$cart_shipping_cost-session('coupon')['value'];
             }
             else{
-                $order_data['total_amount']=Helper::totalCartPrice()+$cart_shipping_cost;
+                $order_data['total_amount']=$cart_subtotal+$cart_shipping_cost;
             }
         }
         // return $order_data['total_amount'];
@@ -571,10 +577,34 @@ class OrderController extends Controller
         $originalPaymentStatus = (string) ($order->payment_status ?? '');
 
         $this->validate($request,[
-            'status'=>'required|in:new,pending,process,ship,delivered,cancel',
+            'status'=>'required|in:new,pending,process,ship,delivered,returned,cancel',
             'courier_name' => 'nullable|string|max:100',
             'courier_tracking_number' => 'nullable|string|max:150',
             'payment_status' => 'nullable|in:paid,unpaid',
+            'return_reason_option' => [
+                Rule::requiredIf(function () use ($request) {
+                    return (string) $request->input('status') === 'returned';
+                }),
+                'nullable',
+                'string',
+                Rule::in([
+                    'Damaged product',
+                    'Wrong item delivered',
+                    'Size/Color issue',
+                    'Customer changed mind',
+                    'Late delivery',
+                    'other',
+                ]),
+            ],
+            'return_reason_custom' => [
+                Rule::requiredIf(function () use ($request) {
+                    return (string) $request->input('status') === 'returned'
+                        && (string) $request->input('return_reason_option') === 'other';
+                }),
+                'nullable',
+                'string',
+                'max:2000',
+            ],
             'sales_staff_id' => [
                 'nullable',
                 'integer',
@@ -591,17 +621,56 @@ class OrderController extends Controller
             $data['status'] = 'ship';
         }
 
+        if (($data['status'] ?? null) === 'returned') {
+            $option = (string) ($data['return_reason_option'] ?? '');
+            $custom = trim((string) ($data['return_reason_custom'] ?? ''));
+
+            $data['return_reason'] = $option === 'other' ? $custom : $option;
+        }
+
+        // Do not allow changing a returned order back to another status.
+        if ($originalStatus === 'returned' && ($data['status'] ?? null) !== 'returned') {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['status' => 'A returned order cannot be changed to another status.']);
+        }
+
+        // Only allow marking as returned if it was already delivered.
+        if (($data['status'] ?? null) === 'returned' && $originalStatus !== 'delivered') {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['status' => 'You can only mark an order as returned after it has been delivered.']);
+        }
+
         // Only store courier tracking details when the order is delivered.
         if (($data['status'] ?? null) !== 'delivered') {
             // Explicitly clear so any legacy/TRN value does not persist.
             $data['courier_tracking_number'] = null;
         }
 
+        // Only store return fields when the order is returned.
+        if (($data['status'] ?? null) !== 'returned') {
+            unset($data['return_reason']);
+        }
+
+        unset($data['return_reason_option'], $data['return_reason_custom']);
+
         // Only the main admin can assign/unassign sales admins.
         if (!auth()->check() || auth()->user()->role !== 'admin') {
             unset($data['sales_staff_id']);
             unset($data['payment_status']);
         }
+
+        $isReturnTransition = ($originalStatus !== (string) ($data['status'] ?? ''))
+            && ($originalStatus === 'delivered')
+            && ((string) ($data['status'] ?? '') === 'returned');
+
+        if ($isReturnTransition) {
+            $data['returned_at'] = $order->returned_at ?: now();
+        }
+
         $status=$order->fill($data)->save();
         if($status){
             request()->session()->flash('success','Successfully updated order');
@@ -627,6 +696,28 @@ class OrderController extends Controller
                             $alloc->quantity = max(0, (int) $alloc->quantity - (int) $cart->quantity);
                             $alloc->save();
                         }
+                    }
+                }
+            }
+
+            // Restore stock only once when transitioning delivered -> returned.
+            $isReturnTransitionAfterSave = ($originalStatus !== (string) $statusText) && ($originalStatus === 'delivered') && ((string) $statusText === 'returned');
+            if ($isReturnTransitionAfterSave) {
+                foreach ($order->cart as $cart) {
+                    $product = $cart->product;
+                    if ($product) {
+                        $product->stock = (int) $product->stock + (int) $cart->quantity;
+                        $product->save();
+                    }
+
+                    if (!empty($order->sales_staff_id) && !empty($cart->product_id)) {
+                        $alloc = SalesAdminProductStock::query()->firstOrNew([
+                            'sales_admin_id' => $order->sales_staff_id,
+                            'product_id' => $cart->product_id,
+                        ]);
+
+                        $alloc->quantity = (int) $alloc->quantity + (int) $cart->quantity;
+                        $alloc->save();
                     }
                 }
             }

@@ -13,9 +13,16 @@ class Order extends Model
         'district',
         'payment_method','payment_gateway','payment_reference','payment_status',
         'shipping_id','courier_name','courier_tracking_number','shipped_at','delivered_at',
+        'returned_at','return_reason',
         'social_platform','social_order_ref',
         'coupon','notes',
         'emergency_contact'
+    ];
+
+    protected $casts = [
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'returned_at' => 'datetime',
     ];
 
     public static function nextOrderNumber(): string
