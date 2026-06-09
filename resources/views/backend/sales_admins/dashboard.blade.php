@@ -101,6 +101,7 @@
           <div class="card-body">
             <a href="{{ route('order.index') }}" class="btn btn-primary btn-sm mr-2">My Orders</a>
             <a href="{{ route('sms-logs.index') }}" class="btn btn-outline-secondary btn-sm">SMS Logs</a>
+            <a href="{{ route('courier.index') }}" class="btn btn-outline-primary btn-sm ml-2">Couriers</a>
           </div>
         </div>
       </div>
@@ -117,6 +118,7 @@
               <tr>
                 <th>Product</th>
                 <th style="width:140px;">Quantity</th>
+                <th style="width:180px;">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -124,10 +126,17 @@
                 <tr>
                   <td>{{ optional($row->product)->title ?? 'Product not found' }}</td>
                   <td><span class="badge badge-primary">{{ (int) $row->quantity }}</span></td>
+                  <td>
+                    @if($row->product && (int) ($row->product->seller_edit_count ?? 0) < 1)
+                      <a href="{{ route('product.edit', $row->product->id) }}" class="btn btn-primary btn-sm">Edit Product</a>
+                    @else
+                      <span class="badge badge-warning">Already edited</span>
+                    @endif
+                  </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="2">No stock allocated yet.</td>
+                  <td colspan="3">No stock allocated yet.</td>
                 </tr>
               @endforelse
             </tbody>

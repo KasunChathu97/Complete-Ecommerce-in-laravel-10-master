@@ -107,7 +107,7 @@
             @endphp 
                 <tr>
                     <td>{{$order->id}}</td>
-                    <td>{{$order->order_number}}</td>
+                    <td><a href="{{route('order.show',$order->id)}}">{{$order->order_number}}</a></td>
                     <td>{{$order->first_name}} {{$order->last_name}}</td>
                     <td>{{$order->email}}</td>
                     <td>{{ optional($order->salesStaff)->name ?? '-' }}</td>

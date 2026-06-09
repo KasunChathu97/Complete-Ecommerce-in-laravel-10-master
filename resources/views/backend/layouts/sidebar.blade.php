@@ -94,6 +94,23 @@
             </div>
         </li>
 
+            <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogCollapse" aria-expanded="true" aria-controls="catalogCollapse">
+        <i class="fas fa-cubes"></i>
+        <span>Catalog</span>
+      </a>
+      <div id="catalogCollapse" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Catalog Options:</h6>
+          <a class="collapse-item" href="{{ route('product.index') }}">Products</a>
+          @if($isAdminOnly)
+            <a class="collapse-item" href="{{ route('product.create') }}">Add Product</a>
+          @endif
+          <a class="collapse-item" href="{{ route('courier.index') }}">Couriers</a>
+        </div>
+      </div>
+    </li>
+
     {{-- Brands --}}
     <!--<li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#brandCollapse" aria-expanded="true" aria-controls="brandCollapse">
@@ -111,22 +128,6 @@
 
 
 
-    {{-- Products --}}
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#productCollapse" aria-expanded="true" aria-controls="productCollapse">
-          <i class="fas fa-cubes"></i>
-          <span>Products</span>
-        </a>
-        <div id="productCollapse" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-          <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Product Options:</h6>
-            <a class="collapse-item" href="{{route('product.index')}}">Products</a>
-            <a class="collapse-item" href="{{route('product.create')}}">Add Product</a>
-          </div>
-        </div>
-    </li>
-
-  
     {{-- Shipping --}}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#shippingCollapse" aria-expanded="true" aria-controls="shippingCollapse">
@@ -284,7 +285,6 @@
     <div class="sidebar-heading">
       General
     </div>
-
 
 
     <!-- SMS Logs -->

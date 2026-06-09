@@ -141,6 +141,10 @@
         Route::get('/notifications', [NotificationController::class, 'index'])->name('all.notification');
         Route::delete('/notification/{id}', [NotificationController::class, 'delete'])->name('notification.delete');
 
+        // Products and couriers are shared between admin and sales admins.
+        Route::resource('/product', 'ProductController');
+        Route::resource('/courier', 'CourierController');
+
         // Orders
         Route::get('/orders/export/excel', 'OrderController@exportByDateExcel')->name('orders.export.excel');
         Route::get('/orders/{order}/export/excel', 'OrderController@exportSingleExcel')->name('orders.export.single.excel');
@@ -193,8 +197,6 @@
         Route::post('/profile/{id}', [AdminController::class, 'profileUpdate'])->name('profile-update');
         // Category
         Route::resource('/category', 'CategoryController');
-        // Product
-        Route::resource('/product', 'ProductController');
         Route::post('/product/{id}/transfer-stock', 'ProductController@transferStock')->name('product.transfer-stock');
         Route::get('/product/{id}/admin-stock', 'ProductController@adminStockInfo')->name('product.admin-stock');
         // Ajax for sub category

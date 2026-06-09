@@ -57,6 +57,48 @@
       </tbody>
     </table>
 
+    <section class="confirmation_part section_padding mt-4">
+      <div class="order_boxes">
+        <div class="row">
+          <div class="col-12">
+            <div class="shipping-info">
+              <h4 class="text-center pb-4">ORDERED PRODUCT DETAILS</h4>
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0">
+                  <thead>
+                    <tr>
+                      <th>S.N.</th>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Unit Price</th>
+                      <th>Shipping</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($order->cart as $cartItem)
+                      <tr>
+                        <td>{{ $cartItem->id }}</td>
+                        <td>{{ optional($cartItem->product)->title ?? 'Product not found' }}</td>
+                        <td>{{ $cartItem->quantity }}</td>
+                        <td>{{ Helper::formatCurrency((float) ($cartItem->price ?? 0), 2) }}</td>
+                        <td>{{ Helper::formatCurrency((float) ($cartItem->shipping_cost ?? 0), 2) }}</td>
+                        <td>{{ Helper::formatCurrency((float) ($cartItem->amount ?? 0), 2) }}</td>
+                      </tr>
+                    @empty
+                      <tr>
+                        <td colspan="6">No ordered products found.</td>
+                      </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="confirmation_part section_padding">
       <div class="order_boxes">
         <div class="row">
@@ -151,7 +193,7 @@
                     </tr>
                     <tr>
                         <td>Address</td>
-                        <td> : {{$order->address1}}, {{$order->address2}}</td>
+                      <td> : {{$order->address1}}, {{$order->address2}}, {{$order->address3 ?? ''}}</td>
                     </tr>
                     <tr>
                         <td>Country</td>

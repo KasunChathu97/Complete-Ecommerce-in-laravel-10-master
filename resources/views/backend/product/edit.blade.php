@@ -157,6 +157,25 @@
         </div>
 
         <div class="form-group">
+          <label for="courier_id">Courier</label>
+          <select name="courier_id" id="courier_id" class="form-control">
+              <option value="">--Select Courier--</option>
+              @foreach($couriers as $courier)
+                <option value="{{ $courier->id }}" data-hotline="{{ $courier->hotline }}" {{ (string)old('courier_id', $product->courier_id) === (string)$courier->id ? 'selected' : '' }}>{{ $courier->name }}</option>
+              @endforeach
+          </select>
+          @error('courier_id')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
+        <div class="form-group">
+          <label for="courier_hotline">Courier Hotline</label>
+          <input id="courier_hotline" type="text" class="form-control" readonly value="{{ old('courier_hotline', optional($product->courier)->hotline ?? '') }}" placeholder="Select a courier to see hotline">
+          <small class="form-text text-muted">The hotline comes from the courier record you select.</small>
+        </div>
+
+        <div class="form-group">
           <label for="condition">Condition</label>
           <select name="condition" class="form-control">
               <option value="">--Select Condition--</option>
@@ -233,6 +252,22 @@
 
 <script>
 
+
+    function syncCourierHotline() {
+      var select = document.getElementById('courier_id');
+      var hotline = document.getElementById('courier_hotline');
+      if (!select || !hotline) return;
+      var option = select.options[select.selectedIndex];
+      hotline.value = option ? (option.getAttribute('data-hotline') || '') : '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var courierSelect = document.getElementById('courier_id');
+      if (courierSelect) {
+        courierSelect.addEventListener('change', syncCourierHotline);
+        syncCourierHotline();
+      }
+    });
 
     // Multi-image file manager
     $('#lfm-multi').filemanager('image', {prefix: '/laravel-filemanager'});

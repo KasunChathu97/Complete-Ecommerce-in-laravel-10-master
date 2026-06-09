@@ -9,10 +9,10 @@ class Order extends Model
     protected $fillable=[
         'user_id','sales_staff_id','order_number','offline_receipt_no',
         'sub_total','quantity','delivery_charge','status','order_source',
-        'total_amount','first_name','last_name','country','post_code','address1','address2','phone','email',
+        'total_amount','first_name','last_name','country','post_code','address1','address2','address3','phone','email',
         'district',
         'payment_method','payment_gateway','payment_reference','payment_status',
-        'shipping_id','courier_name','courier_tracking_number','shipped_at','delivered_at',
+        'shipping_id','courier_id','courier_name','courier_tracking_number','shipped_at','delivered_at',
         'returned_at','return_reason',
         'social_platform','social_order_ref',
         'coupon','notes',
@@ -106,6 +106,12 @@ class Order extends Model
     public function shipping(){
         return $this->belongsTo(Shipping::class,'shipping_id');
     }
+
+    public function courier()
+    {
+        return $this->belongsTo(Courier::class, 'courier_id');
+    }
+
     public function user()
     {
         return $this->belongsTo('App\User', 'user_id');

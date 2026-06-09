@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Courier;
 use App\Models\SalesAdminProductStock;
 use App\Models\SalesAdminStockTransfer;
 
@@ -18,6 +19,17 @@ use App\Notifications\StatusNotification;
 
 class ProductController extends Controller
 {
+    private function isSalesAdmin(): bool
+    {
+        return auth()->check() && auth()->user()->role === 'sales_admin';
+    }
+
+    private function abortIfNotAdmin(): void
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+    }
 
     public function adminStockInfo($id)
     {
@@ -49,7 +61,7 @@ class ProductController extends Controller
     public function index()
     {
         // Load all products so DataTables can handle paging/search/length (e.g. "Show 100 entries").
-        $products = Product::with(['cat_info', 'sub_cat_info', 'brand'])
+        $products = Product::with(['cat_info', 'sub_cat_info', 'brand', 'courier'])
             ->withSum('salesAdminStocks as allocated_stock', 'quantity')
             ->orderByDesc('id')
             ->get();
@@ -63,9 +75,12 @@ class ProductController extends Controller
      */
     public function create()
     {
+        $this->abortIfNotAdmin();
+
         $brands = Brand::get();
         $categories = Category::where('is_parent', 1)->get();
-        return view('backend.product.create', compact('categories', 'brands'));
+        $couriers = Courier::orderBy('name')->get();
+        return view('backend.product.create', compact('categories', 'brands', 'couriers'));
     }
 
     /**
@@ -76,6 +91,8 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $this->abortIfNotAdmin();
+
         // NOTE: Do not wrap validation in try/catch; let Laravel redirect back with field errors.
         $validatedData = $request->validate([
             'title' => 'required|string',
@@ -91,6 +108,7 @@ class ProductController extends Controller
             'weight' => 'nullable|numeric|min:0',
             'cat_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
+            'courier_id' => 'nullable|exists:couriers,id',
             'child_cat_id' => 'nullable|exists:categories,id',
             'is_featured' => 'sometimes|in:1',
             'status' => 'required|in:active,inactive',
@@ -215,9 +233,17 @@ class ProductController extends Controller
         $brands = Brand::get();
         $product = Product::findOrFail($id);
         $categories = Category::where('is_parent', 1)->get();
+        $couriers = Courier::orderBy('name')->get();
+
+        if ($this->isSalesAdmin() && (int) ($product->seller_edit_count ?? 0) >= 1) {
+            return redirect()
+                ->route('product.index')
+                ->with('error', 'You can edit this product only once.');
+        }
+
         $items = Product::where('id', $id)->get();
 
-        return view('backend.product.edit', compact('product', 'brands', 'categories', 'items'));
+        return view('backend.product.edit', compact('product', 'brands', 'categories', 'items', 'couriers'));
     }
 
     public function transferStock(Request $request, $id)
@@ -318,6 +344,7 @@ class ProductController extends Controller
             'child_cat_id' => 'nullable|exists:categories,id',
             'is_featured' => 'sometimes|in:1',
             'brand_id' => 'nullable|exists:brands,id',
+            'courier_id' => 'nullable|exists:couriers,id',
             'status' => 'required|in:active,inactive',
             'condition' => 'required|in:default,new,hot',
             // Backwards compatible: old forms may still submit `price`
@@ -333,6 +360,12 @@ class ProductController extends Controller
         ]);
         // Force only percent type for bulk discount
         $validatedData['bulk_discount_amount_type'] = 'percent';
+
+        if ($this->isSalesAdmin() && (int) ($product->seller_edit_count ?? 0) >= 1) {
+            return redirect()
+                ->route('product.index')
+                ->with('error', 'You can edit this product only once.');
+        }
 
         $allocatedTotal = (int) SalesAdminProductStock::query()
             ->where('product_id', $product->id)
@@ -372,6 +405,10 @@ class ProductController extends Controller
 
         if (!$request->boolean('discount_enabled')) {
             $validatedData['discount'] = 0;
+        }
+
+        if ($this->isSalesAdmin()) {
+            $validatedData['seller_edit_count'] = ((int) ($product->seller_edit_count ?? 0)) + 1;
         }
 
         $sizeInput = $request->input('size');
@@ -435,6 +472,8 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
+        $this->abortIfNotAdmin();
+
         $product = Product::findOrFail($id);
         $status = $product->delete();
 

@@ -123,7 +123,7 @@ class HomeController extends Controller
 
     public function orderShow($id)
     {
-        $order = Order::with(['shipping', 'smsLogs' => function ($q) {
+        $order = Order::with(['shipping', 'cart.product', 'smsLogs' => function ($q) {
             $q->latest();
         }])
             ->where('id', $id)

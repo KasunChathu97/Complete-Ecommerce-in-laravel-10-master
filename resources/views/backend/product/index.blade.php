@@ -10,7 +10,9 @@
      </div>
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary float-left">Product Lists</h6>
-      <a href="{{route('product.create')}}" class="btn btn-primary btn-sm float-right" data-toggle="tooltip" data-placement="bottom" title="Add Product"><i class="fas fa-plus"></i> Add Product</a>
+      @if(auth()->check() && auth()->user()->role === 'admin')
+        <a href="{{route('product.create')}}" class="btn btn-primary btn-sm float-right" data-toggle="tooltip" data-placement="bottom" title="Add Product"><i class="fas fa-plus"></i> Add Product</a>
+      @endif
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -31,6 +33,7 @@
               <th>Bulk Discount Amount</th>
               <th>Condition</th>
               <th>Brand</th>
+              <th>Courier</th>
               <th>Main Stock</th>
               <th>Admin Stock</th>
               <th>Photo</th>
@@ -82,6 +85,12 @@
                       {{ optional($product->brand)->title ?? '-' }}
                     </td>
                     <td>
+                      {{ optional($product->courier)->name ?? '-' }}
+                      @if(!empty(optional($product->courier)->hotline))
+                        <small class="text-muted d-block">{{ optional($product->courier)->hotline }}</small>
+                      @endif
+                    </td>
+                    <td>
                       @if($product->stock>0)
                         <span class="badge badge-primary">{{$product->stock}}</span>
                       @else
@@ -118,12 +127,19 @@
                         @endif
                     </td>
                     <td>
-                      <a href="{{route('product.edit',$product->id)}}" class="btn btn-primary btn-sm mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="Edit" data-placement="bottom"><i class="fas fa-edit"></i></a>
-                      <form method="POST" action="{{route('product.destroy',[$product->id])}}" class="d-inline">
-                        @csrf
-                        @method('delete')
-                        <button class="btn btn-danger btn-sm dltBtn" data-id={{$product->id}} style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" data-placement="bottom" title="Delete"><i class="fas fa-trash-alt"></i></button>
-                      </form>
+                      @php $isSalesAdmin = auth()->check() && auth()->user()->role === 'sales_admin'; @endphp
+                      @if(!$isSalesAdmin || (int)($product->seller_edit_count ?? 0) < 1)
+                        <a href="{{route('product.edit',$product->id)}}" class="btn btn-primary btn-sm mr-1" style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" title="Edit" data-placement="bottom"><i class="fas fa-edit"></i></a>
+                      @else
+                        <span class="badge badge-warning">Edited once</span>
+                      @endif
+                      @if(!$isSalesAdmin)
+                        <form method="POST" action="{{route('product.destroy',[$product->id])}}" class="d-inline">
+                          @csrf
+                          @method('delete')
+                          <button class="btn btn-danger btn-sm dltBtn" data-id={{$product->id}} style="height:30px; width:30px;border-radius:50%" data-toggle="tooltip" data-placement="bottom" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                      @endif
                     </td>
                 </tr>
             @endforeach
@@ -181,7 +197,7 @@
         "columnDefs": [
           {
             "orderable": false,
-            "targets": [15, 17]
+            "targets": [16, 18]
           }
         ]
       });

@@ -44,8 +44,20 @@
       </div>
 
       <div class="form-group">
-        <label for="courier_name">Courier Name :</label>
-        <input type="text" name="courier_name" class="form-control" value="{{ old('courier_name', $order->courier_name) }}" placeholder="e.g. DHL / FedEx / Local Courier">
+        <label for="courier_id">Courier Name :</label>
+        <select name="courier_id" id="courier_id" class="form-control">
+          <option value="">-- Select Courier --</option>
+          @foreach(($couriers ?? []) as $courier)
+            <option value="{{ $courier->id }}" data-hotline="{{ $courier->hotline }}" {{ (string)old('courier_id', $order->courier_id) === (string)$courier->id ? 'selected' : '' }}>
+              {{ $courier->name }}
+            </option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="courier_hotline">Courier Hotline :</label>
+        <input type="text" id="courier_hotline" class="form-control" value="{{ old('courier_hotline', optional($order->courier)->hotline ?? '') }}" readonly placeholder="Hotline will appear here">
       </div>
 
       <div id="courier-tracking-fields">
@@ -153,8 +165,19 @@
     var returnContainer = document.getElementById('return-reason-fields');
     var reasonSelect = document.getElementById('return_reason_option');
     var reasonCustom = document.getElementById('return-reason-custom');
+    var courierSelect = document.getElementById('courier_id');
+    var courierHotline = document.getElementById('courier_hotline');
     if (!statusSelect || !container) {
       return;
+    }
+
+    function syncCourierHotline() {
+      if (!courierSelect || !courierHotline) {
+        return;
+      }
+
+      var option = courierSelect.options[courierSelect.selectedIndex];
+      courierHotline.value = option ? (option.getAttribute('data-hotline') || '') : '';
     }
 
     function toggleCourierFields() {
@@ -203,6 +226,11 @@
 
     if (reasonSelect) {
       reasonSelect.addEventListener('change', toggleReturnCustomReason);
+    }
+
+    if (courierSelect) {
+      courierSelect.addEventListener('change', syncCourierHotline);
+      syncCourierHotline();
     }
 
     toggleCourierFields();

@@ -79,9 +79,9 @@
                         @php
                             $settings=DB::table('settings')->get();
                         @endphp
-                        <a href="{{route('home')}}" style="display:flex;align-items:center;width:100%;height:48px;">
-                            <img src="@foreach($settings as $data) {{$data->logo}} @endforeach" alt="#" style="max-height:44px;max-width:60px;object-fit:contain;display:block;">
-                        </a>
+<a href="{{route('home')}}" style="display:flex;align-items:center;width:100%;height:48px;">
+    <img src="{{ $settings->first()->logo ?? asset('backend/img/logo3.png') }}" alt="#" style="max-height:44px;max-width:60px;object-fit:contain;display:block;">
+</a>
                         <span class="delimach-brand" style="font-size:20px;font-weight:700;letter-spacing:0.5px;margin:0 10px 0 4px;display:flex;align-items:center;">
                             <span style="color:#2F40A7;">D</span><span style="color:#fff;">elimach </span><span style="color:#FF282B;">L</span><span style="color:#fff;">anka</span>
                         </span>

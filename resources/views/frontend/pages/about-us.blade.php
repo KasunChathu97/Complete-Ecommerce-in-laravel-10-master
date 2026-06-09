@@ -38,8 +38,8 @@
 							@if(!empty($setting?->description))
 								{!! $setting->description !!}
 							@else
-								<p>Welcome to <strong>Delimach Lanka (Pvt) Ltd</strong>, Sri Lanka’s specialized online hub for advanced energy solutions, automotive excellence, and smart technology. Based in Kadawatha, we have evolved into a digital-first leader dedicated to delivering innovation directly to your doorstep—no matter how remote your location.</p>
-								<p>As an authorized <strong>sub-distributor for Shell Engine Oils</strong>, we combine the reliability of a global brand with our local expertise to serve online customers and our corporate network.</p>
+								<p>Welcome to <strong>Delimach Lanka (Pvt) Ltd</strong>, Sri Lankas specialized online hub for advanced energy solutions, automotive excellence, and smart technology. Based in Kadawatha, we have evolved into a digital-first leader dedicated to delivering innovation directly to your doorstep—no matter how remote your location.</p>
+<p>As an authorized <strong>sub-distributor for Shell Engine Oils</strong>, we combine the reliability of a global brand with our local expertise to serve online customers and our corporate network.</p>
 							@endif
 						</div>
 						<div class="button mt-4">
@@ -50,8 +50,7 @@
 				</div>
 				<div class="col-lg-6 col-12">
 					<div class="about-img overlay">
-						<img class="img-fluid about-us-img-reduced" src="{{ $setting->photo ?? '' }}" alt="Delimach Lanka (Pvt) Ltd">
-						<style>
+<img class="img-fluid about-us-img-reduced" src="{{ asset('backend/img/logo3.png') }}" alt="Delimach Lanka (Pvt) Ltd">						<style>
 						.about-us-img-reduced {
 							max-width: 340px;
 							max-height: 340px;

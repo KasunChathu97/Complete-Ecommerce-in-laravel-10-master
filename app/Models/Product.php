@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Cart;
+use App\Models\Courier;
 use App\Models\SalesAdminProductStock;
 class Product extends Model
 {
@@ -14,7 +15,9 @@ class Product extends Model
         'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type',
         'weight',
         'free_shipping',
-        'free_shipping_enabled'
+        'free_shipping_enabled',
+        'courier_id',
+        'seller_edit_count'
     ];
 
     protected $casts = [
@@ -88,6 +91,11 @@ class Product extends Model
 
     public function brand(){
         return $this->hasOne(Brand::class,'id','brand_id');
+    }
+
+    public function courier()
+    {
+        return $this->belongsTo(Courier::class, 'courier_id');
     }
 
     public function salesAdminStocks()

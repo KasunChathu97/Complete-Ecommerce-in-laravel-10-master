@@ -156,6 +156,25 @@
         </div>
 
         <div class="form-group">
+          <label for="courier_id">Courier</label>
+          <select name="courier_id" id="courier_id" class="form-control">
+              <option value="">--Select Courier--</option>
+              @foreach($couriers as $courier)
+                <option value="{{ $courier->id }}" data-hotline="{{ $courier->hotline }}" {{ old('courier_id') == $courier->id ? 'selected' : '' }}>{{ $courier->name }}</option>
+              @endforeach
+          </select>
+          @error('courier_id')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
+        <div class="form-group">
+          <label for="courier_hotline">Courier Hotline</label>
+          <input id="courier_hotline" type="text" class="form-control" readonly placeholder="Select a courier to see hotline">
+          <small class="form-text text-muted">The hotline comes from the courier record you select.</small>
+        </div>
+
+        <div class="form-group">
           <label for="condition">Condition</label>
           <select name="condition" class="form-control">
               <option value="">--Select Condition--</option>
@@ -241,6 +260,20 @@
 <script>
   // Show selected file name
   document.addEventListener('DOMContentLoaded', function() {
+    var courierSelect = document.getElementById('courier_id');
+    var courierHotline = document.getElementById('courier_hotline');
+
+    function syncCourierHotline() {
+      if (!courierSelect || !courierHotline) return;
+      var option = courierSelect.options[courierSelect.selectedIndex];
+      courierHotline.value = option ? (option.getAttribute('data-hotline') || '') : '';
+    }
+
+    if (courierSelect) {
+      courierSelect.addEventListener('change', syncCourierHotline);
+      syncCourierHotline();
+    }
+
     var input = document.getElementById('inputPhoto');
     if(input) {
       input.addEventListener('change', function(e) {

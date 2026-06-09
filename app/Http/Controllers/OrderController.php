@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Shipping;
 use App\Models\SmsLog;
+use App\Models\Courier;
 use App\User;
 use PDF;
 use Notification;
@@ -205,7 +206,8 @@ class OrderController extends Controller
             'first_name'=>'string|required',
             'last_name'=>'string|required',
             'address1'=>'string|required',
-            'address2'=>'string|nullable',
+            'address2'=>'string|required',
+            'address3'=>'string|required',
             'district' => 'required|string|max:255',
             'coupon'=>'nullable|numeric',
             'phone'=>'string|required|max:50|regex:/^\+?[0-9\s\-()]+$/',
@@ -255,6 +257,10 @@ class OrderController extends Controller
         if (empty($order_data['country'])) {
             $order_data['country'] = 'Sri Lanka';
         }
+
+        $order_data['address1'] = trim((string) ($order_data['address1'] ?? ''));
+        $order_data['address2'] = trim((string) ($order_data['address2'] ?? ''));
+        $order_data['address3'] = trim((string) ($order_data['address3'] ?? ''));
 
         // Generate sequential order number.
         // If collisions occur under concurrency, retry a few times.
@@ -534,7 +540,7 @@ class OrderController extends Controller
      */
     public function edit($id)
     {
-        $order=Order::find($id);
+        $order=Order::with('courier')->find($id);
 
         if ($order && auth()->check() && auth()->user()->role === 'sales_admin') {
             if ((int) $order->sales_staff_id !== (int) auth()->id()) {
@@ -551,9 +557,12 @@ class OrderController extends Controller
                 ->get(['id', 'name', 'email']);
         }
 
+        $couriers = Courier::orderBy('name')->get(['id', 'name', 'hotline']);
+
         return view('backend.order.edit', [
             'order' => $order,
             'salesAdmins' => $salesAdmins,
+            'couriers' => $couriers,
         ]);
     }
 
@@ -578,7 +587,7 @@ class OrderController extends Controller
 
         $this->validate($request,[
             'status'=>'required|in:new,pending,process,ship,delivered,returned,cancel',
-            'courier_name' => 'nullable|string|max:100',
+            'courier_id' => 'nullable|exists:couriers,id',
             'courier_tracking_number' => 'nullable|string|max:150',
             'payment_status' => 'nullable|in:paid,unpaid',
             'return_reason_option' => [
@@ -615,6 +624,13 @@ class OrderController extends Controller
         ]);
 
         $data=$request->all();
+
+        if (!empty($data['courier_id'])) {
+            $selectedCourier = Courier::find($data['courier_id']);
+            $data['courier_name'] = $selectedCourier ? $selectedCourier->name : null;
+        } else {
+            $data['courier_name'] = null;
+        }
 
         // Normalize legacy status.
         if (($data['status'] ?? null) === 'pending') {
