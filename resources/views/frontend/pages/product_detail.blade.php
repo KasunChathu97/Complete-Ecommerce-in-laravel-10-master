@@ -41,63 +41,54 @@
 					<div class="col-12">
 						<div class="row">
 							<div class="col-lg-5 col-12">
-								<!-- Product Slider -->
-								<div class="product-gallery shadow rounded p-2 position-relative" style="background:#fff;">
-									<!-- Product Badge -->
-									@if($product_detail->discount>0)
-										<span class="badge badge-danger position-absolute" style="top:15px;left:15px;font-size:1rem;z-index:2;">{{$product_detail->discount}}% OFF</span>
-									@elseif(now()->diffInDays($product_detail->created_at) < 30)
-										<span class="badge badge-success position-absolute" style="top:15px;left:15px;font-size:1rem;z-index:2;">New</span>
-									@endif
-									<!-- Main Image Slider -->
-									<div id="product-main-slider" class="flexslider">
-										<ul class="slides">
-											@php
-												$photos=[];
-												foreach(explode(',', (string) $product_detail->photo) as $p){
-													$p=trim($p);
-													if(!$p) continue;
-													if(!preg_match('~^https?://~i', $p) && substr($p,0,1) !== '/') {
-														$p = '/'.$p;
+								<!-- Product Gallery -->
+								<div class="product-gallery-new">
+									<!-- Main Image Display -->
+									<div class="main-image-container shadow-sm">
+										@if($product_detail->discount>0)
+											<span class="badge badge-danger discount-badge-new">{{$product_detail->discount}}% OFF</span>
+										@elseif(now()->diffInDays($product_detail->created_at) < 30)
+											<span class="badge badge-success discount-badge-new">New</span>
+										@endif
+										
+										@php
+											$photos=[];
+											foreach(explode(',', (string) $product_detail->photo) as $p){
+												$p=trim($p);
+												if(!$p) continue;
+												if(!preg_match('~^https?://~i', $p) && substr($p,0,1) !== '/') {
+													$p = '/'.$p;
+												}
+												if(!preg_match('~^https?://~i', $p)) {
+													$cleanPath = ltrim($p, '/');
+													if (file_exists(public_path($cleanPath))) {
+														$p .= '?t=' . filemtime(public_path($cleanPath));
+														$photos[]=$p;
 													}
+												} else {
 													$photos[]=$p;
 												}
-												if(empty($photos)){
-													$photos[] = asset('backend/img/logo3.png');
-												}
-											@endphp
-											@foreach($photos as $img)
-												<li>
-													<a href="{{$img}}" class="product-image-popup" title="{{$product_detail->title}}">
-														<img src="{{$img}}" alt="{{$product_detail->title}}" style="width:100%;max-height:400px;object-fit:contain;">
-													</a>
-												</li>
-											@endforeach
-										<style>
-											.product-image-caption {
-												margin-top: 10px;
-												text-align: center;
-												font-size: 15px;
-												color: #444;
-												line-height: 1.5;
-												background: #f8f9fa;
-												padding: 8px 12px;
-												border-radius: 4px;
-												min-height: 40px;
 											}
-										</style>
-										</ul>
+											if(empty($photos)){
+												$photos[] = asset('backend/img/logo3.png');
+											}
+										@endphp
+
+										<a href="{{ $photos[0] }}" class="product-image-popup-link" id="main-image-link">
+											<img src="{{ $photos[0] }}" id="main-product-image" alt="{{$product_detail->title}}">
+										</a>
 									</div>
-									<!-- Thumbnail Navigation Slider -->
-									<div id="product-thumb-slider" class="flexslider flexslider-thumbnails" style="margin-top:15px;">
-										<ul class="slides">
-											@foreach($photos as $img)
-												<li>
-													<img src="{{$img}}" alt="{{$product_detail->title}}" class="thumb-img" style="height:70px;width:70px;object-fit:cover;border:2px solid #eee;border-radius:4px;cursor:pointer;transition:box-shadow .2s;">
-												</li>
-											@endforeach
-										</ul>
+
+									<!-- Thumbnails List -->
+									@if(count($photos) > 1)
+									<div class="thumbnails-container-new">
+										@foreach($photos as $index => $img)
+											<div class="thumbnail-item-new {{ $index === 0 ? 'active' : '' }}" data-src="{{ $img }}">
+												<img src="{{ $img }}" alt="Thumbnail {{ $index + 1 }}">
+											</div>
+										@endforeach
 									</div>
+									@endif
 								</div>
 								<!-- End Product slider -->
 
@@ -470,6 +461,14 @@
 												if($firstPhoto && !preg_match('~^https?://~i',$firstPhoto) && substr($firstPhoto,0,1) !== '/') {
 													$firstPhoto='/' . $firstPhoto;
 												}
+												if($firstPhoto && !preg_match('~^https?://~i',$firstPhoto)) {
+													$cleanPhoto = ltrim($firstPhoto, '/');
+													if(file_exists(public_path($cleanPhoto))) {
+														$firstPhoto .= '?t=' . filemtime(public_path($cleanPhoto));
+													} else {
+														$firstPhoto .= '?t=' . time();
+													}
+												}
 											@endphp
 															<img class="default-img" src="{{$firstPhoto}}" alt="{{$data->title}}">
 															<img class="hover-img" src="{{$firstPhoto}}" alt="{{$data->title}}">
@@ -523,6 +522,14 @@
 																		if(!$p) continue;
 																		if(!preg_match('~^https?://~i', $p) && substr($p,0,1) !== '/') {
 																			$p='/' . $p;
+																		}
+																		if(!preg_match('~^https?://~i', $p)) {
+																			$cleanP = ltrim($p, '/');
+																			if(file_exists(public_path($cleanP))) {
+																				$p .= '?t=' . filemtime(public_path($cleanP));
+																			} else {
+																				$p .= '?t=' . time();
+																			}
 																		}
 																		$modalPhotos[]=$p;
 																	}
@@ -682,53 +689,194 @@
 			align-items: center;
 			justify-content: center;
 		}
+
+		/* Modern Image Gallery Styling */
+		.product-gallery-new {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+		}
+		.main-image-container {
+			position: relative;
+			width: 100%;
+			height: 450px;
+			background: #fff;
+			border-radius: 12px;
+			overflow: hidden;
+			border: 1px solid #eaeaea;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			cursor: zoom-in;
+			transition: box-shadow 0.3s ease;
+		}
+		.main-image-container:hover {
+			box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+		}
+		.discount-badge-new {
+			position: absolute;
+			top: 15px;
+			left: 15px;
+			font-size: 0.9rem;
+			z-index: 10;
+			padding: 6px 12px;
+			border-radius: 6px;
+			font-weight: 600;
+			box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+		}
+		.main-image-container a {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 100%;
+		}
+		.main-image-container img {
+			max-width: 95%;
+			max-height: 95%;
+			object-fit: contain;
+			transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+			transform-origin: center center;
+		}
+		.thumbnails-container-new {
+			display: flex;
+			gap: 12px;
+			margin-top: 15px;
+			padding: 5px 2px;
+			overflow-x: auto;
+			scrollbar-width: thin;
+			scrollbar-color: #F7941D #f1f1f1;
+		}
+		/* Custom Scrollbar for Thumbnails */
+		.thumbnails-container-new::-webkit-scrollbar {
+			height: 6px;
+		}
+		.thumbnails-container-new::-webkit-scrollbar-track {
+			background: #f1f1f1;
+			border-radius: 10px;
+		}
+		.thumbnails-container-new::-webkit-scrollbar-thumb {
+			background: #F7941D;
+			border-radius: 10px;
+		}
+		.thumbnail-item-new {
+			flex: 0 0 75px;
+			width: 75px;
+			height: 75px;
+			border-radius: 8px;
+			overflow: hidden;
+			border: 2px solid #eaeaea;
+			background: #fff;
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+			box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.thumbnail-item-new img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform 0.3s ease;
+		}
+		.thumbnail-item-new:hover {
+			transform: translateY(-3px) scale(1.05);
+			border-color: #F7941D;
+			box-shadow: 0 6px 12px rgba(247, 148, 29, 0.2);
+		}
+		.thumbnail-item-new:hover img {
+			transform: scale(1.1);
+		}
+		.thumbnail-item-new.active {
+			border-color: #F7941D;
+			box-shadow: 0 0 0 3px rgba(247, 148, 29, 0.15);
+		}
+
+		/* Responsive gallery tweaks */
+		@media (max-width: 767px) {
+			.main-image-container {
+				height: 320px;
+			}
+			.thumbnail-item-new {
+				flex: 0 0 65px;
+				width: 65px;
+				height: 65px;
+			}
+		}
 	</style>
 @endpush
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
-<script src="/frontend/js/flex-slider.js"></script>
 <script src="/frontend/js/magnific-popup.js"></script>
-<link rel="stylesheet" href="/frontend/css/flex-slider.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css" />
-<style>
-	#product-main-slider .slides img { width: 100%; max-height: 400px; object-fit: contain; }
-	#product-thumb-slider .slides img { height: 70px; width: 70px; object-fit: cover; border: 2px solid #eee; border-radius: 4px; cursor: pointer; }
-	#product-thumb-slider .flex-active-slide img { border: 2px solid #007bff; }
-</style>
 <script>
 $(document).ready(function() {
-	// FlexSlider main + thumbnail nav
-	$('#product-main-slider').flexslider({
-		animation: "slide",
-		controlNav: false,
-		animationLoop: false,
-		slideshow: false,
-		sync: "#product-thumb-slider"
+	const mainContainer = document.querySelector('.main-image-container');
+	const mainImage = document.querySelector('#main-product-image');
+	const mainImgLink = document.querySelector('#main-image-link');
+	const thumbnails = document.querySelectorAll('.thumbnail-item-new');
+
+	// Hover zoom/pan effect for the main image
+	if (mainContainer && mainImage) {
+		mainContainer.addEventListener('mousemove', function(e) {
+			const rect = mainContainer.getBoundingClientRect();
+			const x = ((e.clientX - rect.left) / rect.width) * 100;
+			const y = ((e.clientY - rect.top) / rect.height) * 100;
+			
+			mainImage.style.transformOrigin = `${x}% ${y}%`;
+			mainImage.style.transform = 'scale(1.5)';
+		});
+		
+		mainContainer.addEventListener('mouseleave', function() {
+			mainImage.style.transform = 'scale(1)';
+			mainImage.style.transformOrigin = 'center center';
+		});
+	}
+
+	// Switch main image when hovering/clicking thumbnails
+	thumbnails.forEach(thumb => {
+		const switchImage = function() {
+			const newSrc = thumb.getAttribute('data-src');
+			if (mainImage.getAttribute('src') !== newSrc) {
+				mainImage.style.opacity = '0.3';
+				setTimeout(() => {
+					mainImage.setAttribute('src', newSrc);
+					mainImgLink.setAttribute('href', newSrc);
+					mainImage.style.opacity = '1';
+				}, 100);
+				
+				thumbnails.forEach(t => t.classList.remove('active'));
+				thumb.classList.add('active');
+			}
+		};
+		
+		thumb.addEventListener('mouseenter', switchImage);
+		thumb.addEventListener('click', switchImage);
 	});
-	$('#product-thumb-slider').flexslider({
-		animation: "slide",
-		controlNav: false,
-		animationLoop: false,
-		slideshow: false,
-		itemWidth: 70,
-		itemMargin: 8,
-		asNavFor: '#product-main-slider'
-	});
-	// Show main image on thumbnail hover
-	$('#product-thumb-slider .slides li').on('mouseenter', function() {
-		var idx = $(this).index();
-		$('#product-main-slider').flexslider(idx);
-	});
-	// Magnific Popup for gallery
-	$('#product-main-slider').magnificPopup({
-		delegate: 'a.product-image-popup',
-		type: 'image',
-		gallery: { enabled: true },
-		mainClass: 'mfp-fade',
-		removalDelay: 300,
-		closeOnContentClick: false,
-		closeBtnInside: false
+
+	// Array of all photo URLs for Magnific Popup Lightbox (only existing photos)
+	const galleryImages = @json($photos);
+
+	$('.product-image-popup-link').on('click', function(e) {
+		e.preventDefault();
+		
+		const activeSrc = $('#main-product-image').attr('src');
+		const cleanActiveSrc = activeSrc.split('?')[0];
+		
+		let activeIndex = galleryImages.findIndex(img => img.split('?')[0] === cleanActiveSrc);
+		if (activeIndex === -1) activeIndex = 0;
+		
+		$.magnificPopup.open({
+			items: galleryImages.map(img => ({ src: img, title: '{{$product_detail->title}}' })),
+			gallery: { enabled: true },
+			type: 'image',
+			mainClass: 'mfp-fade',
+			removalDelay: 300,
+			startAt: activeIndex
+		});
 	});
 });
 </script>
