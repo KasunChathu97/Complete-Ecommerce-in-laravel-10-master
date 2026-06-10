@@ -102,17 +102,25 @@
                 <div class="col-lg-4 col-md-12 col-12 d-flex justify-content-end align-items-center">
                     <!-- Top Right -->
                     <div class="right-content">
-                        <ul class="list-main" style="display:flex;align-items:center;gap:18px;margin-bottom:0;">
-                            <li><i class="ti-location-pin"></i> <a href="{{route('order.track')}}">Track Order</a></li>
+                        <ul class="list-main" style="display:flex;align-items:center;gap:18px;margin-bottom:0;flex-wrap:nowrap;">
+                            <li style="display:inline-flex;align-items:center;white-space:nowrap;"><i class="ti-location-pin" style="margin-right:4px;"></i> <a href="{{route('order.track')}}">Track Order</a></li>
                             @auth 
-                                @if(Auth::user()->role=='admin')
-                                    <li><i class="ti-user"></i> <a href="{{route('user')}}"  target="_blank">Dashboard</a></li>
-                                @else 
-                                    <li><i class="ti-user"></i> <a href="{{route('user')}}"  target="_blank">Dashboard</a></li>
-                                @endif
-                                <li><i class="ti-power-off"></i> <a href="{{route('user.logout')}}">Logout</a></li>
+                                @php
+                                    $dashboardRoute = in_array(Auth::user()->role, ['admin', 'sales_admin']) ? route('admin') : route('user');
+                                @endphp
+                                <li style="display:inline-flex;align-items:center;white-space:nowrap;border-right:none !important;">
+                                    <a href="{{ $dashboardRoute }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 500; white-space: nowrap;">
+                                        @if(Auth::user()->photo)
+                                            <img src="{{ Auth::user()->photo }}" alt="profile" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid #f7941d; vertical-align: middle;">
+                                        @else
+                                            <img src="{{ asset('backend/img/avatar.png') }}" alt="profile" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid #f7941d; vertical-align: middle;">
+                                        @endif
+                                        <span style="vertical-align: middle;">{{ Auth::user()->name }}</span>
+                                    </a>
+                                </li>
+                                <li style="display:inline-flex;align-items:center;white-space:nowrap;"><i class="ti-power-off" style="margin-right:4px;"></i> <a href="{{route('user.logout')}}">Logout</a></li>
                             @else
-                                <li><i class="ti-power-off"></i><a href="{{route('login.form')}}">Login /</a> <a href="{{route('register.form')}}">Register</a></li>
+                                <li style="display:inline-flex;align-items:center;white-space:nowrap;"><i class="ti-power-off" style="margin-right:4px;"></i><a href="{{route('login.form')}}">Login /</a> <a href="{{route('register.form')}}">Register</a></li>
                             @endauth
                             <li style="padding:0;margin:0;">
                                 <a href="{{route('cart')}}" style="color:#fff;display:flex;align-items:center;height:60px;">

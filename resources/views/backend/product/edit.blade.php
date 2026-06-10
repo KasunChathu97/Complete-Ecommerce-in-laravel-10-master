@@ -205,17 +205,24 @@
 
         <div class="form-group">
           <label for="inputPhoto" class="col-form-label">Photos <span class="text-danger">*</span></label>
-          <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <input type="hidden" name="remaining_photos" id="remainingPhotosInput" value="{{ $product->photo }}">
+          <div id="existingPhotosContainer" style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
             @php $photos = $product->photo ? explode(',', $product->photo) : []; @endphp
             @foreach($photos as $img)
-              <img src="{{$img}}" style="max-height:80px; max-width:80px; object-fit:cover; border:1px solid #ddd; border-radius:4px;">
+              @if($img)
+                <div class="existing-photo-item" data-src="{{ $img }}" style="position:relative; width:80px; height:80px; border-radius:4px; overflow:hidden; border:1px solid #ddd;">
+                  <img src="{{$img}}" style="width:100%; height:100%; object-fit:cover;">
+                  <button type="button" class="btn-remove-existing" style="position:absolute; top:2px; right:2px; background:rgba(231,76,60,0.9); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; line-height:16px; text-align:center; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;">×</button>
+                </div>
+              @endif
             @endforeach
           </div>
           <div class="custom-file mb-2">
             <input id="inputPhoto" type="file" name="photo[]" accept="image/*" class="custom-file-input" multiple>
             <label class="custom-file-label" for="inputPhoto">Choose New Photos (optional)</label>
           </div>
-          <small class="form-text text-muted">Existing images are shown above. You can add more by selecting files. All images will be combined on save.</small>
+          <div id="newImagePreviewContainer" class="d-flex flex-wrap gap-2" style="margin-top: 10px; margin-bottom: 10px;"></div>
+          <small class="form-text text-muted">Manage existing images above (click × to remove). You can also upload additional files by selecting new ones below.</small>
           @if($errors->has('photo') || $errors->has('photo.*'))
           <span class="text-danger">{{ $errors->first('photo') ?: $errors->first('photo.*') }}</span>
           @endif
@@ -266,6 +273,75 @@
       if (courierSelect) {
         courierSelect.addEventListener('change', syncCourierHotline);
         syncCourierHotline();
+      }
+
+      // Handle existing photo deletion
+      var remainingInput = document.getElementById('remainingPhotosInput');
+      var existingContainer = document.getElementById('existingPhotosContainer');
+      if(existingContainer && remainingInput) {
+        existingContainer.addEventListener('click', function(e) {
+          if(e.target.classList.contains('btn-remove-existing')) {
+            var item = e.target.closest('.existing-photo-item');
+            if(item) {
+              var src = item.getAttribute('data-src');
+              var remaining = (remainingInput.value || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+              var index = remaining.indexOf(src);
+              if(index > -1) {
+                remaining.splice(index, 1);
+              }
+              remainingInput.value = remaining.join(',');
+              item.remove();
+            }
+          }
+        });
+      }
+
+      // Handle new photo previews
+      var input = document.getElementById('inputPhoto');
+      var newPreviewContainer = document.getElementById('newImagePreviewContainer');
+      if(input && newPreviewContainer) {
+        input.addEventListener('change', function(e) {
+          var files = e.target.files;
+          newPreviewContainer.innerHTML = '';
+          
+          // Update label
+          var label = input.nextElementSibling;
+          if (label) {
+            if (files.length > 1) {
+              label.innerText = files.length + ' files selected';
+            } else if (files.length === 1) {
+              label.innerText = files[0].name;
+            } else {
+              label.innerText = 'Choose New Photos (optional)';
+            }
+          }
+          
+          // Generate previews
+          Array.from(files).forEach(function(file) {
+            if (file.type.startsWith('image/')) {
+              var reader = new FileReader();
+              reader.onload = function(event) {
+                var div = document.createElement('div');
+                div.style.position = 'relative';
+                div.style.width = '80px';
+                div.style.height = '80px';
+                div.style.borderRadius = '4px';
+                div.style.overflow = 'hidden';
+                div.style.border = '1px solid #ddd';
+                
+                var img = document.createElement('img');
+                img.src = event.target.result;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                
+                div.appendChild(img);
+                newPreviewContainer.appendChild(div);
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        });
       }
     });
 

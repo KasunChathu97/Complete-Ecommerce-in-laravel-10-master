@@ -203,10 +203,11 @@
         </div>
         <div class="form-group">
           <label for="inputPhoto" class="col-form-label">Photos <span class="text-danger">*</span></label>
-          <div class="custom-file">
+          <div class="custom-file mb-2">
             <input id="inputPhoto" type="file" name="photo[]" accept="image/*" class="custom-file-input" multiple>
             <label class="custom-file-label" for="inputPhoto">Choose Photos</label>
           </div>
+          <div id="imagePreviewContainer" class="d-flex flex-wrap gap-2" style="margin-top: 10px;"></div>
           @if($errors->has('photo') || $errors->has('photo.*'))
           <span class="text-danger">{{ $errors->first('photo') ?: $errors->first('photo.*') }}</span>
           @endif
@@ -275,11 +276,51 @@
     }
 
     var input = document.getElementById('inputPhoto');
+    var previewContainer = document.getElementById('imagePreviewContainer');
     if(input) {
       input.addEventListener('change', function(e) {
-        var fileName = e.target.files[0] ? e.target.files[0].name : 'Choose Photo';
+        var files = e.target.files;
+        
+        // Update label
         var label = input.nextElementSibling;
-        if(label) label.innerText = fileName;
+        if (label) {
+          if (files.length > 1) {
+            label.innerText = files.length + ' files selected';
+          } else if (files.length === 1) {
+            label.innerText = files[0].name;
+          } else {
+            label.innerText = 'Choose Photos';
+          }
+        }
+        
+        // Update preview
+        if (previewContainer) {
+          previewContainer.innerHTML = '';
+          Array.from(files).forEach(function(file) {
+            if (file.type.startsWith('image/')) {
+              var reader = new FileReader();
+              reader.onload = function(event) {
+                var div = document.createElement('div');
+                div.style.position = 'relative';
+                div.style.width = '80px';
+                div.style.height = '80px';
+                div.style.borderRadius = '4px';
+                div.style.overflow = 'hidden';
+                div.style.border = '1px solid #ddd';
+                
+                var img = document.createElement('img');
+                img.src = event.target.result;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                
+                div.appendChild(img);
+                previewContainer.appendChild(div);
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
       });
     }
   });

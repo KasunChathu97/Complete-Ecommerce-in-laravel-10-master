@@ -429,8 +429,8 @@ class ProductController extends Controller
             $validatedData['weight'] = 0;
         }
 
-        // Handle new image uploads and merge with existing
-        $existingImages = $product->photo ? explode(',', $product->photo) : [];
+        // Handle new image uploads and merge with remaining existing images
+        $remainingPhotos = $request->input('remaining_photos');
         $newImages = [];
         if($request->hasFile('photo')) {
             foreach($request->file('photo') as $file) {
@@ -440,8 +440,19 @@ class ProductController extends Controller
                 }
             }
         }
+        $existingImages = $remainingPhotos ? explode(',', $remainingPhotos) : [];
         $allImages = array_merge($existingImages, $newImages);
-        $validatedData['photo'] = implode(',', array_filter($allImages));
+        $finalPhotos = array_filter(array_map('trim', $allImages));
+
+        if (empty($finalPhotos)) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['photo' => 'At least one product photo is required.'])
+                ->with('error', 'Product not updated. At least one product photo is required.');
+        }
+
+        $validatedData['photo'] = implode(',', $finalPhotos);
 
             $status = $product->update($validatedData);
 
