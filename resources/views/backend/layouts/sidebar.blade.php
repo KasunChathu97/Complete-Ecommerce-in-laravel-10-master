@@ -97,11 +97,11 @@
             <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#catalogCollapse" aria-expanded="true" aria-controls="catalogCollapse">
         <i class="fas fa-cubes"></i>
-        <span>Catalog</span>
+        <span>Products</span>
       </a>
       <div id="catalogCollapse" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Catalog Options:</h6>
+          <h6 class="collapse-header">Products Options:</h6>
           <a class="collapse-item" href="{{ route('product.index') }}">Products</a>
           @if($isAdminOnly)
             <a class="collapse-item" href="{{ route('product.create') }}">Add Product</a>
