@@ -286,6 +286,14 @@
 															<div class="col-12">
 																<div class="single-des">
 																	<p>{!! ($product_detail->description) !!}</p>
+																	@if(!empty($product_detail->see_more_description))
+																	<div class="full-description-container" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+																		<div class="full-description-content">
+																			{!!($product_detail->see_more_description)!!}
+																		</div>
+																	</div>
+																	<a href="javascript:void(0)" class="see-more-btn" style="color: #F7941D; font-size: 1.05rem; font-weight: bold; display: inline-block; margin-top: 10px;">See More...</a>
+																	@endif
 																</div>
 															</div>
 														</div>
@@ -877,6 +885,17 @@ $(document).ready(function() {
 			removalDelay: 300,
 			startAt: activeIndex
 		});
+	});
+
+	$('.see-more-btn').on('click', function(e) {
+		e.preventDefault();
+		var container = $(this).prev('.full-description-container');
+		container.slideToggle(300);
+		if ($(this).text() === 'See More...') {
+			$(this).text('See Less...');
+		} else {
+			$(this).text('See More...');
+		}
 	});
 });
 </script>

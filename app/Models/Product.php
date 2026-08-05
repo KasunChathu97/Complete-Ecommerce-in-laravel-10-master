@@ -11,7 +11,7 @@ class Product extends Model
     protected $appends = ['product_number'];
 
     protected $fillable=[
-        'title','slug','summary','description','youtube_link','cat_id','child_cat_id','price','purchase_price','sale_price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
+        'title','slug','summary','description','see_more_description','youtube_link','cat_id','child_cat_id','price','purchase_price','sale_price','wholesale_price','wholesale_min_qty','brand_id','discount','status','photo','size','stock','is_featured','condition','warranty','returns',
         'bulk_discount_type','bulk_discount_threshold','bulk_discount_amount','bulk_discount_amount_type',
         'weight',
         'free_shipping',

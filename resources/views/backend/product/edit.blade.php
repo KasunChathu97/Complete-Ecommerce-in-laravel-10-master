@@ -41,6 +41,14 @@
         </div>
 
         <div class="form-group">
+          <label for="see_more_description" class="col-form-label">See More Description</label>
+          <textarea class="form-control" id="see_more_description" name="see_more_description">{{$product->see_more_description}}</textarea>
+          @error('see_more_description')
+          <span class="text-danger">{{$message}}</span>
+          @enderror
+        </div>
+
+        <div class="form-group">
           <label for="youtube_link" class="col-form-label">YouTube Link</label>
           <input id="youtube_link" type="text" name="youtube_link" placeholder="https://www.youtube.com/watch?v=..." value="{{ old('youtube_link', $product->youtube_link) }}" class="form-control">
           @error('youtube_link')
@@ -381,6 +389,14 @@
     $(document).ready(function() {
       $('#description').summernote({
         placeholder: "Write detail Description.....",
+          tabsize: 2,
+          height: 150
+      });
+    });
+
+    $(document).ready(function() {
+      $('#see_more_description').summernote({
+        placeholder: "Write see more description.....",
           tabsize: 2,
           height: 150
       });
